@@ -30,7 +30,7 @@ npm install -g @angular/cli
 
 ## Development server
 
-Run `cd src/main/angular` and then `ng serve` for a development server (*labbcat-admin* is the default app). Then
+Run `cd src/main/angular` and then `ng serve <app>` for a development server. Then
 navigate to `http://localhost:4200/`. The app will automatically reload if you change any
 of the source files. 
 

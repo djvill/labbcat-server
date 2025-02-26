@@ -36,11 +36,15 @@ The user interface is broken into three angular apps
 - *labbcat-edit* - for 'read-write' functions available to users with 'edit' access, and
 - *labbcat-admin* - for administration functions available to users with 'admin' access.
 
+These depend on a common library:
+
+- *labbcat-common*
+
 ### Dependencies
 
 1. Node and npm
-2. Angular CLI
-   `npm install -g @angular/cli`
+2. npm dependencies
+   `cd user-interface/src/main/angular ; npm install`
 2. *xmllint*, *head*, and *tail* for collating i18n resources
 
 ### Debugging / Development
@@ -50,10 +54,8 @@ The user interface is broken into three angular apps
 2. Ensure your local LaBB-CAT instance has user authentication disabled and the CORS filter
 enabled in  ${config.local-labbcat-path}/WEB-INF/web.xml
 3. `cd user-interface/src/main/angular`
-4. `ng serve`
-
-The default app is *labbcat-admin*. To serve the view/edit apps,
-use `ng serve labbcat-view` or `ng serve labbcat-edit` (respectively)
+1. `ng build labbcat-common`
+4. `ng serve <app>`, where `<app>` is `labbcat-view`, `labbcat-edit`, or `labbcat-admin`
 
 ### Internationalization/Localization
 
@@ -106,7 +108,11 @@ If you get an error something like:
 ...it means that the *esbuild* command is not marked as executable on your system. To fix that:
 
 ```
+#Linux
 chmod a+x user-interface/target/angular/node_modules/@esbuild/linux-x64/bin/esbuild
+#Windows
+chmod a+x user-interface/target/angular/node_modules/@esbuild/win32-x64/esbuild
+#etc.
 ```
 
 ## Wysiwiki

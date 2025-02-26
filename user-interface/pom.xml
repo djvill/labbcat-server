@@ -51,14 +51,6 @@
               <arguments>install</arguments>
             </configuration>
           </execution>
-
-          <execution><!-- for some reason 'esbuild' isn't marked as executable during install -->
-            <id>esbuild-executable</id>
-            <phase>initialize</phase>
-            <goals><goal>npm</goal></goals>
-            <configuration><arguments>run esbuild-executable</arguments></configuration>
-          </execution>
-          
           <execution>
             <id>user-interface-common</id>
             <phase>compile</phase>

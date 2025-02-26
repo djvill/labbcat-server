@@ -83,16 +83,16 @@ export class TranscriptComponent implements OnInit {
     }
     
     ngOnInit() : void {        
-        this.readUserInfo().then(()=>{
-            this.readBaseUrl().then(()=>{
-                this.setCorrectionsEnabled();
+        this.route.queryParams.subscribe((params) => {
+            this.id = params["id"]||params["transcript"]||params["ag_id"];
+            this.threadId = params["threadId"];
+            this.readUserInfo().then(()=>{
+                this.readBaseUrl().then(()=>{
+                    this.setCorrectionsEnabled();
+                });
             });
-        });
-        this.readSerializers();
-        this.readSchema().then(() => {
-            this.route.queryParams.subscribe((params) => {
-                this.id = params["id"]||params["transcript"]||params["ag_id"];
-                this.threadId = params["threadId"];
+            this.readSerializers();
+            this.readSchema().then(() => {
                 this.readTranscript().then(()=>{ // some have to wait until transcript is loaded
                     // preselect layers?
                     let layerIds = params["layerId"]||params["l"]
@@ -259,8 +259,10 @@ export class TranscriptComponent implements OnInit {
             this.schema.turnLayerId,
             this.schema.utteranceLayerId,
             this.schema.wordLayerId,
-            // unnofficial layers to link to neighbors
-            "previous-transcript", "next-transcript", "audio_prompt"
+            // unnofficial layers:
+            "previous-transcript", "next-transcript", // link to neighbors
+            "audio_prompt", // 'Insert CD99' or whatever
+            "divergent" // has the transcript changed since upload?
         ];
         return new Promise((resolve, reject) => {
             this.labbcatService.labbcat.getTranscript(
@@ -275,6 +277,8 @@ export class TranscriptComponent implements OnInit {
                         reject();
                     } else { // valid transcript
                         this.transcript = this.labbcatService.annotationGraph(transcript);
+                        // id might have been ag_id or something else non-canonical, correct it:
+                        this.id = this.transcript.id;
                         this.parseTranscript();
                         
                         // grey out empty layers
@@ -617,6 +621,12 @@ export class TranscriptComponent implements OnInit {
             this.selectedLayerIds = selectedLayerIds;
             // and remember the selections for next time
             sessionStorage.setItem("selectedLayerIds", JSON.stringify(this.selectedLayerIds));
+            // if there's a highlight, make sure it scrolls back into view after the layer changes
+            if (this.highlitId) {
+                setTimeout(()=>{ // give the UI a chance to update
+                    this.highlight(this.highlitId);
+                }, 200);
+            }
         });
     }
 
@@ -1184,6 +1194,17 @@ export class TranscriptComponent implements OnInit {
         } // not Firefox, assume Chrome-like browser
     }
 
+    divergentCheck(): boolean {
+        if (this.transcript.first('divergent')) {
+            return confirm(
+                "⚠ The text of this transcript may have changed since the original file was uploaded,"
+                    +" and these more recent changes are not in the original file."
+                    +"\n\nAre you sure you want to download the original file?");
+        } else {
+            return true;
+        }
+    }
+
     /** Opens a download for the given URI */
     downloadURI(uri: string): void {
         const link = document.createElement("a");
@@ -1364,37 +1385,39 @@ export class TranscriptComponent implements OnInit {
 
     /** Import changes from Praat */
     praatImportChanges(): void {
-        this.getAuthorization().then((authorization: string)=>{
-            const uploadUrl = this.baseUrl+"edit/uploadFragment";
-            this.praatService.upload(
-                [ // script
-                    "select TextGrid "+this.praatUtteranceName,
-                    "Write to text file... "+this.textGridUrl
-                ], uploadUrl, // URL to upload to
-                "uploadfile", // name of file HTTP parameter
-                this.textGridUrl, // original URL for the file to upload
-                { automaticMapping: "true", todo: "upload" }, // extra HTTP request parameters
-                authorization).then((code: string)=>{
-                    if (code == "0") {
-                        this.praatUtterance = null;
-                    }
-                    this.praatProgress = {
-                        message: "",
-                        value: 100,
-                        maximum: 100,
-                        code: code
-                    }
-                }).catch((error: string)=>{
-                    console.log(`upload error ${error}`);
-                    this.praatProgress = {
-                        message: "",
-                        value: 100,
-                        maximum: 100,
-                        code: error,
-                        error: error
-                    }
-                });
-        });
+        if (this.user.roles.includes("edit")) {
+            this.getAuthorization().then((authorization: string)=>{
+                const uploadUrl = this.baseUrl+"edit/uploadFragment";
+                this.praatService.upload(
+                    [ // script
+                        "select TextGrid "+this.praatUtteranceName,
+                        "Write to text file... "+this.textGridUrl
+                    ], uploadUrl, // URL to upload to
+                    "uploadfile", // name of file HTTP parameter
+                    this.textGridUrl, // original URL for the file to upload
+                    { automaticMapping: "true", todo: "upload" }, // extra HTTP request parameters
+                    authorization).then((code: string)=>{
+                        if (code == "0") {
+                            this.praatUtterance = null;
+                        }
+                        this.praatProgress = {
+                            message: "",
+                            value: 100,
+                            maximum: 100,
+                            code: code
+                        }
+                    }).catch((error: string)=>{
+                        console.log(`upload error ${error}`);
+                        this.praatProgress = {
+                            message: "",
+                            value: 100,
+                            maximum: 100,
+                            code: error,
+                            error: error
+                        }
+                    });
+            });
+        } // 'edit' user
     }
 
 }

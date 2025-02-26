@@ -1,4 +1,7 @@
-lib-wait { position: absolute; }
+lib-wait {
+    position: absolute;
+    left: 0px;
+}
 
 #transcript {
     max-width: 1000px;
@@ -43,7 +46,7 @@ lib-wait { position: absolute; }
 #word-menu .header {
     height: 18px;
 }
-/* This does't work in production because the URL fails:
+/* TODO This does't work in production because the URL fails:
 .permalink:hover::after {
     content: ' ' url('/assets/link.svg') / '🔗';
 }*/
@@ -121,9 +124,10 @@ nav, nav > div {
 .token {
     display: inline-block;
 }
-.token .layer {
+.token .layer.segment {
     display: flex;
     flex-direction: row;
+    align-items: baseline;
 }
 .token .layer.span {
     display: flex;
@@ -168,7 +172,7 @@ nav, nav > div {
 .generate-layer {
     display: flex;
     flex-direction: row;
-    justify-content: center;
+    justify-content: end;
     align-items: center;
 }
 
@@ -182,10 +186,12 @@ nav, nav > div {
     height: 16px;
     vertical-align: middle;
 }
+/* TODO This does't work in production because the URL fails:
 .participants ul {
     list-style: circle;
     list-style-image: url('/assets/person.svg');
 }
+*/
 .formats ul {
     list-style: none;
 }
@@ -195,6 +201,12 @@ nav, nav > div {
 
 #attributes {
     width: 100%;
+    text-align: left;
+}
+.buttons {
+    display: block;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 .attribute .value .description {
     padding-left: 10px;
@@ -216,7 +228,12 @@ nav, nav > div {
 .attribute-list .participant {
     padding: 5px;
 }
-
+.divergent::before {
+    content: '⚠';
+    color: var(--theme-warning-color);
+    display: inline-block;
+    vertical-align: middle;
+}
 /* Media */
 
 lib-layer-checkboxes {  /* layer selection on top of media */
@@ -278,6 +295,9 @@ lib-layer-checkboxes {  /* layer selection on top of media */
     display: flex;
     align-items: center;
 }
+#media-controls lib-button { /* Buttons after praat-message are on top */
+    z-index: 2;
+}
 #praat-message {
     white-space: nowrap;
     width: 90%;
@@ -289,10 +309,11 @@ lib-layer-checkboxes {  /* layer selection on top of media */
     width: 99%;
 }
 #praat-progress.error::-webkit-progress-value, #praat-progress.error::-moz-progress-bar {
-    background-color: red;
+    background-color: var(--theme-error-color);
 }
 .import-changes {
     position: absolute;
+    z-index: 5;
 }
 
 /* Layout on wider screens */

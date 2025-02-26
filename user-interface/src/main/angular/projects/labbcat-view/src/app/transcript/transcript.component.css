@@ -2,6 +2,9 @@ lib-wait {
     position: absolute;
     left: 0px;
 }
+.loading, .loading * {
+    cursor: progress; 
+}
 
 #transcript {
     max-width: 1000px;
@@ -124,9 +127,11 @@ nav, nav > div {
 .token {
     display: inline-block;
 }
-.token .layer.segment {
+.token .layer {
     display: flex;
     flex-direction: row;
+}
+.token .layer.segment {
     align-items: baseline;
 }
 .token .layer.span {
@@ -253,6 +258,7 @@ lib-layer-checkboxes {  /* layer selection on top of media */
     overflow: auto;
     white-space: nowrap;
     cursor: default;
+    z-index: 2;
 }
 #media img.icon {
     width: 16px;
@@ -296,7 +302,7 @@ lib-layer-checkboxes {  /* layer selection on top of media */
     align-items: center;
 }
 #media-controls lib-button { /* Buttons after praat-message are on top */
-    z-index: 2;
+    z-index: 3;
 }
 #praat-message {
     white-space: nowrap;

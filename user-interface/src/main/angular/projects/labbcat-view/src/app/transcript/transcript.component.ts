@@ -385,8 +385,8 @@ export class TranscriptComponent implements OnInit {
         if (this.utterances.length > 0) {
             let currentTurnId = this.utterances[0].parentId;
             let currentBlock = { consecutive : true, utterances : [] };
-            let lastUtterance = this.utterances[0];
-            this.temporalBlocks.push(currentBlock);
+            let lastUtterance = null;
+            
             for (let u in this.utterances) {
                 let newBlock = false;
                 let consecutive = true; // as opposed to simultaneous
@@ -401,19 +401,27 @@ export class TranscriptComponent implements OnInit {
                     consecutive = false;
                 }
                 // but if this is during the last utterance
-                if (utterance.start.offset < lastUtterance.end.offset) {
+                if (lastUtterance && utterance.start.offset < lastUtterance.end.offset
+                    // and we it's  not a participant we've already seen
+                    && !currentBlock.utterances.find(u=>u.label == utterance.label)) {
                     // this is a simultaneous speech block, so don't start a new one
                     newBlock = false;
+                    currentTurnId = "";
                 }
                 if (newBlock) {
                     currentTurnId = utterance.parentId;
+                    if (currentBlock.utterances.length) { // add last block
+                        this.temporalBlocks.push(currentBlock);
+                    }
                     currentBlock = { consecutive : consecutive, utterances : [] };
-                    this.temporalBlocks.push(currentBlock);
                 }
                 currentBlock.utterances.push(utterance);
                 
                 lastUtterance = utterance;
             } // next utterance
+            if (currentBlock.utterances.length) { // add last block
+                this.temporalBlocks.push(currentBlock);
+            }
         } // there are utterances
 
         if (window.location.hash) {
@@ -438,6 +446,7 @@ export class TranscriptComponent implements OnInit {
         this.labbcatService.labbcat.getMatches(
             this.threadId, 0, 100, pageNumber,
             (results, errors, messages) => {
+                if (!results) return;
                 for (let match of results.matches) {                    
                     if (match.Transcript == transcriptId) {
                         // for now just highlight the first word                        
@@ -552,75 +561,40 @@ export class TranscriptComponent implements OnInit {
     layersChanged(selectedLayerIds : string[]) : void {
         const addedLayerIds = selectedLayerIds.filter((x)=>this.selectedLayerIds.indexOf(x) < 0);
         const loadingLayers = [] as Promise<string>[];
-        const wordLayerId = this.schema.wordLayerId;
+        const deferredLayerIds = [] as string[]; // for deferred visualization
         this.loading = true;
-        // load layers one at a time
-        for (let layerId of addedLayerIds) {
-            loadingLayers.push(new Promise((resolve, reject) => {
 
-                if (this.transcript.layers[layerId]) { // have already loaded this layer
-                    resolve(layerId);
-                } else {
-                    // load the layer definition
-                    const layer = this.schema.layers[layerId];
-                    this.transcript.schema.layers[layerId] = layer;
-                    layer.parent = this.transcript.schema.layers[layer.parentId];
-                    layer.colour = this.stringToColour(layerId);
-                    this.layerStyles[layerId] = {
-                        color : layer.colour, borderColour: layer.colour };
-                    
-                    // load annotations
-                    this.labbcatService.labbcat.getAnnotations(
-                        this.transcript.id, layerId, (annotations, errors, messages) => {
-                            if (errors) errors.forEach(m => 
-                                this.messageService.error(`${layerId}: ${m}`));
-                            if (messages) messages.forEach(m =>
-                                this.messageService.info(`${layerId}: ${m}`));
-                            const unknownAnchorIds = [] as string[];
-                            for (let a of annotations) {
-                                const annotation = new this.labbcatService.ag.Annotation(
-                                    layerId, a.label, this.transcript, a.startId, a.endId,
-                                    a.id, a.parentId)
-                                if (!this.transcript.anchors[a.startId]) {
-                                    unknownAnchorIds.push(a.startId);
-                                }
-                                if (!this.transcript.anchors[a.endId]) {
-                                    unknownAnchorIds.push(a.endId);
-                                }
-                                this.transcript.addAnnotation(annotation);
-                            } // next annotation
-                            
-                            if (unknownAnchorIds.length) {
-                                // there might be a lot of anchors to load,
-                                // making one request too large
-                                // so we break the anchor list into chunks
-                                this.loadAnchorsIncrementally(unknownAnchorIds).then(()=>{
-                                    // phrase/span layers index the token words they contain
-                                    if (this.isSpanningLayer(layer)) {
-                                        this.indexTokensOnLayer(layer);
-                                    } // phrase/spanning layer
-                                    resolve(layerId);
-                                });
-                            } else { // all anchors are already loaded
-                                // phrase/span layers index the token words they contain
-                                if (layer.parentId == this.schema.turnLayerId
-                                    || (layer.parentId == this.schema.root.id
-                                        && layer.alignment > 0)) {
-                                    this.indexTokensOnLayer(layer);
-                                } // phrase/spanning layer
-                                
-                                resolve(layerId);
-                            }                                                        
-                        });
-                }
-            }));
+        // remove unticked layers
+        this.selectedLayerIds = selectedLayerIds.filter((x)=>addedLayerIds.indexOf(x) < 0);
+        // remember the deselections for next time
+        sessionStorage.setItem("selectedLayerIds", JSON.stringify(this.selectedLayerIds));
+
+        // load new layers one at a time
+        for (let layerId of addedLayerIds) {
+            const layer = this.schema.layers[layerId];
+            loadingLayers.push(this.loadLayerIncrementally(layerId, 0));
+            if (this.isSpanningLayer(layer)) { // spanning layer
+                // defer visualization until all annotations are loaded and indexed
+                deferredLayerIds.push(layerId);
+            } else { // immediate incremental vizualization is ok
+                console.log("selecting " + layerId);
+                this.selectedLayerIds.push(layerId);
+            }
         } // next newly selected layer
+        
+        // once everything's finished loading
         Promise.all(loadingLayers).then(()=>{
             this.loading = false;
-            // set attribute to refresh visualization
-            this.selectedLayerIds = selectedLayerIds;
-            // and remember the selections for next time
+
+            // visualize deferred layers
+            for (let layerId of deferredLayerIds) {
+                console.log("selecting span " + layerId);
+                this.selectedLayerIds.push(layerId);
+            }
+            
+            // remember the selections for next time
             sessionStorage.setItem("selectedLayerIds", JSON.stringify(this.selectedLayerIds));
+
             // if there's a highlight, make sure it scrolls back into view after the layer changes
             if (this.highlitId) {
                 setTimeout(()=>{ // give the UI a chance to update
@@ -630,14 +604,97 @@ export class TranscriptComponent implements OnInit {
         });
     }
 
+    /** Load the given (zero-based) page of annotations on the given layer.
+     * The promise is resolved once annotations and anchors on the given page and all subsequent
+     * pages have been added to the annotation graph. */
+    loadLayerIncrementally(layerId: string, page: number) : Promise<string> {
+        return new Promise((resolve, reject) => {
+            if (this.transcript.layers[layerId] && page == 0) { // have already loaded this layer
+                resolve(`${page}:${layerId}`);
+            } else { // load the layer definition
+                const layer = this.schema.layers[layerId];
+                this.transcript.schema.layers[layerId] = layer;
+                layer.parent = this.transcript.schema.layers[layer.parentId];
+                layer.colour = this.stringToColour(layerId);
+                this.layerStyles[layerId] = {
+                    color : layer.colour, borderColour: layer.colour };
+
+                // load annotations
+                this.labbcatService.labbcat.getAnnotations(
+                    this.transcript.id, layerId, 1000, page, (annotations, errors, messages) => {
+                        if (page == 0) {
+                            if (errors) errors.forEach(m => 
+                                this.messageService.error(`${layerId}: ${m}`));
+                            if (messages) messages.forEach(m =>
+                                this.messageService.info(`${layerId}: ${m}`));
+                        }
+                        if (annotations.length) {
+                            const unknownAnchorIds = new Set<string>();
+                            for (let a of annotations) {
+                                if (!this.transcript.anchors[a.startId]) {
+                                    unknownAnchorIds.add(a.startId);
+                                }
+                                if (!this.transcript.anchors[a.endId]) {
+                                    unknownAnchorIds.add(a.endId);
+                                }
+                            } // next annotation
+
+                            
+                            if (unknownAnchorIds.size) {
+                                // there might be a lot of anchors to load,
+                                // making one request too large
+                                // so we break the anchor list into chunks
+                                this.loadAnchorsIncrementally(unknownAnchorIds).then(()=>{
+                                    // add annotations to graph once we've got all the anchors
+                                    for (let a of annotations) {
+                                        this.transcript.addAnnotation(
+                                            new this.labbcatService.ag.Annotation(
+                                                layerId, a.label, this.transcript,
+                                                a.startId, a.endId,
+                                                a.id, a.parentId));
+                                    }
+                                    
+                                    // next page
+                                    this.loadLayerIncrementally(layerId, page + 1).then(()=>{
+                                        resolve(`${page}:${layerId}`);
+                                    });
+                                });
+                            } else { // all anchors are already loaded
+                                // we've got all the anchors, so add the annotations to the graph
+                                for (let a of annotations) {
+                                    this.transcript.addAnnotation(
+                                        new this.labbcatService.ag.Annotation(
+                                            layerId, a.label, this.transcript, a.startId, a.endId,
+                                            a.id, a.parentId));
+                                }
+                                
+                                // next page
+                                this.loadLayerIncrementally(layerId, page + 1).then(()=>{
+                                    resolve(`${page}:${layerId}`);
+                                });
+                            }
+                        } else { // there were no more annotations
+                            // once phrase/span layers are fully loaded,
+                            // index the token words they contain
+                            if (this.isSpanningLayer(layer)) {
+                                this.indexTokensOnLayer(layer);
+                            } // phrase/spanning layer
+                                    
+                            resolve(`${page}:${layerId}`);
+                        }
+                    });
+            }
+        });
+    }
+
     /** recursive anchor loading, to prevent requests from becoming too large */
-    loadAnchorsIncrementally(unknownAnchorIds : string[]) : Promise<void> {
+    loadAnchorsIncrementally(unknownAnchorIds : Set<string>) : Promise<void> {
         const maxIds = 150;
         return new Promise<void>((resolve, reject) => {
-            let idsToLoadNow = unknownAnchorIds.slice(0, maxIds);
-            let idsToLoadLater = unknownAnchorIds.slice(maxIds);
+            let idsToLoadNow = new Set<string>(Array.from(unknownAnchorIds).slice(0, maxIds));
+            let idsToLoadLater = new Set<string>(Array.from(unknownAnchorIds).slice(maxIds));
             this.labbcatService.labbcat.getAnchors(
-                this.transcript.id, idsToLoadNow, (anchors, errors, messages) => {
+                this.transcript.id, Array.from(idsToLoadNow), (anchors, errors, messages) => {
                     if (errors) errors.forEach(m => 
                         this.messageService.error(`Load anchors: ${m}`));
                     if (messages) messages.forEach(m =>
@@ -648,7 +705,7 @@ export class TranscriptComponent implements OnInit {
                         Object.assign(anchor, a);
                         this.transcript.addAnchor(anchor);
                     } // next anchor
-                    if (idsToLoadLater.length) {
+                    if (idsToLoadLater.size) {
                         this.loadAnchorsIncrementally(idsToLoadLater).then(resolve);
                     } else { // finished!
                         resolve();
@@ -658,6 +715,7 @@ export class TranscriptComponent implements OnInit {
     }
     
     indexTokensOnLayer(layer : Layer) : void {
+        const wordLayerId = this.schema.wordLayerId;
         // spans can overlap (e.g. n-gram annotations, syntactic parses)
         // we want
         //  a) each span to be visualised at the same height across all tokens, and
@@ -696,31 +754,8 @@ export class TranscriptComponent implements OnInit {
                 maxOffset[span._depth] = span.end.offset;
                 maxDepth = Math.max(maxDepth, span._depth);
             } // next span
-            // now drop spans so that they're as near as possible to the tokens they annotate
-            if (spans.length < 1000) { // but not for lots of number of spans, coz it'll be slow
-                let keepScanning = true;
-                while (keepScanning) {
-                    keepScanning = false;
-                    for (let span of spans) {
-                        let newDepth = maxDepth;
-                        for (let otherSpan of spans) {
-                            if (otherSpan != span // not the same span
-                                && span.overlaps(otherSpan) // overlapping
-                                && otherSpan._depth > span._depth) { // deeper than this one
-                                // maybe drop to above that span
-                                newDepth = Math.min(newDepth, otherSpan._depth - 1);
-                            }                    
-                        } // next other span
-                        if (newDepth > span._depth) {
-                            span._depth = newDepth;
-                            keepScanning = true;
-                        } // changed depth
-                    } // next span
-                } // next scan
-            }
     
             // link words to spans that contain them
-            const wordLayerId = this.schema.wordLayerId;
             // first create levels for every word token
             for (let token of parent.all(wordLayerId)) token[layer.id] = new Array(maxDepth+1);
             // now link 'included' spans to word tokens
@@ -787,6 +822,26 @@ export class TranscriptComponent implements OnInit {
                 } // not already done
             } // next span
         } // next parent
+
+        // for each utterance
+        for (let utterance of this.transcript.all(this.schema.utteranceLayerId)) {
+            // drop spans so that they're as near as possible to their tokens
+            const utteranceWords = utterance.all(wordLayerId);
+            const maxSpanIndexDuringUtterance = utteranceWords.reduce((maxSoFar, word) => {
+                const wordSpans = word.all(layer.id);
+                const firstNonSpanIndexForWord = wordSpans.findIndex(span=>!span);
+                return Math.max(
+                    maxSoFar,
+                    firstNonSpanIndexForWord == -1?wordSpans.length
+                        :firstNonSpanIndexForWord - 1);
+            }, -1);
+            console.log(`utterance ${utterance.id} maxSpanIndexDuringUtterance ${maxSpanIndexDuringUtterance}`);
+            utteranceWords.forEach((word)=>{
+                word.all(layer.id).length = maxSpanIndexDuringUtterance + 1;
+            });
+            
+        }
+
     }
     
     // https://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-javascript#16348977

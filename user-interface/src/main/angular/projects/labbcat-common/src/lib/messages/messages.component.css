@@ -1,5 +1,5 @@
 .messages {
-    height: 20px;
+    min-height: 0px;
     width: 80vw;
 }
 

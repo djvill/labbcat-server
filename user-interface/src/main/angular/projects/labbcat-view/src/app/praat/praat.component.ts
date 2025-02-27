@@ -38,7 +38,7 @@ export class PraatComponent implements OnInit {
     scriptFormant = "To Formant (burg)... 0.0025 5 formantCeiling 0.025 50";
     formantDifferentiateParticipants = true;
     formantDifferentiationLayerId: string;
-    formantOtherPattern = [ "M" ];
+    formantOtherPattern = [ "Male" ];
     formantCeilingDefault = 5500; // female
     formantCeilingOther = [ 5000 ]; // male
 
@@ -64,7 +64,7 @@ export class PraatComponent implements OnInit {
     // analysis settings
     fastTrackDifferentiateParticipants = true;
     fastTrackDifferentiationLayerId: string;
-    fastTrackOtherPattern = [ "M" ];
+    fastTrackOtherPattern = [ "Male" ];
     fastTrackLowestAnalysisFrequencyDefault = 5000; // female
     fastTrackLowestAnalysisFrequencyOther = [ 4500 ]; // male
     fastTrackHighestAnalysisFrequencyDefault = 7000; // female
@@ -79,7 +79,7 @@ export class PraatComponent implements OnInit {
     extractMaximumPitch = false;
     pitchDifferentiateParticipants = true;
     pitchDifferentiationLayerId: string;
-    pitchOtherPattern = [ "M" ];
+    pitchOtherPattern = [ "Male" ];
     pitchFloorDefault = 60; // female
     pitchFloorOther = [ 30 ]; // male
     pitchCeilingDefault = 500; // female
@@ -91,7 +91,7 @@ export class PraatComponent implements OnInit {
     extractMaximumIntensity = false;
     intensityDifferentiateParticipants = true;
     intensityDifferentiationLayerId: string;
-    intensityOtherPattern = [ "M" ];
+    intensityOtherPattern = [ "Male" ];
     intensityPitchFloorDefault = 60; // female
     intensityPitchFloorOther = [ 30 ]; // male
     scriptIntensity = "To Intensity... intensityPitchFloor 0 yes";

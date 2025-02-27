@@ -134,7 +134,7 @@ fieldset.other {
     }
     .viz .segment {
         width: 40%;
-        background-color: rgba(150,163,57,0.2);
+        background-color: rgba(255,184,28,0.2);
     }
     .viz .after-context {
         width: 20%;
@@ -157,11 +157,11 @@ fieldset.other {
     }
     #start-time .segment {
         border-left: solid black 1px;
-        background: linear-gradient(to right, rgba(150,163,57,1), rgba(200,200,200,0.3));
+        background: linear-gradient(to right, rgba(255,184,28,1), rgba(200,200,200,0.3));
     }
     #end-time .segment {
         border-right: solid black 1px;
-        background: linear-gradient(to left, rgba(150,163,57,1), rgba(200,200,200,0.3));
+        background: linear-gradient(to left, rgba(255,184,28,1), rgba(200,200,200,0.3));
     }
     #window-offset .before-context, #window-offset .after-context {
         border-left: solid black 1px;

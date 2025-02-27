@@ -176,15 +176,9 @@ export class LayerCheckboxesComponent implements OnInit {
     }
 
     ParticipantLayerLabel(id): string {
-        if (id == this.schema.participantLayerId && this.scopeCount > 1) {
-            return "Name"; // TODO i18n
-        }
-        else return id.replace(/^participant_/,"");
+        return id.replace(/^participant_/,"");
     }
     TranscriptLayerLabel(id): string {
-        if (id == this.schema.root.id && this.scopeCount > 1) {
-            return "Name"; // TODO i18n
-        }
         return id.replace(/^transcript_/,"");
     }
     IsAnchorable(layer: Layer): boolean {

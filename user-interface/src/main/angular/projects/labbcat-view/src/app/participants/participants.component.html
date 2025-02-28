@@ -49,7 +49,7 @@
             i18n-title title="Merge selected participant records into one record"
             ></lib-button>
           <lib-button
-            *ngIf="!nextPage"
+            *ngIf="user && user.roles.includes('edit') && !nextPage"
             (press)="allUtterances()"
             [disabled]="selectedIds.length == 0"
             img="all-utterances.svg" icon="“"

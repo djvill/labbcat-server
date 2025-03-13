@@ -7,7 +7,7 @@ This fork is for developing the [LaBB-CAT] user interface[^ui], with two specifi
 (1) Tailoring LaBB-CAT instances that I manage (e.g., [APLS]) toward those instances' specific needs.
 (2) Suggesting user interface modifications to the main trunk of LaBB-CAT development via pull requests to upstream.
 
-These purposes require a particular workflow that includes `main`, `apls`, `apls-dev`, and `new-corpus` branches.
+These purposes require a particular workflow for branches, development, deployment, and upstream suggestions.
 
 [^ui]:
   Some finer points:
@@ -26,12 +26,20 @@ That said, numerous changes to the main-trunk UI over the years have come from m
 
 ### Workflow
 
-- Branches are `main` and `apls`. 
+- Branches are `main` and `apls`.
+- Remotes are `origin` (<https://github.com/djvill/labbcat-server>) and `upstream` (<https://github.com/nzilbb/labbcat-server>).
 - Development happens in `apls`.
+- Periodic batches of commits are pushed from `apls` to `origin/apls` for backup purposes.
 - For testing purposes, `apls` gets deployed to the APLS-Dev corpus (see next section).
 - Commits are small, atomic, and targeted (like in upstream).
-- Feature branches off of `apls` may optionally be created for projects that are more complicated (like making multiple changes to [`lib-layer-checkboxes`]). Development happens in the feature branch with deployment to APLS-Dev.
-- Remotes are `origin` (<https://github.com/djvill/labbcat-server>) and `upstream` (<https://github.com/nzilbb/labbcat-server>).
+  - Commit messages start with app/library name (e.g., [`transcripts`]), `Development`, `Deployment`, or `Meta`.
+- Optional: feature branches
+  - For projects that are more complicated (like making multiple changes to [`lib-layer-checkboxes`]).
+  - Branch off of tip of `apls`.
+  - While in progress, development happens in the feature branch with deployment to APLS-Dev.
+  - Once complete, `git switch apls ; git merge <feature-branch>`.
+  - No development in `apls` while feature branch is in-progress, to avoid ambiguity with APLS-Dev.
+  - Feature branch doesn't get pushed to `origin`.
 - To sync with upstream:
   ```
   git switch main
@@ -42,8 +50,9 @@ That said, numerous changes to the main-trunk UI over the years have come from m
 - For a purpose-(2) change:
   1. Ensure `apls` and `main` are synced with upstream
   1. `git cherry-pick` the relevant commit(s) from `apls` to `main`.
-  1. On <https://github.com/nzilbb/labbcat-server>, create a PR with the suggested change.
-  1. (To accommodate multiple PRs at once, I might revise this implementation toward: feature branches off of `origin/main` rather than `origin/main` itself.)
+  1. `git push origin main`
+  1. On <https://github.com/nzilbb/labbcat-server>, create a PR (with `origin/main` as source) for the suggested change.
+  N.B. Possible revision in the future: To accommodate simultaneous PRs, PR source should be a feature branch off of `origin/main` rather than `origin/main` itself.
 
 
 ## Purpose (1) complications
@@ -65,5 +74,6 @@ TBD
 [apls]: https://apls.pitt.edu
 [legacy code]: https://sourceforge.net/projects/labbcat/
 [`nzilbb/ag`]: https://github.com/nzilbb/ag
+[`lib-layer-checkboxes`]: user-interface/src/main/angular/projects/labbcat-view/src/app
 [`lib-layer-checkboxes`]: user-interface/src/main/angular/projects/labbcat-common/src/lib/layer-checkboxes
 [apls documentation]: https://djvill.github.io/APLS

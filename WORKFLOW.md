@@ -4,16 +4,15 @@
 
 <https://github.com/djvill/labbcat-server> is a fork of <https://github.com/nzilbb/labbcat-server> (i.e., _upstream_).
 This fork is for developing the [LaBB-CAT] user interface[^ui], with two specific purposes:
+1. Tailoring LaBB-CAT instances that I manage (e.g., [APLS]) toward those instances' specific needs.
+2. Suggesting user interface modifications to the main trunk of LaBB-CAT development via pull requests to upstream.
 
-(1) Tailoring LaBB-CAT instances that I manage (e.g., [APLS]) toward those instances' specific needs.
-(2) Suggesting user interface modifications to the main trunk of LaBB-CAT development via pull requests to upstream.
-
-[^ui]:
-  Some finer points:
-  
-  - By _user interface_, I also mean the framework for developing & deploying the Angular-based LaBB-CAT UI (e.g., [`deploy-user-interface.sh`](deploy-user-interface.sh)).
-  - Some of LaBB-CAT's UI is implemented via the 'classic' [legacy code] based on JavaServer Pages. This UI has increasingly been migrated to the Angular framework, on a page-by-page basis, but (as of March 2025) this migration is still ongoing. As a result, some pages' UI can only be modified via their JSP implementation (stored on the server in `<corpus-root-directory>/mvc/`).
-  - Down the line, I may try to develop/tailor other functionalities included in both this repo and [`nzilbb/ag`]: the data schema, API, formatter modules, annotator modules, etc.
+[^ui]: 
+    Some finer points:
+    
+    - By _user interface_, I also mean the framework for developing & deploying the Angular-based LaBB-CAT UI (e.g., [`deploy-user-interface.sh`](deploy-user-interface.sh)).
+    - Some of LaBB-CAT's UI is implemented via the 'classic' [legacy code] based on JavaServer Pages. This UI has increasingly been migrated to the Angular framework, on a page-by-page basis, but (as of March 2025) this migration is still ongoing. As a result, some pages' UI can only be modified via their JSP implementation (stored on the server in `<corpus-root-directory>/mvc/`).
+    - Down the line, I may try to develop/tailor other functionalities included in both this repo and [`nzilbb/ag`]: the data schema, API, formatter modules, annotator modules, etc.
 
 While these two purposes are in a push-pull relationship, the majority of changes will serve purpose (1).
 Main-trunk LaBB-CAT needs to be conservative to not break existing users' code and knowhow.

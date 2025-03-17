@@ -735,13 +735,18 @@ export class TranscriptsComponent implements OnInit {
         }
         if (this.participantQuery) {
             // expressions like:
-            // labels("participant").includes(["AP511_MikeThorpe"])
+            //  labels("participant").includes(["AP511_MikeThorpe"])
+            // or from participantso page:
+            //  ['AP511_MikeThorpe'].includesAny(labels('participant'))
             // have to be replaced with:
-            // ['AP511_MikeThorpe'].includes(id)
+            //  ['AP511_MikeThorpe'].includes(id)
             params["participant_expression"] = 
                 this.participantQuery
                     .replace(/labels\('participant'\).includesAny\((\[.*\])\)/,
-                             "$1\.includes\(id\)");
+                             "$1\.includes\(id\)")
+            // from participants page:
+                    .replace(".includesAny(labels('participant'))",
+                             ".includes(id)");
             params["participants"] = this.participantDescription;
         }
         return params;

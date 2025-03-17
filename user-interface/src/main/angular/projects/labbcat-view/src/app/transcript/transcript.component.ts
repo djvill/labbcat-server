@@ -92,6 +92,28 @@ export class TranscriptComponent implements OnInit {
                 });
             });
             this.readSerializers();
+            this.readAvailableMedia().then(()=>{
+                this.praatService.initialize().then((version: string)=>{
+                    console.log(`Praat integration version ${version}`);
+                    this.praatIntegration = version;
+                    this.praatProgress = {
+                        message: `Praat Integration ${this.praatIntegration}`,
+                        value: 0,
+                        maximum: 100
+                    };
+                    this.praatService.progressUpdates().subscribe((progress) => {
+                        this.praatProgress = progress;
+                    });
+                }, (canInstall: boolean)=>{
+                    if (canInstall) {
+                        console.log("Praat integration not installed but it could be");
+                        this.praatIntegration = "";
+                    } else {
+                        console.log("Praat integration: Incompatible browser");
+                            this.praatIntegration = null;
+                    }
+                });
+            });
             this.readSchema().then(() => {
                 this.readTranscript().then(()=>{ // some have to wait until transcript is loaded
                     // preselect layers?
@@ -108,28 +130,6 @@ export class TranscriptComponent implements OnInit {
                     }
                     if (this.threadId) this.loadThread();
                     this.setOriginalFile();
-                    this.readAvailableMedia().then(()=>{
-                        this.praatService.initialize().then((version: string)=>{
-                            console.log(`Praat integration version ${version}`);
-                            this.praatIntegration = version;
-                            this.praatProgress = {
-                                message: `Praat Integration ${this.praatIntegration}`,
-                                value: 0,
-                                maximum: 100
-                            };
-                            this.praatService.progressUpdates().subscribe((progress) => {
-                                this.praatProgress = progress;
-                            });
-                        }, (canInstall: boolean)=>{
-                            if (canInstall) {
-                                console.log("Praat integration not installed but it could be");
-                                this.praatIntegration = "";
-                            } else {
-                                console.log("Praat integration: Incompatible browser");
-                                this.praatIntegration = null;
-                            }
-                        });
-                    });
                 }); // transcript read
             }); // subscribed to queryParams
         }); // after readSchema
@@ -513,7 +513,7 @@ export class TranscriptComponent implements OnInit {
     readAvailableMedia() : Promise<void> {
         return new Promise((resolve, reject) => {
             this.labbcatService.labbcat.getAvailableMedia(
-                this.transcript.id, (mediaTracks, errors, messages) => {
+                this.id, (mediaTracks, errors, messages) => {
                     if (errors) errors.forEach(m => this.messageService.error(m));
                     if (messages) messages.forEach(m => this.messageService.info(m));
                     this.availableMedia = mediaTracks;
@@ -1347,10 +1347,11 @@ export class TranscriptComponent implements OnInit {
             const transcriptIdForUrl = this.transcript.id.replace(/ /g, "%20");
             this.praatUtteranceName = this.transcript.id
                 .replace(/\.[a-zA-Z][^.]*$/,"") // remove extension
+                .replace(/[^a-zA-Z0-9]+/g,"_") // Praat isn't inclusive about object names
                 +("__"+utterance.start.offset).replace(".","_")
                 +("_"+utterance.end.offset).replace(".","_");
             const audioUrl = this.baseUrl+"soundfragment"
-                +"?id="+this.transcript.id
+                +"?id="+transcriptIdForUrl
                 +"&start="+utterance.start.offset
                 +"&end="+utterance.end.offset;
             this.textGridUrl = this.baseUrl
@@ -1400,10 +1401,12 @@ export class TranscriptComponent implements OnInit {
             const transcriptIdForUrl = this.transcript.id.replace(/ /g, "%20");
             this.praatUtteranceName = this.transcript.id
                 .replace(/\.[a-zA-Z][^.]*$/,"") // remove extension
+                .replace(/[^a-zA-Z0-9]+/g,"_") // Praat isn't inclusive about object names
+                .replace(" ","_")
                 +("__"+firstUtterance.start.offset).replace(".","_")
                 +("_"+lastUtterance.end.offset).replace(".","_");
             const audioUrl = this.baseUrl+"soundfragment"
-                +"?id="+this.transcript.id
+                +"?id="+transcriptIdForUrl
                 +"&start="+firstUtterance.start.offset
                 +"&end="+lastUtterance.end.offset;
             this.textGridUrl = this.baseUrl

@@ -47,8 +47,13 @@ export class TranscriptAttributesComponent implements OnInit {
         return new Promise((resolve, reject) => {
             this.labbcatService.labbcat.readOnlyCategories(
                 "transcript", (categories, errors, messages) => {
+                    this.categoryLabels = [];
                     for (let category of categories) {
-                        this.categories[category.category] = category;
+                        const layerCategory = "transcript_"+category.category;
+                        this.categories[layerCategory] = category;
+                        this.categoryLabels.push(layerCategory);
+                        // select first category by default
+                        if (!this.currentCategory) this.currentCategory = layerCategory;
                     }
                     resolve();
                 });
@@ -70,7 +75,6 @@ export class TranscriptAttributesComponent implements OnInit {
                 this.schema = schema;
                 this.attributes = [];
                 this.categoryLayers = {};
-                this.categoryLabels = [];
                 const displayLayerIds = sessionStorage.getItem("displayLayerIds");
                 this.displayLayerIds = JSON.parse(displayLayerIds || 'true');
                 // transcript attributes
@@ -88,9 +92,6 @@ export class TranscriptAttributesComponent implements OnInit {
                         if (layer.category) {
                             if (!this.categoryLayers[layer.category]) {
                                 this.categoryLayers[layer.category] = [];
-                                this.categoryLabels.push(layer.category);
-                                // select first category by default
-                                if (!this.currentCategory) this.currentCategory = layer.category;
                             }
                             this.categoryLayers[layer.category].push(layer);
                         }

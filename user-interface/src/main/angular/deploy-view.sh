@@ -13,3 +13,4 @@ ng build labbcat-view --configuration production
 mv "$LL_UI/index.html" "$LL_UI/prev-index.html"
 cd dist/labbcat-view/browser
 cp -t "$LL_UI" index.html *js *css
+cp media/* "$LL_UI/media"

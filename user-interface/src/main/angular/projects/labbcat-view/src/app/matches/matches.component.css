@@ -55,7 +55,7 @@
 }
 lib-layer-checkboxes {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
 }
 input[type="checkbox"]:disabled {
     cursor: not-allowed;

@@ -18,6 +18,11 @@
 .tab-body > div {
     padding-top: 10px;
 }
+#participants, #transcripts {
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: clip;
+}
 @media all and (min-width: 640px) {
     #matrix { 
         display: flex;

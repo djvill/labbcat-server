@@ -194,7 +194,7 @@ export class SearchComponent implements OnInit {
     }
 
     loadMoreParticipants() : void {
-        const pageLength = 10;
+        const pageLength = 25;
         this.loadingParticipants = true;
         this.labbcatService.labbcat.getMatchingParticipantIds(
             this.matrix.participantQuery, pageLength, this.participantIds.length / pageLength,
@@ -226,7 +226,7 @@ export class SearchComponent implements OnInit {
     }
 
     loadMoreTranscripts() : void {
-        const pageLength = 10;
+        const pageLength = 25;
         this.loadingTranscripts = true;
         this.labbcatService.labbcat.getMatchingTranscriptIds(
             this.transcriptQueryIncludingParticipantConditions(),

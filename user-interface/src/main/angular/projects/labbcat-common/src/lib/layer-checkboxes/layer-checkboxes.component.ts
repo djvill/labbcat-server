@@ -122,7 +122,12 @@ export class LayerCheckboxesComponent implements OnInit {
         this.wordLayers = [];
         this.segmentLayers = [];
         this.categorySelections = {};
-        if (!this.displayIcons) this.displayIcons = true;
+        let displayIcons = sessionStorage.getItem("displayLayerIcons");
+        if (displayIcons) { 
+          this.displayIcons = (displayIcons=="true");
+        } else {
+          this.displayIcons = true;
+        }
         if (!this.selected) this.selected = [] as string[];
         for (let l in this.schema.layers) {
             let layer = this.schema.layers[l] as Layer;
@@ -229,5 +234,6 @@ export class LayerCheckboxesComponent implements OnInit {
     
     toggleLayerIcons(): void {
         this.displayIcons = !this.displayIcons;
+        sessionStorage.setItem("displayLayerIcons", this.displayIcons.toString());
     }
 }

@@ -1,7 +1,6 @@
 export interface Category {
     class_id: string;
     category: string;
-    label: string;
     description: string;
     display_order: string;
 

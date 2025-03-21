@@ -19,7 +19,7 @@
            [ngClass]="(category==currentCategory)?'tab-label active':'tab-label inactive'"
            (click)="currentCategory = category"
            title="{{categories[category].description}}">
-      {{category.replace("transcript_","")}}
+      {{category}}
     </label>
   </div>
   <div *ngFor="let category of categoryLabels"

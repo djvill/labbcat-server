@@ -173,6 +173,13 @@ nav, nav > div {
 .token .layer.span .annotation label.continued::before {
     content: '… ';
 }
+/* special styling for imported layers */
+.layer-comment, .layer-noise, .layer-redaction {
+    font-style: italic;
+}
+.layer-noise {
+    color: black;
+}
 
 .generate-layer {
     display: flex;

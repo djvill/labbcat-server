@@ -347,3 +347,8 @@ lib-layer-checkboxes {  /* layer selection on top of media */
         justify-content: center;
     }
 }
+
+.ul-nb {
+    list-style-type: none;
+    font-style: italic;
+}

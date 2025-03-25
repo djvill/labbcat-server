@@ -160,7 +160,7 @@
         <div class="item">
           <label>
             <input type="checkbox" [(ngModel)]="mainParticipantOnly" id="mainParticipantOnly">
-            <span i18n>Only include transcripts for which these are the main participants.</span></label>
+            <span i18n>Only include 'Main speaker' participants.</span></label>
         </div>
         <div class="item">
           <label i18n-title
@@ -174,21 +174,9 @@
             <span i18n>Only one match per transcript.</span></label>
         </div>
         <div class="item">
-          
-          <label i18n-title title="Exclude simultaneous speech">
-            <input type="checkbox"[(ngModel)]="excludeSimultaneousSpeech">
-            <span i18n="... [n]% overlap">Exclude utterances with more than</span></label>    
-          <label i18n-title title="Define what counts as simultaneous speech">
-            <input name="overlap_threshold" id="overlap_threshold"
-                   class="numeric" style="width: 35px;" type="number"
-                   value="5"
-                   [disabled]="!excludeSimultaneousSpeech">
-            <span i18n="Exclude utterances with more than [n] ...">% overlap</span></label>
-        </div>
-        <div class="item">
           <label i18n-title title="Do not open a list of matches when search is complete">
             <input type="checkbox" [(ngModel)]="suppressResults" id="suppressResults" >
-            <span i18n>No matches, only a summary of results</span></label>
+            <span i18n>No matches, only a count of results.</span></label>
         </div>
       </div>
     </div>

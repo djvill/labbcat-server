@@ -476,3 +476,7 @@ lib-pagination .current {
     }
 }
 
+/* APLS */
+input[type='checkbox']:disabled {
+    cursor: not-allowed;
+}

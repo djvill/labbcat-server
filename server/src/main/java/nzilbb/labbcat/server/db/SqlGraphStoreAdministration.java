@@ -417,6 +417,9 @@ public class SqlGraphStoreAdministration
               subtype = "boolean";
             } else if (Constants.TYPE_TREE.equals(layer.getType())) {
               subtype = "X";
+            } else if (layer.getType().indexOf('/') > 0) { // a MIME type for binary annotations
+              // save as is
+              subtype = layer.getType();
             }
             PreparedStatement sql = getConnection().prepareStatement(
               "UPDATE layer SET type = ? WHERE layer_id = ?");
@@ -636,9 +639,15 @@ public class SqlGraphStoreAdministration
           sql.setString(
             1, Optional.ofNullable(layer.getDescription())
             .orElse(oldVersion.getDescription()));
-          sql.setString(
-            2, Optional.ofNullable(layer.getCategory())
-            .orElse(oldVersion.getCategory()));
+          String category = Optional.ofNullable(layer.getCategory())
+            .orElse(oldVersion.getCategory());
+          // layer category is like "transcript_General" but we save without the class prefix
+          if ("speaker".equals(oldVersion.get("class_id"))) {
+            category = category.replaceAll("^participant_","");
+          } else {
+            category = category.replaceAll("^transcript_","");
+          }
+          sql.setString(2, category);
           String subtype = Optional.ofNullable((String)layer.get("subtype"))
             .orElse((String)oldVersion.get("subtype"));
           subtype = subtype.equals("select")?"select":"string";
@@ -646,6 +655,9 @@ public class SqlGraphStoreAdministration
             subtype = "number";  // TODO handle type = number/integer
           } else if (Constants.TYPE_BOOLEAN.equals(layer.getType())) {
             subtype = "boolean";
+          } else if (layer.getType().indexOf('/') > 0) { // a MIME type for binary annotations
+            // save as is
+            subtype = layer.getType();
           } 
           if (layer.getValidLabels().keySet().size() > 0) {
             subtype = "select";
@@ -822,6 +834,9 @@ public class SqlGraphStoreAdministration
       subtype = "boolean";
     } else if (Constants.TYPE_TREE.equals(layer.getType())) {
       subtype = "X";
+    } else if (layer.getType().indexOf('/') > 0) { // a MIME type for binary annotations
+      // save as is
+      subtype = layer.getType();
     } 
     if (layer.containsKey("subtype")) { // the given subtype trumps the above
       subtype = layer.get("subtype").toString();
@@ -839,7 +854,8 @@ public class SqlGraphStoreAdministration
           +" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         try {
           sql.setString(1, Optional.ofNullable(layer.getDescription()).orElse(layer.getId()));
-          if (layer.getCategory() == null || layer.getCategory().length() == 0) { // no category
+          String category = layer.getCategory();
+          if (category == null || category.length() == 0) { // no category
             // select the first category
             PreparedStatement sqlCategory = getConnection().prepareStatement(
               "SELECT category FROM attribute_category WHERE class_id = ?"
@@ -848,21 +864,30 @@ public class SqlGraphStoreAdministration
             ResultSet rsCategory = sqlCategory.executeQuery();
             try {
               if (rsCategory.next()) {
-                layer.setCategory(rsCategory.getString(1));
+                category = rsCategory.getString(1);
               } else {            
-                layer.setCategory("General");
+                category = "General";
               }
             } finally {
               rsCategory.close();
               sqlCategory.close();
             }
           }
-          sql.setString(2, layer.getCategory());
+          // layer category is like "transcript_General" but we save without the class prefix
+          if ("speaker".equals(layer.get("class_id"))) {
+            category = category.replaceAll("^participant_","");
+          } else {
+            category = category.replaceAll("^transcript_","");
+          }
+          sql.setString(2, category);
           subtype = subtype.equals("select")?"select":"string";
           if (Constants.TYPE_NUMBER.equals(layer.getType())) {
             subtype = "number";  // TODO handle type = number/integer
           } else if (Constants.TYPE_BOOLEAN.equals(layer.getType())) {
             subtype = "boolean";
+          } else if (layer.getType().indexOf('/') > 0) { // a MIME type for binary annotations
+            // save as is
+            subtype = layer.getType();
           } 
           if (layer.getValidLabels().keySet().size() > 0) {
             subtype = "select";
@@ -1335,6 +1360,19 @@ public class SqlGraphStoreAdministration
         if (layer_id < 0) {
           throw new StoreException("Cannot delete system layer: " + id + " ("+layer_id+")");
         }
+
+        // if it's a MIME type layer
+        if (layer.getType().indexOf('/') > 0) {
+          // delete all data files before we delete the annotations
+          Annotation[] annotations = getMatchingAnnotations(
+            "layer.id = '" + esc(layer.getId()) + "'", null, null, true);
+          for (Annotation annotation : annotations) {
+            try {
+              File file = annotationDataFile(annotation, annotation.getGraph(), layer.getType());
+              if (file != null && file.exists()) file.delete();
+            } catch(GraphNotFoundException exception) {}
+          } // next annotation
+        } // MIME type layer        
         
         // drop the annotation table
         PreparedStatement sql = getConnection().prepareStatement(
@@ -1391,7 +1429,7 @@ public class SqlGraphStoreAdministration
         sql.setInt(1, layer_id);
         sql.executeUpdate();
         sql.close();
-        
+
       } else { // attribute layer
 
         String class_id = (String)layer.get("class_id");

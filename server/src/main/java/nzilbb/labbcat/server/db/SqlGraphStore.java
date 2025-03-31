@@ -35,6 +35,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.nio.file.Files;
 import java.sql.*;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -697,6 +698,9 @@ public class SqlGraphStore implements GraphStore {
       layer.setType(Constants.TYPE_BOOLEAN);
     } else if (rs.getString("type").equals("X")) {
       layer.setType(Constants.TYPE_TREE);
+    } else if (rs.getString("type").indexOf('/') > 0) { // a MIME type for binary annotations
+      // save as is
+      layer.setType(rs.getString("type"));
     } else {
       layer.setType(Constants.TYPE_STRING);
     }
@@ -2809,9 +2813,33 @@ public class SqlGraphStore implements GraphStore {
   public Annotation[] getAnnotations(
     String id, String layerId, Integer maxOrdinal, Integer pageLength, Integer pageNumber)
     throws StoreException, PermissionException, GraphNotFoundException {
-    return getMatchingAnnotations(
+    Annotation[] annotations = getMatchingAnnotations(
       "graph.id = '" + esc(id) + "' AND layer.id = '" + esc(layerId) + "'"
       +(maxOrdinal==null?"":" AND ordinal <= " + maxOrdinal), pageLength, pageNumber);
+    Layer layer = getLayer(layerId);
+    if (layer != null && layer.getType().indexOf('/') > 0) { // a MIME type
+      // the annotations may have files
+      // do they have access to them?
+      try {
+        if (hasAccess(id, new MediaFile().setMimeType(layer.getType()).getType().substring(0,1))) {
+          String[] layers = { "corpus", "episode" };
+          Graph graph = getTranscript(id, layers);
+          for (Annotation annotation : annotations) {
+            // is there a data file associated with the annotation?
+            try {
+              String dataUrl = urlForAnnotationFile(annotation, graph, layer.getType());
+              if (dataUrl != null) annotation.put("dataUrl", dataUrl);
+            } catch (Exception x) {
+              System.err.println("Error getting dataUrl for "+annotation.getId() + ": " + x);
+            }            
+          } // next annotation
+        } // they have access 
+      } catch (SQLException x) {
+        System.err.println(
+          "Error getting media access info for layer "+layerId + " ("+layer.getType()+"): " + x);
+      }            
+    }
+    return annotations;
   }
    
   /**
@@ -2880,6 +2908,7 @@ public class SqlGraphStore implements GraphStore {
       Layer layer = null;
       Graph graph = null;
       Vector<Annotation> annotations = new Vector<Annotation>();
+      String[] defaultGraphLayers = { "corpus", "episode" };
       while (rsAnnotation.next()) {
         if (layer == null) { // they'll all be on the same layer
           layer = schema.getLayer(rsAnnotation.getString("layer"));
@@ -2894,7 +2923,7 @@ public class SqlGraphStore implements GraphStore {
           if (graph == null || !graph.getId().equals(rsAnnotation.getString("graph"))) {
             // graph can change
             try {
-              graph = getTranscript(rsAnnotation.getString("graph"), null);
+              graph = getTranscript(rsAnnotation.getString("graph"), defaultGraphLayers);
             } catch(GraphNotFoundException exception) {
               System.err.println(
                 "getMatchingAnnotations: " + expression + " : " + exception);
@@ -4224,6 +4253,17 @@ public class SqlGraphStore implements GraphStore {
       AnnotationAgqlToSql transformer = new AnnotationAgqlToSql(getSchema());
       AnnotationAgqlToSql.Query query = transformer.sqlFor(
         expression, "annotation_id", userWhereClauseGraph("", "graph"), "");
+      if (query.primaryLayer.getType().indexOf('/') > 0) { // type is a MIME-type
+        // there will be a file associated with each annotation, which must be deleted
+        Annotation[] annotations = getMatchingAnnotations(expression, null, null, true);
+        for (Annotation annotation : annotations) {
+          try {
+            File file = annotationDataFile(
+              annotation, annotation.getGraph(), query.primaryLayer.getType());
+            if (file != null && file.exists()) file.delete();
+          } catch(GraphNotFoundException exception) {}
+        } // next annotation        
+      }
       String delete = query.sql
         .replaceFirst("SELECT .*? FROM", "DELETE annotation.* FROM")
         .replaceAll("ORDER BY [^)]+$","");
@@ -5280,6 +5320,7 @@ public class SqlGraphStore implements GraphStore {
         }
       } else {
 
+        // timers.start("normalize");
         if (transcript.getSchema().getParticipantLayer() != null
             && transcript.getSchema().getTurnLayer() != null
             && transcript.getSchema().getUtteranceLayer() != null
@@ -5289,11 +5330,12 @@ public class SqlGraphStore implements GraphStore {
             .setMinimumTurnPauseLength(Double.parseDouble(getSystemAttribute("minTurnPause")))
             .transform(transcript);
         }
+        // timers.end("normalize");
       
         // timers.start("validate");
         v.transform(graph);
         // timers.end("validate");
-        // System.out.println("saveGraph: " + timers);
+        // System.err.println("saveGraph: " + timers);
         if (v.getErrors().size() != 0) {
           StringBuffer messages = new StringBuffer();
           for (String s : v.getErrors()) {
@@ -5310,6 +5352,7 @@ public class SqlGraphStore implements GraphStore {
       // censor the graph?
       String censorshipRegexp = getSystemAttribute("censorshipRegexp");
       if (censorshipRegexp != null && censorshipRegexp.length() > 0) { // censorship required
+        // timers.start("censor");
         Pattern censorshipPattern = Pattern.compile(censorshipRegexp);
         String censorshipLayer = getSystemAttribute("censorshipLayer");
         String censorshipLabel = getSystemAttribute("censorshipLabel");
@@ -5324,9 +5367,11 @@ public class SqlGraphStore implements GraphStore {
             } // next word
           } // matching annotation
         } // next annotation
+        // timers.end("censor");
       } // censorshipRegexp required
 
       // last minute reversed-anchor check, just in case
+      // timers.start("reversed-anchor check");
       for (Annotation a : graph.getAnnotationsById().values()) {
         if (a.getChange() == Change.Operation.Destroy) continue;
         Layer layer = a.getLayer();
@@ -5349,6 +5394,8 @@ public class SqlGraphStore implements GraphStore {
           } // start is set
         }
       } // next annotation
+      // timers.end("reversed-anchor check");
+      // System.err.println(timers.toString());
       
       if (graph.getChange() == Change.Operation.Create) {
         // create the graph, to generate the ag_id
@@ -5404,7 +5451,7 @@ public class SqlGraphStore implements GraphStore {
       HashMap<Integer,HashSet<String>> adjustPhraseOrdinals
         = new HashMap<Integer,HashSet<String>>();
 
-      // timers.start("changes");
+      // timers.start("check changes");
       Object lastObject = graph;
       for (Change change : changes) {
         if (change.getObject() == lastObject) continue; // already did this object
@@ -5412,6 +5459,7 @@ public class SqlGraphStore implements GraphStore {
 
         // must be able to parse object's ID
         if (change.getObject() instanceof Anchor) {
+          // timers.start("check anchor");
           try {
             if (change.getObject().getChange() != Change.Operation.Create) {
               Object[] o = fmtAnchorId.parse(change.getObject().getId());
@@ -5426,8 +5474,10 @@ public class SqlGraphStore implements GraphStore {
             throw new StoreException("Could not parse anchor ID:"
                                      + change.getObject().getId());
           }
+          // timers.end("check anchor");
         } else if (change.getObject() instanceof Annotation) {
           if (change.getObject().getId().startsWith("m_")) {
+            // timers.start("check m_");
             try {
               if (change.getObject().getChange() != Change.Operation.Create) {
                 Object[] o = fmtMetaAnnotationId.parse(change.getObject().getId());
@@ -5436,7 +5486,9 @@ public class SqlGraphStore implements GraphStore {
               throw new StoreException("Could not parse special annotation ID:"
                                        + change.getObject().getId());
             }
+            // timers.end("check m_");
           } else if (change.getObject().getId().startsWith("t|")) {
+            // timers.start("check t|");
             try {
               if (change.getObject().getChange() != Change.Operation.Create) {
                 Object[] o = fmtTranscriptAttributeId.parse(change.getObject().getId());
@@ -5445,7 +5497,9 @@ public class SqlGraphStore implements GraphStore {
               throw new StoreException("Could not parse transcript attribute ID:"
                                        + change.getObject().getId());
             }
+            // timers.end("check t|");
           } else if (change.getObject().getId().startsWith("p|")) {
+            // timers.start("check p|");
             try {
               if (change.getObject().getChange() != Change.Operation.Create) {
                 Object[] o = fmtParticipantAttributeId.parse(change.getObject().getId());
@@ -5454,6 +5508,7 @@ public class SqlGraphStore implements GraphStore {
               throw new StoreException("Could not parse participant attribute ID:"
                                        + change.getObject().getId());
             }
+            // timers.end("check p|");
           } else if (change.getObject().getId().equals("audio_prompt")) {
             // no particular validation, so drop through
           } else {
@@ -5475,6 +5530,7 @@ public class SqlGraphStore implements GraphStore {
                     /* technically, peers shouldn't overlap, but in reality
                        layer created with the current LaBB-CAT UI have peersOverlap = true
                        && !layer.getPeersOverlap()*/) {
+                  // timers.start("check adjustPhraseOrdinals");
                   // we're updating a span layer from within a fragment (e.g. forced alignment),
                   // so the ordinals might incorrecty start at 1
                   // so we'll fix them up later
@@ -5486,11 +5542,13 @@ public class SqlGraphStore implements GraphStore {
                   // ensure the turn_annotation_id is included in the ordinal fix below
                   adjustPhraseOrdinals.get(layer_id)
                     .add(((Annotation)change.getObject()).getParentId());
+                  // timers.end("check adjustPhraseOrdinals");
                 }
               }
             } // layer isn't null
             try {
               if (change.getObject().getChange() != Change.Operation.Create) {
+                // timers.start("check not Create");
                 Object[] o = fmtAnnotationId.parse(change.getObject().getId());
                 String scope = o[0].toString();
                 if (scope.length() != 0 
@@ -5516,6 +5574,7 @@ public class SqlGraphStore implements GraphStore {
                     "Parsed annotation ID is not a Long integer:"
                     + change.getObject().getId() + " - " + o[2]);
                 }
+                // timers.end("check not Create");
               }
             } catch(ParseException parseX) {
               // if it's for destroying, we don't care
@@ -5532,6 +5591,8 @@ public class SqlGraphStore implements GraphStore {
                                    + " - " + change.getObject().getClass().getName());
         }
       } // next change
+      // timers.end("check changes");
+      // System.err.println("saveGraph: " + timers);
 
       // create a lookup list of participant names
       HashMap<String,String> participantNameToNumber = new HashMap<String,String>();
@@ -5550,6 +5611,7 @@ public class SqlGraphStore implements GraphStore {
       sqlParticipant.close();
 
       // process changes
+      // timers.start("process changes");
 
       PreparedStatement sqlLastId = getConnection().prepareStatement("SELECT LAST_INSERT_ID()");
       PreparedStatement sqlInsertAnchor = getConnection().prepareStatement(
@@ -5777,10 +5839,11 @@ public class SqlGraphStore implements GraphStore {
             }
           } // Annotation change
         } // next change
-        // timers.end("changes");
-        // System.out.println("saveGraph: " + timers);
+        // timers.start("process changes");
+        // System.err.println("saveGraph: " + timers);
 	    
         // extras
+        // timers.start("extras");
         HashSet<Annotation> newExtraUpdates = new HashSet<Annotation>();
         for (Annotation annotation : extraUpdates) {
           saveAnnotationChanges(
@@ -5793,17 +5856,21 @@ public class SqlGraphStore implements GraphStore {
             sqlUpdateWordAnnotation, sqlUpdateSegmentAnnotation, 
             sqlDeleteAnnotation,
             participantNameToNumber);
-        }
+        } 
+        // timers.end("extras");
         assert newExtraUpdates.size() == 0 : "newExtraUpdates.size() == 0";
 
         // untag anchors and annotations
+        // timers.start("untag");
         for (Anchor a : graph.getAnchors().values()) a.remove("@SqlUpdated");
         for (Annotation a : graph.getAnnotationsById().values()) a.remove("@SqlUpdated");
+        // timers.end("untag");
 
         if (graph.getChange() != Change.Operation.Create) { // updating
           // ensure that tag annotations have their anchors updated with their parents,
           // even if they're not mentioned in the given graph
                
+          // timers.start("update tag anchors");
           if (wordChanges) {
             PreparedStatement sqlFixWordTagAnchors = connection.prepareStatement(
               "UPDATE annotation_layer_?"
@@ -5849,10 +5916,12 @@ public class SqlGraphStore implements GraphStore {
             } // next child
             sqlFixSegmentTagAnchors.close();
           } // segmentChanges
+          // timers.end("update tag anchors");
 
           // forced-alignment to a phrase layer can lead to the phrase annotation ordinals
           // starting at 1 at the beginning of each utterance
           // so we update the ordinals to be chronological
+          // timers.start("update ordinals");
           for (Integer layer_id : adjustPhraseOrdinals.keySet()) {
             String turnIdList = adjustPhraseOrdinals.get(layer_id).stream()
               .map(uid -> uid.replace("em_11_", "")) // convert uid to turn_annotation_id
@@ -5889,9 +5958,11 @@ public class SqlGraphStore implements GraphStore {
             } // there are turn IDs
               
           } // next updating phrase layer
+          // timers.end("update ordinals");
         } // not a new graph
 
         if (wordChanges || utteranceChanges) {
+          // timers.start("word utterances");
           // (re-)link words to utterances for fast search result collation
           PreparedStatement sqlFindWordUtterance = connection.prepareStatement(
             "UPDATE annotation_layer_0"
@@ -5912,6 +5983,7 @@ public class SqlGraphStore implements GraphStore {
           sqlFindWordUtterance.setInt(1, iAgId);
           sqlFindWordUtterance.executeUpdate();
           sqlFindWordUtterance.close();       
+          // timers.end("word utterances");
         }
 
       } finally {
@@ -5958,7 +6030,7 @@ public class SqlGraphStore implements GraphStore {
     }
     // System.err.println("saveGraph finished.");
     // timers.end("saveGraph");
-    // System.out.println("saveGraph: " + timers);
+    // System.err.println("saveGraph: " + timers);
     return true;
   }
 
@@ -6079,7 +6151,7 @@ public class SqlGraphStore implements GraphStore {
       } // 'structural' layer
 
       if (graph != null) annotation.setGraph(graph);
-            
+
       return annotation;
     }  else if ("transcript".equals(layer.get("class_id"))) { // transcript attribute
       // read-only users get access to only public attributes
@@ -6336,10 +6408,12 @@ public class SqlGraphStore implements GraphStore {
     if (annotation.getConfidence() == null) {
       annotation.setConfidence(Integer.valueOf(Constants.CONFIDENCE_UNKNOWN));
     }
+
+    Layer layer = annotation.getLayer();
+    
     switch (annotation.getChange()) {
       case Create: {
         // get the layer_id and its scope, so we can deduce what kind of row to insert
-        Layer layer = annotation.getLayer();
         if (layer == null || !layer.containsKey("layer_id")) { // load our own info
           layer = getLayer(annotation.getLayerId());
         }
@@ -6391,6 +6465,8 @@ public class SqlGraphStore implements GraphStore {
         } else {
           if (scope.equalsIgnoreCase(SqlConstants.SCOPE_FREEFORM)) { // freeform layers have the graph as the parent
             sql.setLong(7, ((Integer)annotation.getGraph().get("@ag_id")).longValue());
+            // for ID generation, scope must be empty string for freeform layers
+            scope = "";
           } else if (annotation.getLayer().getParentId().equals("participant")) { // turn layer
             try {
               // parent id has as a special layer format
@@ -6564,6 +6640,7 @@ public class SqlGraphStore implements GraphStore {
         long annotationId = rs.getLong(1);
         Object[] annotationIdParts = { scope, layerId, Long.valueOf(annotationId) };
         String newId = fmtAnnotationId.format(annotationIdParts);
+        
         rs.close();
 	    
         // change annotation ID
@@ -6978,8 +7055,109 @@ public class SqlGraphStore implements GraphStore {
           } // Destroy
     } // switch on change type
 
+    if (layer.getType().indexOf('/') > 0) { // a MIME type, so it's a binary layer
+      // there may be a file associated with the annotation
+      try {
+        // determine where the annotation's file would be
+        File annotationFile = annotationDataFile(
+          annotation, annotation.getGraph(), annotation.getLayer().getType());
+        if (annotation.getChange() == Change.Operation.Destroy) { // deleting the annotation
+          // delete the file too
+          annotationFile.delete();
+        } else { // saving annotation
+          // have we been given a data URL?
+          String dataUrl = (String)annotation.get("dataUrl");
+          if (dataUrl != null && dataUrl.startsWith("file:")) {
+            File dataFile = new File(new URI(dataUrl));
+            if (dataFile.exists() // there is no file or it's not the one we already have
+                || !dataFile.getAbsoluteFile().equals(annotationFile.getAbsoluteFile())) {
+              // ensure the directory structure exists
+              Files.createDirectories(annotationFile.getParentFile().toPath());
+              // move the incoming file to the proper location
+              IO.Rename(dataFile, annotationFile);
+            } // it's a different file
+          } // dataUrl is set
+        } // saving annotation
+      } catch (Exception x) {
+        System.err.println("Error processing binary annotation "+annotation.getLayerId()
+                           +":"+annotation.getId()+": " + x.getMessage());
+        throw new StoreException(
+          "Error processing binary annotation "+annotation.getLayerId()
+          +":"+annotation.getId()+": " + x.getMessage(), x);
+      }
+    }
+
     annotation.put("@SqlUpdated", Boolean.TRUE); // flag the annotation as having been updated
-  } // end of saveAnchorChanges()
+  } // end of saveAnnotationChanges()
+  
+  /**
+   * Get the location of the annotation's data file, if any.
+   * <p> Layers that have a MIME type as their type (e.g. "image/png") allow each
+   * annotation to represent binary data, which is implemented by storing it in the file
+   * system as a file. This method returns the location of that file, if it were to be
+   * present.
+   * <p> The location is structured: 
+   * <tt>files/{corpus}/{episode}/{ext}/{transcript}/{layer}/{annotation.id}.{ext}</tt>
+   * @param annotation The annotation to determine the data file location of.
+   * @param graph Annotation graph with at least corpus and episode layers loaded.
+   * @param mimeType The layer's MIME type.
+   * @return The location of the file containing the annotation's data, which may or may
+   * not exist.
+   * @throws StoreException, PermissionException, GraphNotFoundException
+   */
+  public File annotationDataFile(Annotation annotation, Graph graph, String mimeType)
+    throws StoreException, PermissionException, GraphNotFoundException {
+    if (mimeType.indexOf('/') < 0) return null; // not a MIME type
+    String ext = MediaFile.MimeTypeToSuffix().get(mimeType);
+    if (ext == null) { // not a known MIME type
+      // just use whatever's after the slash
+      ext = mimeType.substring(mimeType.indexOf('/')+1);
+    }
+    Annotation corpus = graph.first("corpus");
+    Annotation episode = graph.first("episode");
+    if (corpus == null || episode == null) {
+      String[] layers = { "corpus", "episode" };
+      graph = getTranscript(graph.getId(), layers);
+      corpus = graph.first("corpus");
+      episode = graph.first("episode");
+    }
+    File corpusDir = new File(getFiles(), corpus.getLabel());
+    File episodeDir = new File(corpusDir, episode.getLabel());
+    File extDir = new File(episodeDir, ext);
+    File transcriptDir = new File(extDir, graph.getId());
+    File layerDir = new File(transcriptDir, annotation.getLayerId());
+    File annotationFile = new File(layerDir, annotation.getId()+"."+ext);
+    return annotationFile;
+  } // end of annotationDataFile()
+  
+  /**
+   * Returns a URL for the given annotation. 
+   * @param annotation
+   * @param graph Annotation graph with at least corpus and episode layers loaded.
+   * @param mimeType The layer's MIME type.
+   * @return A URL to the file, which will be an http:// URL if {@link #baseUrl} is set,
+   * and a file:// URL otherwise, but will be null if the annotation has no data file, or
+   * the user doesn't have access to the corresponding media.
+   */
+  public String urlForAnnotationFile(Annotation annotation, Graph graph, String mimeType)
+    throws StoreException, PermissionException, GraphNotFoundException {
+    File annotationFile = annotationDataFile(annotation, graph, mimeType);
+    if (annotationFile != null && annotationFile.exists()) {
+      MediaFile mediaFile = new MediaFile(annotationFile, annotation.getLayerId());
+      try {
+        if (hasAccess(annotation.getGraph().getId(), mediaFile.getType().substring(0,1))) {
+          if (getBaseUrl() == null) { // TODO check this isn't a security risk
+            return annotationFile.toURI().toString();
+          } else {
+            return getBaseUrl()+"/api/annotation/data?id="+annotation.getId();
+          }
+        } // user has access
+      } catch (SQLException x) {
+        throw new StoreException(x);
+      }
+    }
+    return null;
+  } // end of urlForAnnotationFile()
    
   /**
    * Save changes to a 'special' annotation, e.g. corpus, series, etc.
@@ -8736,7 +8914,7 @@ public class SqlGraphStore implements GraphStore {
           System.err.println("Could not delete " + media.getFile().getPath());
         }
       } // next media file
-      
+
       if (graph.first("corpus") != null && graph.first("episode") != null) {
         // files to delete...
         File corpusDir = new File(getFiles(), graph.first("corpus").getLabel());
@@ -8756,13 +8934,38 @@ public class SqlGraphStore implements GraphStore {
 	    
       // for each layer
       PreparedStatement selectLayers = getConnection().prepareStatement(
-        "SELECT layer_id, scope FROM layer WHERE layer_id >= 0"
+        "SELECT layer_id, scope, short_description, type FROM layer WHERE layer_id >= 0"
         +" ORDER BY layer_id DESC");
       ResultSet rsLayers = selectLayers.executeQuery();
       PreparedStatement deleteLayerData = getConnection().prepareStatement(
         "DELETE FROM annotation_layer_? WHERE ag_id = ?");
       deleteLayerData.setInt(2, iAgId);
+      File annotationDataDir = null;
       while (rsLayers.next()) {
+        
+        // if it's a MIME type layer
+        
+        if (rsLayers.getString("type").indexOf('/') > 0) {
+          // delete all data files before we delete the annotations
+          Annotation[] annotations = getAnnotations(
+            graph.getId(), rsLayers.getString("short_description"), null, null, null);
+          File layerDir = null;
+          for (Annotation annotation : annotations) {
+            File file = annotationDataFile(annotation, graph, rsLayers.getString("type"));
+            if (file != null && file.exists()) {
+              file.delete();
+              if (layerDir == null) {
+                layerDir = file.getParentFile();
+                if (annotationDataDir == null) {
+                  annotationDataDir = layerDir.getParentFile();
+                }
+              }
+            }
+          } // next annotation
+          if (layerDir != null) layerDir.delete();
+        } // MIME type layer
+
+        // delete annotation rows
         int iLayerId = rsLayers.getInt("layer_id");
         deleteLayerData.setInt(1, iLayerId);
         deleteLayerData.executeUpdate();
@@ -8770,6 +8973,7 @@ public class SqlGraphStore implements GraphStore {
       deleteLayerData.close();
       rsLayers.close();
       selectLayers.close();
+      if (annotationDataDir != null) annotationDataDir.delete();
 	 
       PreparedStatement deleteAnchors = getConnection().prepareStatement(
         "DELETE FROM anchor WHERE ag_id = ?");
@@ -9468,7 +9672,7 @@ public class SqlGraphStore implements GraphStore {
    * @param s The string to escape.
    * @return The given string, with quotes escapeed.
    */
-  private String esc(String s) {
+  protected String esc(String s) {
     if (s == null) return "";
     return s.replace("\\","\\\\").replace("'","\\'");
   } // end of esc()

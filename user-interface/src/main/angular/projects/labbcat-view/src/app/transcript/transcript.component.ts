@@ -42,6 +42,8 @@ export class TranscriptComponent implements OnInit {
     categories: object; // string->Category
 
     selectedLayerIds : string[];
+    preselectedLayerIds = ['noise','word'];
+    predisabledLayerIds = ['word'];
     interpretedRaw: { [key: string] : boolean };
 
     temporalBlocks : { consecutive : boolean, utterances : Annotation[] }[];
@@ -77,14 +79,17 @@ export class TranscriptComponent implements OnInit {
     ) {
         this.imagesLocation = this.environment.imagesLocation;
         this.selectedLayerIds = [];
+        this.preselectedLayerIds = [];
         this.interpretedRaw = {};
         this.layerStyles = {};
         this.disabledLayerIds = [];
+        this.predisabledLayerIds = [];
         this.playingId = [];
         this.previousPlayingId = [];
     }
     
     ngOnInit() : void {        
+        this.disabledLayerIds = this.predisabledLayerIds;
         this.route.queryParams.subscribe((params) => {
             this.id = params["id"]||params["transcript"]||params["ag_id"];
             this.threadId = params["threadId"];
@@ -123,13 +128,12 @@ export class TranscriptComponent implements OnInit {
                     if (!layerIds && sessionStorage.getItem("selectedLayerIds")) {
                         layerIds = [...new Set(JSON.parse(sessionStorage.getItem("selectedLayerIds")))];
                     }
-                    if (layerIds) {
-                        if (Array.isArray(layerIds)) {
-                            this.layersChanged(layerIds);
-                        } else {
-                            this.layersChanged([ layerIds ]);
-                        }
+                    if (!layerIds) {
+                        layerIds = this.preselectedLayerIds;
+                    } else {
+                        layerIds = layerIds.concat(this.preselectedLayerIds);
                     }
+                    this.layersChanged(layerIds);
                     if (this.threadId) this.loadThread();
                     this.setOriginalFile();
                 }); // transcript read
@@ -302,12 +306,10 @@ export class TranscriptComponent implements OnInit {
                             if (layer.id == this.schema.episodeLayerId) continue;
                             if (layer.id == this.schema.participantLayerId) continue;
                             if (layer.id == this.schema.utteranceLayerId) continue;
-                            if (layer.id == this.schema.wordLayerId) continue;
                             // a temporal layer
                             this.labbcatService.labbcat.countAnnotations(
                                 this.transcript.id, l, (count, errors, messages) => {
                                     if (count) { // annotations in this layer
-                                        // remove grey-out style
                                         this.schema.layers[l].description += ` (${count} annotations)`;
                                         this.layerStyles[l] = {};
                                     } else {

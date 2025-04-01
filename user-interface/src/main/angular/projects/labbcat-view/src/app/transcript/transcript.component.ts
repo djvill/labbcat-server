@@ -79,11 +79,9 @@ export class TranscriptComponent implements OnInit {
     ) {
         this.imagesLocation = this.environment.imagesLocation;
         this.selectedLayerIds = [];
-        this.preselectedLayerIds = [];
         this.interpretedRaw = {};
         this.layerStyles = {};
         this.disabledLayerIds = [];
-        this.predisabledLayerIds = [];
         this.playingId = [];
         this.previousPlayingId = [];
     }

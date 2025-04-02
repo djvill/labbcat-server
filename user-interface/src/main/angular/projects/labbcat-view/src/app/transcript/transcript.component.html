@@ -258,6 +258,7 @@
           [disabled]="disabledLayerIds"
           [interpretedRaw]="interpretedRaw"
           [selected]="selectedLayerIds"
+          [preselected]="preselectedLayerIds"
           (selectedChange)="layersChanged($event)"></lib-layer-checkboxes>
         <div *ngIf="user && user.roles.includes('edit')" class="generate-layer">
           <div id="generateLayerSelection" *ngIf="showGenerateLayerSelection">

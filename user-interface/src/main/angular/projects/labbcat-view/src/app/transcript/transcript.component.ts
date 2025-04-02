@@ -124,12 +124,12 @@ export class TranscriptComponent implements OnInit {
                     // preselect layers?
                     let layerIds = params["layerId"]||params["l"]
                     if (!layerIds && sessionStorage.getItem("selectedLayerIds")) {
-                        layerIds = [...new Set(JSON.parse(sessionStorage.getItem("selectedLayerIds")))];
+                        layerIds = JSON.parse(sessionStorage.getItem("selectedLayerIds"));
                     }
                     if (!layerIds) {
                         layerIds = this.preselectedLayerIds;
                     } else {
-                        layerIds = layerIds.concat(this.preselectedLayerIds);
+                        layerIds = [...new Set(layerIds.concat(this.preselectedLayerIds))];
                     }
                     this.layersChanged(layerIds);
                     if (this.threadId) this.loadThread();
@@ -450,7 +450,7 @@ export class TranscriptComponent implements OnInit {
             if (task) {
                 let taskLayers = task.layers.filter(l=>l!="orthography")
                                             .filter(l=>!this.disabledLayerIds.includes(l));
-                if (task.layers) this.layersChanged(taskLayers);
+                if (task.layers) this.layersChanged(taskLayers, true);
                 this.highlightSearchResults(0);
             }
         });
@@ -573,22 +573,24 @@ export class TranscriptComponent implements OnInit {
         });
     }
     
-    layersChanged(selectedLayerIds : string[]) : void {
+    layersChanged(selectedLayerIds : string[], fromTask = false) : void {
         const addedLayerIds = selectedLayerIds.filter((x)=>this.selectedLayerIds.indexOf(x) < 0);
         const loadingLayers = [] as Promise<string>[];
         const deferredLayerIds = [] as string[]; // for deferred visualization
         this.loading = true;
 
-        // remove unticked layers
-        this.selectedLayerIds = selectedLayerIds.filter((x)=>addedLayerIds.indexOf(x) < 0);
-        // remember the deselections for next time
-        sessionStorage.setItem("selectedLayerIds", JSON.stringify(this.selectedLayerIds));
+        // remove unticked layers, but don't have task layers override preselected
+        if (!fromTask) {
+            this.selectedLayerIds = selectedLayerIds.filter((x)=>addedLayerIds.indexOf(x) < 0);
+            // remember the deselections for next time
+            sessionStorage.setItem("selectedLayerIds", JSON.stringify(this.selectedLayerIds));
+        }
 
         // load new layers one at a time
         for (let layerId of addedLayerIds) {
             const layer = this.schema.layers[layerId];
             loadingLayers.push(this.loadLayerIncrementally(layerId, 0));
-            if (this.isSpanningLayer(layer)) { // spanning layer
+            if (this.isSpanningLayer(layer) && !this.preselectedLayerIds.includes(layerId)) { // spanning layer
                 // defer visualization until all annotations are loaded and indexed
                 deferredLayerIds.push(layerId);
             } else { // immediate incremental vizualization is ok

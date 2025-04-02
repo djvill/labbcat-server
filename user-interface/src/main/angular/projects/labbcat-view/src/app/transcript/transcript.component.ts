@@ -448,8 +448,7 @@ export class TranscriptComponent implements OnInit {
     loadThread(): void {
         this.labbcatService.labbcat.taskStatus(this.threadId, (task, errors, messages) => {
             if (task) {
-                let taskLayers = task.layers.filter(l=>l!="orthography")
-                                            .filter(l=>!this.disabledLayerIds.includes(l));
+                let taskLayers = task.layers.filter(l=>l!="orthography");
                 if (task.layers) this.layersChanged(taskLayers, true);
                 this.highlightSearchResults(0);
             }
@@ -656,6 +655,7 @@ export class TranscriptComponent implements OnInit {
                             if (messages) {
                                 messages.forEach(m => this.messageService.info(`${layerId}: ${m}`));
                                 if (messages.includes("There are no annotations.")) {
+                                    this.layerStyles[layerId] = { color: "silver" };
                                     this.disabledLayerIds.push(layerId);
                                 }
                             }

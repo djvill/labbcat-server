@@ -704,7 +704,7 @@ export class TranscriptComponent implements OnInit {
 
     /** recursive anchor loading, to prevent requests from becoming too large */
     loadAnchorsIncrementally(unknownAnchorIds : Set<string>) : Promise<void> {
-        const maxIds = 150;
+        const maxIds = 50;
         return new Promise<void>((resolve, reject) => {
             let idsToLoadNow = new Set<string>(Array.from(unknownAnchorIds).slice(0, maxIds));
             let idsToLoadLater = new Set<string>(Array.from(unknownAnchorIds).slice(maxIds));

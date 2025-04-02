@@ -313,7 +313,7 @@ export class TranscriptComponent implements OnInit {
                                     } else {
                                         this.schema.layers[l].description += ' (0 annotations)';
                                         this.layerStyles[l] = { color: "silver" };
-                                        this.disabledLayerIds.push(l);
+                                        this.disabledLayerIds.push(l); // if the layer was in sessionStorage, it's already accounted for
                                     }
                                 });
                         } // next temporal layer
@@ -576,7 +576,7 @@ export class TranscriptComponent implements OnInit {
     layersChanged(selectedLayerIds : string[], fromTask = false) : void {
         const addedLayerIds = selectedLayerIds.filter((x)=>this.selectedLayerIds.indexOf(x) < 0);
         const loadingLayers = [] as Promise<string>[];
-        const deferredLayerIds = [] as string[]; // for deferred visualization
+        let deferredLayerIds = [] as string[]; // for deferred visualization
         this.loading = true;
 
         // remove unticked layers, but don't have task layers override preselected
@@ -585,12 +585,19 @@ export class TranscriptComponent implements OnInit {
             // remember the deselections for next time
             sessionStorage.setItem("selectedLayerIds", JSON.stringify(this.selectedLayerIds));
         }
+        const storedLayerIds = JSON.parse(sessionStorage.getItem("selectedLayerIds"));
 
         // load new layers one at a time
         for (let layerId of addedLayerIds) {
             const layer = this.schema.layers[layerId];
-            loadingLayers.push(this.loadLayerIncrementally(layerId, 0));
-            if (this.isSpanningLayer(layer) && !this.preselectedLayerIds.includes(layerId)) { // spanning layer
+            let lli = this.loadLayerIncrementally(layerId, 0);
+            loadingLayers.push(lli);
+            if (this.preselectedLayerIds.includes(layerId)) { // preselected
+                this.selectedLayerIds.push(layerId);
+            } else if (storedLayerIds.includes(layerId)) { // layer comes from sessionStorage
+                // defer visualization in case it turns out to be empty
+                deferredLayerIds.push(layerId);
+            } else if (this.isSpanningLayer(layer)) { // spanning layer
                 // defer visualization until all annotations are loaded and indexed
                 deferredLayerIds.push(layerId);
             } else { // immediate incremental vizualization is ok
@@ -601,6 +608,12 @@ export class TranscriptComponent implements OnInit {
         // once everything's finished loading
         Promise.all(loadingLayers).then(()=>{
             this.loading = false;
+            // remove empty layers (but not layers that are predisabled *and* preselected - i.e., we want their checkbox to always show as selected)
+            this.selectedLayerIds = this.selectedLayerIds.filter((x) =>
+                !this.disabledLayerIds.includes(x) ||
+                (this.predisabledLayerIds.includes(x) && this.preselectedLayerIds.includes(x)));
+            deferredLayerIds = deferredLayerIds.filter((x) =>
+                !this.disabledLayerIds.includes(x));
 
             // visualize deferred layers
             for (let layerId of deferredLayerIds) {
@@ -640,8 +653,12 @@ export class TranscriptComponent implements OnInit {
                         if (page == 0) {
                             if (errors) errors.forEach(m => 
                                 this.messageService.error(`${layerId}: ${m}`));
-                            if (messages) messages.forEach(m =>
-                                this.messageService.info(`${layerId}: ${m}`));
+                            if (messages) {
+                                messages.forEach(m => this.messageService.info(`${layerId}: ${m}`));
+                                if (messages.includes("There are no annotations.")) {
+                                    this.disabledLayerIds.push(layerId);
+                                }
+                            }
                         }
                         if (annotations.length) {
                             const unknownAnchorIds = new Set<string>();

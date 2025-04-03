@@ -90,6 +90,3 @@ img.data-type, img.alignment, img.vertical-peers {
         flex-grow: 1;
     }
 }
-.no-display {
-    display: none;
-}

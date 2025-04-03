@@ -4,12 +4,12 @@
           i18n-title title="Layer Categories"
           *ngIf="scopeCount > 1"
           i18n="layer type header">Projects</legend>
-  <label *ngFor="let c of Categories()" title="{{c}}"
+  <label *ngFor="let c of Categories()" [title]="c"
          class="category-{{c}}">
     <lib-grouped-checkbox
       group="category"
       name="category"
-      value="{{c}}"
+      [value]="c"
       [checked]="categorySelections[c]"
       (change)="categorySelections[c] = !categorySelections[c]"
       ></lib-grouped-checkbox>
@@ -23,13 +23,13 @@
           i18n="layer type header">Participant</legend>
   <ng-container *ngFor="let layer of participantAttributes">
     <label *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
-           title="{{layer.description}}"
-           class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
-           style="{{styles[layer.id]}}">
+           [title]="layer.description"
+           class="layer-{{layer.id}}"
+           [style]="styles[layer.id]">
       <lib-grouped-checkbox
-        group="{{name}}"
-        name="{{name}}"
-        value="{{layer.id}}"
+        [group]="name"
+        [name]="name"
+        [value]="layer.id"
         [checked]="layer._selected"
         [disabled]="this.disabled.includes(layer.id)"
         (change)="handleCheckbox(layer.id);"
@@ -41,7 +41,7 @@
                title-i18n title="How many linked annotations to include">
       </span>
       <img *ngIf="includeAlignment" class="alignment"
-           src="{{imagesLocation+'/alignment-0'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]">
+           [src]="imagesLocation+'/alignment-0'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]">
       <span class="layer-id">{{ParticipantLayerLabel(layer.id)}}</span>
       <span 
         *ngIf="annotationCounts[layer.id] > -1" 
@@ -50,9 +50,9 @@
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
-           src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
+           [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
            [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
-           (click)="!this.disabled.includes(layer.id) ? handleInterpretedRaw(layer.id) : ''"></label>
+           (click)="handleInterpretedRaw(layer.id)"></label>
     </label>
   </ng-container>
 </fieldset>
@@ -63,13 +63,13 @@
           i18n="layer type header">Transcript</legend>
   <ng-container *ngFor="let layer of transcriptAttributes">
     <label *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
-           title="{{layer.description}}"
-           class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
-           style="{{styles[layer.id]}}">
+           [title]="layer.description"
+           class="layer-{{layer.id}}"
+           [style]="styles[layer.id]">
       <lib-grouped-checkbox
-        group="{{name}}"
-        name="{{name}}"
-        value="{{layer.id}}"
+        [group]="name"
+        [name]="name"
+        [value]="layer.id"
         [checked]="layer._selected"
         [disabled]="this.disabled.includes(layer.id)"
         (change)="handleCheckbox(layer.id);"
@@ -81,7 +81,7 @@
                title-i18n title="How many linked annotations to include">
       </span>
       <img *ngIf="includeAlignment" class="alignment"
-           src="{{imagesLocation+'/alignment-0'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]">
+           [src]="imagesLocation+'/alignment-0'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]">
       <span class="layer-id">{{TranscriptLayerLabel(layer.id)}}</span>
       <span 
         *ngIf="annotationCounts[layer.id] > -1" 
@@ -90,9 +90,9 @@
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
-           src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
+           [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
            [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
-           (click)="!this.disabled.includes(layer.id) ? handleInterpretedRaw(layer.id) : ''"></label>
+           (click)="handleInterpretedRaw(layer.id)"></label>
     </label>
   </ng-container>
 </fieldset>
@@ -103,13 +103,13 @@
           i18n="layer type header">Span</legend>
   <ng-container *ngFor="let layer of spanLayers">
     <label *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
-           title="{{layer.description}}"
-           class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
-           style="{{styles[layer.id]}}">
+           [title]="layer.description"
+           class="layer-{{layer.id}}"
+           [style]="styles[layer.id]">
       <lib-grouped-checkbox
-        group="{{name}}"
-        name="{{name}}"
-        value="{{layer.id}}"
+        [group]="name"
+        [name]="name"
+        [value]="layer.id"
         [checked]="layer._selected"
         [disabled]="this.disabled.includes(layer.id)"
         (change)="handleCheckbox(layer.id);"
@@ -124,18 +124,24 @@
 	  <option value="subordinate">contained</option>
         </select>
       </span>
-      <img *ngIf="includeDataType" class="data-type{{displayIcons?'':' no-display'}}"
-           src="{{imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : undefined)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}"
-           i18n-title="Layer data types" title="Data type: {{['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='Number' ? 'numeric' : undefined}}"
-           alt="{{['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : undefined}}">
-      <img *ngIf="includeAlignment" class="alignment{{displayIcons?'':' no-display'}}"
-           src="{{imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}"
-           i18n-title="Layer alignment descriptions" title="Alignment: {{['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval' }}"
-           alt="{{['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' }}">
-      <img *ngIf="includeVerticalPeers" class="vertical-peers{{displayIcons?'':' no-display'}}"
-           src="{{layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined}}" 
-           alt="{{layer.peersOverlap ? '[|=]' : ''}}"
-           i18n-title="Layer vertical-peers descriptions" title="Allows vertical peers: {{layer.peersOverlap ? 'true' : 'false'}}">
+      <img *ngIf="includeDataType" class="data-type"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : undefined)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
+           i18n-title="Layer data types"
+           [title]="'Data type: ' + ['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='Number' ? 'numeric' : undefined"
+           [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : undefined">
+      <img *ngIf="includeAlignment" class="alignment"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
+           i18n-title="Layer alignment descriptions"
+           [title]="'Alignment: ' + ['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval'"
+           [alt]="['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' ">
+      <img *ngIf="includeVerticalPeers" class="vertical-peers"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
+           [alt]="layer.peersOverlap ? '[|=]' : ''"
+           i18n-title="Layer vertical-peers descriptions"
+           [title]="'Allows vertical peers: ' + layer.peersOverlap ? 'True' : 'False'">
       <span class="layer-id">{{layer.id}}</span>
       <span 
         *ngIf="annotationCounts[layer.id] > -1" 
@@ -144,9 +150,10 @@
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
-           src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
-           [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id], 'no-display':!displayIcons}"
-           (click)="!this.disabled.includes(layer.id) ? handleInterpretedRaw(layer.id) : ''"></label>
+           [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
+           [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           (click)="handleInterpretedRaw(layer.id)"></label>
     </label>
   </ng-container>
 </fieldset>
@@ -157,13 +164,13 @@
           i18n="layer type header">Phrase</legend>
   <ng-container *ngFor="let layer of phraseLayers">
     <label *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
-           title="{{layer.description}}"
-           class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
-           style="{{styles[layer.id]}}">
+           [title]="layer.description"
+           class="layer-{{layer.id}}"
+           [style]="styles[layer.id]">
       <lib-grouped-checkbox
-        group="{{name}}"
-        name="{{name}}"
-        value="{{layer.id}}"
+        [group]="name"
+        [name]="name"
+        [value]="layer.id"
         [checked]="layer._selected"
         [disabled]="this.disabled.includes(layer.id)"
         (change)="handleCheckbox(layer.id);"
@@ -172,8 +179,8 @@
         <ng-container *ngIf="IsAnchorable(layer)">
           <input type="checkbox" value="1" name="share_start_{{layer.id}}"
                  class="share-start"
-                 id="{{name+'-'+layer.id+'-start'}}" style="display: none;">
-          <label for="{{name+'-'+layer.id+'-start'}}"
+                 [id]="name+'-'+layer.id+'-start'" style="display: none;">
+          <label [for]="name+'-'+layer.id+'-start'"
                  class="anchor"
                  title-i18n title="Click to select annotations that start when the target starts"
                  >
@@ -189,8 +196,8 @@
           <input *ngIf="IsAnchorable(layer)"
                  type="checkbox" value="1" name="share_end_{{layer.id}}"
                  class="share-end"
-                 id="{{name+'-'+layer.id+'-end'}}" style="display: none;">
-          <label for="{{name+'-'+layer.id+'-end'}}"
+                 [id]="name+'-'+layer.id+'-end'" style="display: none;">
+          <label [for]="name+'-'+layer.id+'-end'"
                  *ngIf="IsAnchorable(layer)"
                  class="anchor"
                  title-i18n title="Click to select annotations that end when the target ends"
@@ -200,18 +207,24 @@
           </label>
         </ng-container>
       </span>
-      <img *ngIf="includeDataType" class="data-type{{displayIcons?'':' no-display'}}"
-           src="{{imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : undefined)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}"
-           i18n-title="Layer data types" title="Data type: {{['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='Number' ? 'numeric' : undefined}}"
-           alt="{{['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : undefined}}">
-      <img *ngIf="includeAlignment" class="alignment{{displayIcons?'':' no-display'}}"
-           src="{{imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}"
-           i18n-title="Layer alignment descriptions" title="Alignment: {{['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval' }}"
-           alt="{{['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' }}">
-      <img *ngIf="includeVerticalPeers" class="vertical-peers{{displayIcons?'':' no-display'}}"
-           src="{{layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined}}" 
-           alt="{{layer.peersOverlap ? '[|=]' : ''}}"
-           i18n-title="Layer vertical-peers descriptions" title="Allows vertical peers: {{layer.peersOverlap ? 'true' : 'false'}}">
+      <img *ngIf="includeDataType" class="data-type"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [title]="'Data type: ' + ['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='Number' ? 'numeric' : undefined"
+           [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : undefined)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
+           i18n-title="Layer data types"
+           [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : undefined">
+      <img *ngIf="includeAlignment" class="alignment"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
+           i18n-title="Layer alignment descriptions"
+           [title]="'Alignment: ' + ['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval'"
+           [alt]="['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' ">
+      <img *ngIf="includeVerticalPeers" class="vertical-peers"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
+           [alt]="layer.peersOverlap ? '[|=]' : ''"
+           i18n-title="Layer vertical-peers descriptions"
+           [title]="'Allows vertical peers: ' + layer.peersOverlap ? 'True' : 'False'">
       <span class="layer-id">{{layer.id}}</span>
       <span 
         *ngIf="annotationCounts[layer.id] > -1" 
@@ -220,9 +233,10 @@
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
-           src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
-           [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id], 'no-display':!displayIcons}"
-           (click)="!this.disabled.includes(layer.id) ? handleInterpretedRaw(layer.id) : ''"></label>
+           [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
+           [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           (click)="handleInterpretedRaw(layer.id)"></label>
     </label>
   </ng-container>
 </fieldset>
@@ -233,13 +247,13 @@
           i18n="layer type header">Word</legend>
   <ng-container *ngFor="let layer of wordLayers">
     <label *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
-           title="{{layer.description}}"
-           class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
-           style="{{styles[layer.id]}}">
+           [title]="layer.description"
+           class="layer-{{layer.id}}"
+           [style]="styles[layer.id]">
       <lib-grouped-checkbox
-        group="{{name}}"
-        name="{{name}}"
-        value="{{layer.id}}"
+        [group]="name"
+        [name]="name"
+        [value]="layer.id"
         [checked]="layer._selected"
         [disabled]="this.disabled.includes(layer.id)"
         (change)="handleCheckbox(layer.id);"
@@ -248,8 +262,8 @@
         <ng-container *ngIf="IsAnchorable(layer)">
           <input type="checkbox" value="1" name="share_start_{{layer.id}}"
                  class="share-start"
-                 id="{{name+'-'+layer.id+'-start'}}" style="display: none;">
-          <label for="{{name+'-'+layer.id+'-start'}}"
+                 [id]="name+'-'+layer.id+'-start'" style="display: none;">
+          <label [for]="name+'-'+layer.id+'-start'"
                  class="anchor"
                  title-i18n title="Click to select annotations that start when the target starts"
                  >
@@ -265,8 +279,8 @@
           <input *ngIf="IsAnchorable(layer)"
                  type="checkbox" value="1" name="share_end_{{layer.id}}"
                  class="share-end"
-                 id="{{name+'-'+layer.id+'-end'}}" style="display: none;">
-          <label for="{{name+'-'+layer.id+'-end'}}"
+                 [id]="name+'-'+layer.id+'-end'" style="display: none;">
+          <label [for]="name+'-'+layer.id+'-end'"
                  *ngIf="IsAnchorable(layer)"
                  class="anchor"
                  title-i18n title="Click to select annotations that end when the target ends"
@@ -280,18 +294,24 @@
         Potentially replace layer.subtype=='X' with layer_manager_id=='StanfordParser'
         Currently, layer.subtype can only be set to X by modifying the MySQL table
       -->
-      <img *ngIf="includeDataType" class="data-type{{displayIcons?'':' no-display'}}"
-           src="{{imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : undefined)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}"
-           i18n-title="Layer data types" title="Data type: {{['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='Number' ? 'numeric' : undefined}}"
-           alt="{{['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : undefined}}">
-      <img *ngIf="includeAlignment" class="alignment{{displayIcons?'':' no-display'}}"
-           src="{{imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}"
-           i18n-title="Layer alignment descriptions" title="Alignment: {{['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval' }}"
-           alt="{{['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' }}">
-      <img *ngIf="includeVerticalPeers" class="vertical-peers{{displayIcons?'':' no-display'}}"
-           src="{{layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined}}" 
-           alt="{{layer.peersOverlap ? '[|=]' : ''}}"
-           i18n-title="Layer vertical-peers descriptions" title="Allows vertical peers: {{layer.peersOverlap ? 'true' : 'false'}}">
+      <img *ngIf="includeDataType" class="data-type"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [title]="'Data type: ' + ['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='Number' ? 'numeric' : undefined"
+           [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : undefined)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
+           i18n-title="Layer data types"
+           [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : undefined">
+      <img *ngIf="includeAlignment" class="alignment"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
+           i18n-title="Layer alignment descriptions"
+           [title]="'Alignment: ' + ['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval'"
+           [alt]="['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' ">
+      <img *ngIf="includeVerticalPeers" class="vertical-peers"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
+           [alt]="layer.peersOverlap ? '[|=]' : ''"
+           i18n-title="Layer vertical-peers descriptions"
+           [title]="'Allows vertical peers: ' + layer.peersOverlap ? 'True' : 'False'">
       <span class="layer-id">{{layer.id}}</span>
       <span 
         *ngIf="annotationCounts[layer.id] > -1" 
@@ -300,9 +320,10 @@
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
-           src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
-           [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id], 'no-display':!displayIcons}"
-           (click)="!this.disabled.includes(layer.id) ? handleInterpretedRaw(layer.id) : ''"></label>
+           [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
+           [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           (click)="handleInterpretedRaw(layer.id)"></label>
     </label>
   </ng-container>
 </fieldset>
@@ -313,13 +334,13 @@
           i18n="layer type header" >Segment</legend>
   <ng-container *ngFor="let layer of segmentLayers">
     <label *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
-           title="{{layer.description}}"
-           class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
+           [title]="layer.description"
+           class="layer-{{layer.id}}"
            [ngStyle]="styles[layer.id]">
       <lib-grouped-checkbox
-        group="{{name}}"
-        name="{{name}}"
-        value="{{layer.id}}"
+        [group]="name"
+        [name]="name"
+        [value]="layer.id"
         [checked]="layer._selected"
         [disabled]="this.disabled.includes(layer.id)"
         (change)="handleCheckbox(layer.id);"
@@ -328,8 +349,8 @@
         <ng-container *ngIf="IsAnchorable(layer)">
           <input type="checkbox" value="1" name="share_start_{{layer.id}}"
                  class="share-start"
-                 id="{{name+'-'+layer.id+'-start'}}" style="display: none;">
-          <label for="{{name+'-'+layer.id+'-start'}}"
+                 [id]="name+'-'+layer.id+'-start'" style="display: none;">
+          <label [for]="name+'-'+layer.id+'-start'"
                  class="anchor"
                  title-i18n title="Click to select annotations that start when the target starts"
                  >
@@ -345,8 +366,8 @@
           <input *ngIf="IsAnchorable(layer)"
                  type="checkbox" value="1" name="share_end_{{layer.id}}"
                  class="share-end"
-                 id="{{name+'-'+layer.id+'-end'}}" style="display: none;">
-          <label for="{{name+'-'+layer.id+'-end'}}"
+                 [id]="name+'-'+layer.id+'-end'" style="display: none;">
+          <label [for]="name+'-'+layer.id+'-end'"
                  *ngIf="IsAnchorable(layer)"
                  class="anchor"
                  title-i18n title="Click to select annotations that end when the target ends"
@@ -356,18 +377,25 @@
           </label>
         </ng-container>
       </span>
-      <img *ngIf="includeDataType" class="data-type{{displayIcons?'':' no-display'}}"
-           src="{{imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : undefined)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}"
-           i18n-title="Layer data types" title="Data type: {{['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='Number' ? 'numeric' : undefined}}"
-           alt="{{['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : undefined}}">
-      <img *ngIf="includeAlignment" class="alignment{{displayIcons?'':' no-display'}}"
-           src="{{imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}"
-           i18n-title="Layer alignment descriptions" title="Alignment: {{['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval' }}"
-           alt="{{['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' }}">
-      <img *ngIf="includeVerticalPeers" class="vertical-peers{{displayIcons?'':' no-display'}}"
-           src="{{layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined}}" 
-           alt="{{layer.peersOverlap ? '[|=]' : ''}}"
-           i18n-title="Layer vertical-peers descriptions" title="Allows vertical peers: {{layer.peersOverlap ? 'true' : 'false'}}">
+      <img *ngIf="includeDataType" class="data-type"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           
+           [title]="'Data type: ' + ['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='Number' ? 'numeric' : undefined"
+           [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : undefined)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
+           i18n-title="Layer data types"
+           [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : undefined">
+      <img *ngIf="includeAlignment" class="alignment"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
+           i18n-title="Layer alignment descriptions"
+           [title]="'Alignment: ' + ['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval'"
+           [alt]="['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' ">
+      <img *ngIf="includeVerticalPeers" class="vertical-peers"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
+           [alt]="layer.peersOverlap ? '[|=]' : ''"
+           i18n-title="Layer vertical-peers descriptions"
+           [title]="'Allows vertical peers: ' + layer.peersOverlap ? 'True' : 'False'">
       <span class="layer-id">{{layer.id}}</span>
       <span 
         *ngIf="annotationCounts[layer.id] > -1" 
@@ -376,9 +404,10 @@
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
-           src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
-           [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id], 'no-display':!displayIcons}"
-           (click)="!this.disabled.includes(layer.id) ? handleInterpretedRaw(layer.id) : ''"></label>
+           [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
+           [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
+           [style.display]="displayIcons ? 'inline' : 'none'"
+           (click)="handleInterpretedRaw(layer.id)"></label>
     </label>
   </ng-container>
 </fieldset>

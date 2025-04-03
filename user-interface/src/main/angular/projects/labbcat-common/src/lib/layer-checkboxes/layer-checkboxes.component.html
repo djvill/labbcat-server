@@ -43,6 +43,11 @@
       <img *ngIf="includeAlignment" class="alignment"
            src="{{imagesLocation+'/alignment-0'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]">
       <span class="layer-id">{{ParticipantLayerLabel(layer.id)}}</span>
+      <span 
+        *ngIf="annotationCounts[layer.id] > -1" 
+        class="layer-count"
+        [style.display]="displayCounts ? 'inline' : 'none'"
+        >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
            src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
@@ -78,6 +83,11 @@
       <img *ngIf="includeAlignment" class="alignment"
            src="{{imagesLocation+'/alignment-0'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]">
       <span class="layer-id">{{TranscriptLayerLabel(layer.id)}}</span>
+      <span 
+        *ngIf="annotationCounts[layer.id] > -1" 
+        class="layer-count"
+        [style.display]="displayCounts ? 'inline' : 'none'"
+        >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
            src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
@@ -127,6 +137,11 @@
            alt="{{layer.peersOverlap ? '[|=]' : ''}}"
            i18n-title="Layer vertical-peers descriptions" title="Allows vertical peers: {{layer.peersOverlap ? 'true' : 'false'}}">
       <span class="layer-id">{{layer.id}}</span>
+      <span 
+        *ngIf="annotationCounts[layer.id] > -1" 
+        class="layer-count"
+        [style.display]="displayCounts ? 'inline' : 'none'"
+        >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
            src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
@@ -198,6 +213,11 @@
            alt="{{layer.peersOverlap ? '[|=]' : ''}}"
            i18n-title="Layer vertical-peers descriptions" title="Allows vertical peers: {{layer.peersOverlap ? 'true' : 'false'}}">
       <span class="layer-id">{{layer.id}}</span>
+      <span 
+        *ngIf="annotationCounts[layer.id] > -1" 
+        class="layer-count"
+        [style.display]="displayCounts ? 'inline' : 'none'"
+        >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
            src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
@@ -273,6 +293,11 @@
            alt="{{layer.peersOverlap ? '[|=]' : ''}}"
            i18n-title="Layer vertical-peers descriptions" title="Allows vertical peers: {{layer.peersOverlap ? 'true' : 'false'}}">
       <span class="layer-id">{{layer.id}}</span>
+      <span 
+        *ngIf="annotationCounts[layer.id] > -1" 
+        class="layer-count"
+        [style.display]="displayCounts ? 'inline' : 'none'"
+        >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
            src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
@@ -344,6 +369,11 @@
            alt="{{layer.peersOverlap ? '[|=]' : ''}}"
            i18n-title="Layer vertical-peers descriptions" title="Allows vertical peers: {{layer.peersOverlap ? 'true' : 'false'}}">
       <span class="layer-id">{{layer.id}}</span>
+      <span 
+        *ngIf="annotationCounts[layer.id] > -1" 
+        class="layer-count"
+        [style.display]="displayCounts ? 'inline' : 'none'"
+        >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
            i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
            src="{{imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]"
@@ -353,8 +383,10 @@
   </ng-container>
 </fieldset>
 </div>
-<fieldset *ngIf="includeDataType || includeAlignment || includeVerticalPeers" class="icon-hider">
-  <label title="Hide icons that correspond to layer properties">
+<fieldset *ngIf="includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}' || (annotationCounts | json) != '{}'" class="icon-hider">
+  <label 
+    *ngIf="includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}'"
+    title="Hide icons that correspond to layer properties">
     <!-- Don't actually need grouped-checkbox, but without it the alignment doesn't match Projects above -->
     <lib-grouped-checkbox
       group="hideLayerIcons"
@@ -363,5 +395,16 @@
       (change)="toggleLayerIcons()"
       ></lib-grouped-checkbox>
     Hide layer icons
+  </label>
+  <label 
+    *ngIf="(annotationCounts | json) != '{}'"
+    title="Hide the number of annotations in each layer">
+    <lib-grouped-checkbox
+      group="hideLayerCounts"
+      name="hideLayerCounts"
+      [checked]="!displayCounts"
+      (change)="toggleLayerCounts()"
+      ></lib-grouped-checkbox>
+    Hide annotation counts
   </label>
 </fieldset>

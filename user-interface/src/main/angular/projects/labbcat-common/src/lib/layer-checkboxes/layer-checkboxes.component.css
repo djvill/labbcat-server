@@ -65,6 +65,12 @@ img.data-type, img.alignment, img.vertical-peers {
     height: 1rem;
     padding-right: 0.2rem;
 }
+.layer-count:before {
+    content: ' (';
+}
+.layer-count:after {
+    content: ')';
+}
 .interpreted-selector {
     margin-left: 10px;
     height: 15px;
@@ -74,6 +80,15 @@ img.data-type, img.alignment, img.vertical-peers {
 }
 .icon-hider {
     font-style: italic;
+}
+@media all and (min-width: 640px) {
+    .icon-hider { 
+        display: flex;
+        flex-direction: row;
+    }
+    .icon-hider label {
+        flex-grow: 1;
+    }
 }
 .no-display {
     display: none;

@@ -25,6 +25,8 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() includeRelationship: boolean;
     /** Display icons */
     @Input() displayIcons: boolean;
+    /** Display layer counts */
+    @Input() displayCounts: boolean;
     /** Show the data type of each layer */
     @Input() includeDataType: boolean;
     /** Show the alignment of each layer */
@@ -63,6 +65,8 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() segment: boolean;
     /** Layer styles - key is the layerId, value is the CSS style definition for the layer */
     @Input() styles: { [key: string] : any };
+    /** Annotation counts - key is the layerId, value is the number of annotations (e.g. in a transcript) */
+    @Input() annotationCounts: { [key: string] : any };
     /** Input list of IDs of layers whose checkbox should be disabled */
     @Input() disabled: string[];
     /** A layer ID to exclude options (annotation count, anchoring, etc.) for */
@@ -109,6 +113,7 @@ export class LayerCheckboxesComponent implements OnInit {
         if (this.word) this.scopeCount++;
         if (this.segment) this.scopeCount++;
         if (!this.styles) this.styles = {};
+        if (!this.annotationCounts) this.annotationCounts = {};
         if (!this.disabled) this.disabled = [];
         if (!this.interpretedRaw) this.interpretedRaw = {};
     }
@@ -133,6 +138,8 @@ export class LayerCheckboxesComponent implements OnInit {
         } else {
           this.displayIcons = true;
         }
+        const displayCounts = sessionStorage.getItem("displayLayerCounts");
+        this.displayCounts = JSON.parse(displayCounts || 'true');
         if (!this.selected) this.selected = [] as string[];
         for (let l in this.schema.layers) {
             let layer = this.schema.layers[l] as Layer;
@@ -240,5 +247,9 @@ export class LayerCheckboxesComponent implements OnInit {
     toggleLayerIcons(): void {
         this.displayIcons = !this.displayIcons;
         sessionStorage.setItem("displayLayerIcons", this.displayIcons.toString());
+    }
+    toggleLayerCounts(): void {
+        this.displayCounts = !this.displayCounts;
+        sessionStorage.setItem("displayLayerCounts", JSON.stringify(this.displayCounts));
     }
 }

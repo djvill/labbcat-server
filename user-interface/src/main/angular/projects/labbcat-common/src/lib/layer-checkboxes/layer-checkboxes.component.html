@@ -49,7 +49,7 @@
         [style.display]="displayCounts ? 'inline' : 'none'"
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
-           i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
+           i18n-title title="Toggle between displaying IPA vs. DISC symbols"
            [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
            [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
            (click)="handleInterpretedRaw(layer.id)"></label>
@@ -89,7 +89,7 @@
         [style.display]="displayCounts ? 'inline' : 'none'"
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
-           i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
+           i18n-title title="Toggle between displaying IPA vs. DISC symbols"
            [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
            [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
            (click)="handleInterpretedRaw(layer.id)"></label>
@@ -149,7 +149,7 @@
         [style.display]="displayCounts ? 'inline' : 'none'"
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
-           i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
+           i18n-title title="Toggle between displaying IPA vs. DISC symbols"
            [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
            [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
            [style.display]="displayIcons ? 'inline' : 'none'"
@@ -232,7 +232,7 @@
         [style.display]="displayCounts ? 'inline' : 'none'"
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
-           i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
+           i18n-title title="Toggle between displaying IPA vs. DISC symbols"
            [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
            [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
            [style.display]="displayIcons ? 'inline' : 'none'"
@@ -319,7 +319,7 @@
         [style.display]="displayCounts ? 'inline' : 'none'"
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
-           i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
+           i18n-title title="Toggle between displaying IPA vs. DISC symbols"
            [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
            [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
            [style.display]="displayIcons ? 'inline' : 'none'"
@@ -403,7 +403,7 @@
         [style.display]="displayCounts ? 'inline' : 'none'"
         >{{annotationCounts[layer.id]}}</span>
       <label><img *ngIf="interpretedRaw.hasOwnProperty(layer.id)"
-           i18n-title title="Whether to show interpretation of labels (e.g. IPA) or uninterpreted labels (e.g. CELEX DISC)"
+           i18n-title title="Toggle between displaying IPA vs. DISC symbols"
            [src]="imagesLocation+'/interpreted'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" alt="[🏷]"
            [ngClass]="{'interpreted-selector':true, 'deselected':!interpretedRaw[layer.id]}"
            [style.display]="displayIcons ? 'inline' : 'none'"

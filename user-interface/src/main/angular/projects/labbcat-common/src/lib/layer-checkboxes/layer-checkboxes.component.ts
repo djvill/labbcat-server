@@ -27,6 +27,8 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() displayIcons: boolean;
     /** Display layer counts */
     @Input() displayCounts: boolean;
+    /** Display prefixes for participant/transcript attributes */
+    @Input() displayAttributePrefixes: boolean;
     /** Show the data type of each layer */
     @Input() includeDataType: boolean;
     /** Show the alignment of each layer */
@@ -81,6 +83,8 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() interpretedRaw: { [key: string] : any };
     /** Output list of layers with interpreted (true) or raw (false) labels */
     @Output() interpretedRawChange = new EventEmitter<{ [key: string] : any }>();
+    /** Hide controls bar, overriding the effect of any other settings that would normally trigger showing it */
+    @Input() hideControls = false;
     
     participantAttributes: Layer[];
     transcriptAttributes: Layer[];
@@ -137,6 +141,8 @@ export class LayerCheckboxesComponent implements OnInit {
         this.displayIcons = JSON.parse(displayIcons || 'true');
         const displayCounts = sessionStorage.getItem("displayLayerCounts");
         this.displayCounts = JSON.parse(displayCounts || 'true');
+        const displayAttributePrefixes = sessionStorage.getItem("displayAttributePrefixes");
+        this.displayAttributePrefixes = JSON.parse(displayAttributePrefixes || 'false');
         if (!this.selected) this.selected = [] as string[];
         for (let l in this.schema.layers) {
             let layer = this.schema.layers[l] as Layer;
@@ -250,5 +256,9 @@ export class LayerCheckboxesComponent implements OnInit {
     toggleLayerCounts(): void {
         this.displayCounts = !this.displayCounts;
         sessionStorage.setItem("displayLayerCounts", JSON.stringify(this.displayCounts));
+    }
+    toggleAttributePrefixes(): void {
+        this.displayAttributePrefixes = !this.displayAttributePrefixes;
+        sessionStorage.setItem("displayAttributePrefixes", JSON.stringify(this.displayAttributePrefixes));
     }
 }

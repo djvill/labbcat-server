@@ -41,6 +41,7 @@
     i18n-label label="Transcripts"
     i18n-title title="List transcripts that include this participant"></lib-link>
   <lib-link
+    *ngIf="user && user.roles.includes('edit')"
     href="{{baseUrl}}allUtterances?id={{participant.label}}"
     img="all-utterances.svg" icon="“"
     i18n-label label="All Utterances"

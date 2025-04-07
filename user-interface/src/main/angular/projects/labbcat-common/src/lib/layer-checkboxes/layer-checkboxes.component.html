@@ -412,7 +412,7 @@
   </ng-container>
 </fieldset>
 </div>
-<fieldset *ngIf="!hideControls && (includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}' || (annotationCounts | json) != '{}' || participant || transcript)" id="controls">
+<fieldset *ngIf="!hideControls && (includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}' || (annotationCounts | json) != '{}' || participant || transcript || controlsLinks['about'])" id="controls">
   <label 
     *ngIf="includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}'"
     title="Hide icons that correspond to layer properties">
@@ -424,6 +424,9 @@
       (change)="toggleLayerIcons()"
       ></lib-grouped-checkbox>
     Hide layer icons
+    <span *ngIf="controlsLinks['layerIcons']"
+          class="control-link">(<a [href]="controlsLinks['layerIcons']" target="_blank">about</a>)
+    </span>
   </label>
   <label 
     *ngIf="(annotationCounts | json) != '{}'"
@@ -435,6 +438,9 @@
       (change)="toggleLayerCounts()"
       ></lib-grouped-checkbox>
     Hide annotation counts
+    <span *ngIf="controlsLinks['layerCounts']"
+          class="control-link">(<a [href]="controlsLinks['layerCounts']" target="_blank">about</a>)
+    </span>
   </label>
   <label 
     *ngIf="participant || transcript"
@@ -446,5 +452,16 @@
       (change)="toggleAttributePrefixes()"
       ></lib-grouped-checkbox>
     Show attribute prefixes
+    <span *ngIf="controlsLinks['attributePrefixes']"
+          class="control-link">(<a [href]="controlsLinks['attributePrefixes']" target="_blank">about</a>)
+    </span>
   </label>
+  <lib-link
+    *ngIf="controlsLinks['about']"
+    id="about-link"
+    [href]="controlsLinks['about']['href']"
+    [label]="controlsLinks['about']['text'] || 'About'"
+    img="howto.svg"
+    target="_blank"
+    icon="🎓"></lib-link>
 </fieldset>

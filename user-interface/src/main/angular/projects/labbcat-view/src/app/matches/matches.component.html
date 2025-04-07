@@ -166,6 +166,7 @@
           span="true" phrase="true" word="true" segment="true"
           excludeMainParticipant="true" excludeTurn="true" excludeUtterance="true"
           includeAnchorSharing="true" excludeOptionsForLayerId="{{task.targetLayer}}"
+          [controlsLinks]="controlsLinksCSV"
           selected="{{selectedLayers}}"></lib-layer-checkboxes>
       </div>
     </fieldset>
@@ -233,6 +234,7 @@
     <legend i18n>Layers to export</legend>
       <lib-layer-checkboxes name="layerId"
                             word="true" segment="true" phrase="true" excludeTurn="true"
+                            [controlsLinks]="controlsLinksSerialization"
                             selected="{{serializationLayers}}"></lib-layer-checkboxes>
     </fieldset>
   </div>

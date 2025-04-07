@@ -14,6 +14,7 @@ export class LinkComponent implements OnInit {
     @Input() routerLink: string[];
     @Input() queryParams: object;
     @Input() href: string;
+    @Input() target: string;
     processing: false;
     
     imagesLocation: string;

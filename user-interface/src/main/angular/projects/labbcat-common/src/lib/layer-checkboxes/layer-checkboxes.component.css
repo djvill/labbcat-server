@@ -80,13 +80,26 @@ img.data-type, img.alignment, img.vertical-peers {
 }
 #controls {
     font-style: italic;
+    display: flex;
+    flex-direction: column;
 }
 @media all and (min-width: 640px) {
     #controls { 
-        display: flex;
         flex-direction: row;
+        align-items: flex-end;
     }
     #controls label {
         flex-grow: 1;
     }
+    #controls #about-link {
+        flex-grow: 0;
+        margin-left: auto;
+    }
+}
+#controls .control-link {
+    font-style: normal;
+    font-size: 0.85em;
+}
+#controls #about-link {
+    font-style: normal;
 }

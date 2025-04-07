@@ -69,6 +69,13 @@ export class TranscriptComponent implements OnInit {
 
     threadId : string;
     matchTokens = {} as { [key: string] : number };
+    controlsLinks = {
+        layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of transcript docpage about layer picker
+        about: {
+            text: 'About layers',
+            href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
+        }
+    };
     
     constructor(
         private labbcatService : LabbcatService,

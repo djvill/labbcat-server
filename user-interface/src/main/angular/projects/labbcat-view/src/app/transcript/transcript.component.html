@@ -260,6 +260,7 @@
           [selected]="selectedLayerIds"
           [preselected]="preselectedLayerIds"
           [annotationCounts]="layerCounts"
+          [controlsLinks]="controlsLinks"
           (selectedChange)="layersChanged($event)"></lib-layer-checkboxes>
         <div *ngIf="user && user.roles.includes('edit')" class="generate-layer">
           <div id="generateLayerSelection" *ngIf="showGenerateLayerSelection">

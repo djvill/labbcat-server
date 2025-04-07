@@ -44,6 +44,13 @@ export class TranscriptsComponent implements OnInit {
     mimeTypeToSerializer = {};
     mimeType = "text/praat-textgrid";
 
+    controlsLinks = {
+        about: {
+            text: 'About layers and attributes',
+            href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
+        }
+    };
+
     constructor(
         private labbcatService: LabbcatService,
         private messageService: MessageService,

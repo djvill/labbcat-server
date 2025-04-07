@@ -64,6 +64,19 @@ export class MatchesComponent implements OnInit {
     annotationLayerId: string;
     phoneAlignmentLayerId: string;
     
+    controlsLinksCSV = {
+        about: {
+            text: 'About layers and attributes',
+            href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
+        }
+    };
+    controlsLinksSerialization = {
+        about: {
+            text: 'About layers',
+            href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
+        }
+    };
+    
     constructor(
         private labbcatService: LabbcatService,
         private messageService: MessageService,

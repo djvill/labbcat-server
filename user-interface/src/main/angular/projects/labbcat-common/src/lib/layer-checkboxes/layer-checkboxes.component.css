@@ -96,6 +96,17 @@ img.data-type, img.alignment, img.vertical-peers {
     #controls .label-spacer {
         flex-grow: 1;
     }
+    #controls #about-link {
+        flex-grow: 0;
+        margin-left: auto;
+    }
+}
+#controls .control-link {
+    font-style: normal;
+    font-size: 0.85em;
+}
+#controls #about-link {
+    font-style: normal;
 }
 .icon-hider {
     font-style: italic;

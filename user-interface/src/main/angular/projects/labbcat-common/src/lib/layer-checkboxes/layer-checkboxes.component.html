@@ -476,7 +476,7 @@ s                   i18n-title="Layer vertical-peers descriptions"
     </tbody></table>
   </fieldset>
 </div>
-<fieldset *ngIf="!hideControls && (participant || transcript || includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}' || (annotationCounts | json) != '{}')" id="controls">
+<fieldset *ngIf="!hideControls && (participant || transcript || includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}' || (annotationCounts | json) != '{}' || controlsLinks['about'])" id="controls">
   <div *ngIf="participant || transcript" class="label-spacer">
     <label
       i18n-title title="Show full names for participant/transcript attributes">
@@ -486,7 +486,11 @@ s                   i18n-title="Layer vertical-peers descriptions"
         [checked]="displayAttributePrefixes"
         (change)="toggleAttributePrefixes()"
         ></lib-grouped-checkbox>
-      <span i18n>Show attribute prefixes</span></label>
+      <span i18n>Show attribute prefixes</span>
+    </label>
+    <span *ngIf="controlsLinks['attributePrefixes']"
+      class="control-link"> (<a [href]="controlsLinks['attributePrefixes']" target="_blank" i18n>about</a>)
+    </span>
   </div>
   <div
     *ngIf="includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}'"
@@ -500,7 +504,11 @@ s                   i18n-title="Layer vertical-peers descriptions"
         [checked]="displayIcons"
         (change)="toggleLayerIcons()"
         ></lib-grouped-checkbox>
-      <span i18n>Show layer icons</span></label>
+      <span i18n>Show layer icons</span>
+    </label>
+    <span *ngIf="controlsLinks['layerIcons']"
+      class="control-link"> (<a [href]="controlsLinks['layerIcons']" target="_blank" i18n>about</a>)
+    </span>
   </div>
   <div *ngIf="(annotationCounts | json) != '{}'" class="label-spacer">
     <label
@@ -513,5 +521,16 @@ s                   i18n-title="Layer vertical-peers descriptions"
         ></lib-grouped-checkbox>
       <span i18n>Show annotation counts</span>
     </label>
+    <span *ngIf="controlsLinks['layerCounts']"
+      class="control-link"> (<a [href]="controlsLinks['layerCounts']" target="_blank" i18n>about</a>)
+    </span>
   </div>
+  <lib-link
+    *ngIf="controlsLinks['about']"
+    id="about-link"
+    [href]="controlsLinks['about']['href']"
+    [label]="controlsLinks['about']['text'] || 'About'"
+    img="howto.svg"
+    target="_blank"
+    icon="🎓"></lib-link>
 </fieldset>

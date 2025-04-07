@@ -20,6 +20,14 @@ export class SearchMatrixComponent implements OnInit, OnChanges {
     helperMatch: MatrixLayerMatch;
     imagesLocation : string;
     
+    controlsLinks = {
+        layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of search docpage about layer picker
+        about: {
+            text: 'About layers',
+            href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
+        }
+    };
+    
     constructor(@Inject('environment') private environment) {
         this.imagesLocation = this.environment.imagesLocation;
     }

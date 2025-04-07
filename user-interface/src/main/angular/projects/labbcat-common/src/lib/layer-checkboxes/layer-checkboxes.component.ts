@@ -115,6 +115,7 @@ export class LayerCheckboxesComponent implements OnInit {
         if (!this.styles) this.styles = {};
         if (!this.annotationCounts) this.annotationCounts = {};
         if (!this.disabled) this.disabled = [];
+        if (!this.preselected) this.preselected = [];
         if (!this.interpretedRaw) this.interpretedRaw = {};
     }
 

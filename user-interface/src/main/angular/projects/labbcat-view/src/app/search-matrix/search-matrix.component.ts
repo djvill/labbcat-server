@@ -173,7 +173,7 @@ export class SearchMatrixComponent implements OnInit, OnChanges {
     }
 
     isSpanningLayer(layer: Layer): boolean {
-        return layer.alignment == 2
+        return layer.alignment != 1
             && (layer.parentId == this.schema.root.id
                 || layer.parentId == this.schema.participantLayerId
                 || layer.parentId == this.schema.turnLayerId)

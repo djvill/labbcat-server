@@ -594,10 +594,14 @@ export class TranscriptsComponent implements OnInit {
         if (!this.showGenerateLayerSelection) { // show options
             this.showGenerateLayerSelection = true;
             this.showAttributesSelection = this.showSerializationOptions = false;
+            this.serializeImg = "cog.svg";
         } else { // options selected, so go ahead and do it
             this.form.nativeElement.action = this.baseUrl + "edit/layers/regenerate";
             this.form.nativeElement.submit();
         }
+    }
+    collapseGenerate(): void {
+        this.showGenerateLayerSelection = false;
     }
 
     /** Button action */
@@ -640,6 +644,7 @@ export class TranscriptsComponent implements OnInit {
         if (!this.showAttributesSelection) { // show options
             this.showAttributesSelection = true;
             this.showSerializationOptions = this.showGenerateLayerSelection = false;
+            this.serializeImg = "cog.svg";
         } else { // options selected, so go ahead and do it            
             if (this.selectedIds.length == 0 && this.matchCount > 10) {
                 if (!confirm("This will export all "+this.matchCount+" matches.\nAre you sure?")) { // TODO i18n
@@ -649,6 +654,9 @@ export class TranscriptsComponent implements OnInit {
             this.form.nativeElement.action = this.baseUrl + "api/attributes";
             this.form.nativeElement.submit();
         }
+    }
+    collapseExportAttributes(): void {
+        this.showAttributesSelection = false;
     }
 
     serializeImg = "cog.svg";
@@ -674,6 +682,10 @@ export class TranscriptsComponent implements OnInit {
     }
     onChangeMimeType(): void {
         this.serializeImg = this.mimeTypeToSerializer[this.mimeType].icon;
+    }
+    collapseExportFormat(): void {
+        this.showSerializationOptions = false;
+        this.serializeImg = "cog.svg";
     }
     
     /** Button action */

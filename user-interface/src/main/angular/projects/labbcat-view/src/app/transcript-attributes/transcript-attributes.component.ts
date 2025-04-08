@@ -21,7 +21,7 @@ export class TranscriptAttributesComponent implements OnInit {
     currentCategory: string;
     categories: object; // string->Category
     transcript: Annotation;
-    displayLayerIds = true;
+    displayLayerIds: boolean;
     
     constructor(
         private labbcatService: LabbcatService,
@@ -71,6 +71,8 @@ export class TranscriptAttributesComponent implements OnInit {
                 this.attributes = [];
                 this.categoryLayers = {};
                 this.categoryLabels = [];
+                const displayLayerIds = sessionStorage.getItem("displayLayerIds");
+                this.displayLayerIds = JSON.parse(displayLayerIds || 'true');
                 // transcript attributes
                 for (let layerId in schema.layers) {
                     const layer = schema.layers[layerId] as Layer;
@@ -118,5 +120,6 @@ export class TranscriptAttributesComponent implements OnInit {
     }
     toggleLayerIds(): void {
         this.displayLayerIds = !this.displayLayerIds;
+        sessionStorage.setItem("displayLayerIds", JSON.stringify(this.displayLayerIds));
     }
 }

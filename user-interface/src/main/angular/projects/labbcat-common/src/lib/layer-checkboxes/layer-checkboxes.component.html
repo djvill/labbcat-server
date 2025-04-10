@@ -412,7 +412,21 @@
   </ng-container>
 </fieldset>
 </div>
-<fieldset *ngIf="!hideControls && (includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}' || (annotationCounts | json) != '{}' || participant || transcript || controlsLinks['about'])" id="controls">
+<fieldset *ngIf="!hideControls && (participant || transcript || includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}' || (annotationCounts | json) != '{}' || controlsLinks['about'])" id="controls">
+  <div *ngIf="participant || transcript" class="label-spacer">
+  <label
+    title="Show full names for participant/transcript attributes">
+    <lib-grouped-checkbox
+      group="showAttributePrefixes"
+      name="showAttributePrefixes"
+      [checked]="displayAttributePrefixes"
+      (change)="toggleAttributePrefixes()"
+      ></lib-grouped-checkbox>
+    Show attribute prefixes</label>
+    <span *ngIf="controlsLinks['attributePrefixes']"
+          class="control-link"> (<a [href]="controlsLinks['attributePrefixes']" target="_blank">about</a>)
+    </span>
+  </div>
   <div
     *ngIf="includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}'"
     class="label-spacer">
@@ -442,20 +456,6 @@
     Hide annotation counts</label>
     <span *ngIf="controlsLinks['layerCounts']"
           class="control-link"> (<a [href]="controlsLinks['layerCounts']" target="_blank">about</a>)
-    </span>
-  </div>
-  <div *ngIf="participant || transcript" class="label-spacer">
-  <label
-    title="Show full names for participant/transcript attributes">
-    <lib-grouped-checkbox
-      group="showAttributePrefixes"
-      name="showAttributePrefixes"
-      [checked]="displayAttributePrefixes"
-      (change)="toggleAttributePrefixes()"
-      ></lib-grouped-checkbox>
-    Show attribute prefixes</label>
-    <span *ngIf="controlsLinks['attributePrefixes']"
-          class="control-link"> (<a [href]="controlsLinks['attributePrefixes']" target="_blank">about</a>)
     </span>
   </div>
   <lib-link

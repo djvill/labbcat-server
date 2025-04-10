@@ -194,11 +194,6 @@
 
 <div *ngIf="participant" class="links">
   <lib-link
-    href="{{baseUrl}}transcripts?transcript_expression=labels(&quot;participant&quot;).includes(&quot;{{participant.label}}&quot;)&transcripts=Transcripts including {{participant.label}}"
-    img="document.svg" icon="🗎"
-    i18n-label label="Transcripts"
-    i18n-title title="List transcripts that include this participant"></lib-link>
-  <lib-link
     href="{{baseUrl}}allUtterances?id={{participant.label}}"
     img="all-utterances.svg" icon="“"
     i18n-label label="All Utterances"

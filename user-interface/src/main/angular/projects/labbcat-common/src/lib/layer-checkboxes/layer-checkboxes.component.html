@@ -413,8 +413,10 @@
 </fieldset>
 </div>
 <fieldset *ngIf="!hideControls && (includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}' || (annotationCounts | json) != '{}' || participant || transcript || controlsLinks['about'])" id="controls">
-  <label 
+  <div
     *ngIf="includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}'"
+    class="label-spacer">
+  <label
     title="Hide icons that correspond to layer properties">
     <!-- Don't actually need grouped-checkbox, but without it the alignment doesn't match Projects above -->
     <lib-grouped-checkbox
@@ -423,13 +425,13 @@
       [checked]="!displayIcons"
       (change)="toggleLayerIcons()"
       ></lib-grouped-checkbox>
-    Hide layer icons
+    Hide layer icons</label>
     <span *ngIf="controlsLinks['layerIcons']"
-          class="control-link">(<a [href]="controlsLinks['layerIcons']" target="_blank">about</a>)
+          class="control-link"> (<a [href]="controlsLinks['layerIcons']" target="_blank">about</a>)
     </span>
-  </label>
-  <label 
-    *ngIf="(annotationCounts | json) != '{}'"
+  </div>
+  <div *ngIf="(annotationCounts | json) != '{}'" class="label-spacer">
+  <label
     title="Hide the number of annotations in each layer">
     <lib-grouped-checkbox
       group="hideLayerCounts"
@@ -437,13 +439,13 @@
       [checked]="!displayCounts"
       (change)="toggleLayerCounts()"
       ></lib-grouped-checkbox>
-    Hide annotation counts
+    Hide annotation counts</label>
     <span *ngIf="controlsLinks['layerCounts']"
-          class="control-link">(<a [href]="controlsLinks['layerCounts']" target="_blank">about</a>)
+          class="control-link"> (<a [href]="controlsLinks['layerCounts']" target="_blank">about</a>)
     </span>
-  </label>
-  <label 
-    *ngIf="participant || transcript"
+  </div>
+  <div *ngIf="participant || transcript" class="label-spacer">
+  <label
     title="Show full names for participant/transcript attributes">
     <lib-grouped-checkbox
       group="showAttributePrefixes"
@@ -451,11 +453,11 @@
       [checked]="displayAttributePrefixes"
       (change)="toggleAttributePrefixes()"
       ></lib-grouped-checkbox>
-    Show attribute prefixes
+    Show attribute prefixes</label>
     <span *ngIf="controlsLinks['attributePrefixes']"
-          class="control-link">(<a [href]="controlsLinks['attributePrefixes']" target="_blank">about</a>)
+          class="control-link"> (<a [href]="controlsLinks['attributePrefixes']" target="_blank">about</a>)
     </span>
-  </label>
+  </div>
   <lib-link
     *ngIf="controlsLinks['about']"
     id="about-link"

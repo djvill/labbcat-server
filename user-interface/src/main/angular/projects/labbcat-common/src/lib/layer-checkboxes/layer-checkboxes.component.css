@@ -88,7 +88,7 @@ img.data-type, img.alignment, img.vertical-peers {
         flex-direction: row;
         align-items: flex-end;
     }
-    #controls label {
+    #controls .label-spacer {
         flex-grow: 1;
     }
     #controls #about-link {

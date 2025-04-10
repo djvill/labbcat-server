@@ -159,18 +159,18 @@
                   i18n-title title="Clear filters relating to participants"
                   ></lib-button>
               </div>
-              <div id="serializationOptions" *ngIf="showSerializationOptions">
-                <fieldset i18n-title title="Annotation layers to include in the exported files">
-                  <legend i18n>Layers</legend>
-                  <lib-layer-checkboxes
-                    name="layerId"
-                    participant="{{true}}" transcript="{{true}}"
-                    span="{{true}}" phrase="{{true}}" word="{{true}}" segment="{{true}}"
-                    selected="{{[schema.wordLayerId]}}"
-                    [controlsLinks]="controlsLinks"
-                    ></lib-layer-checkboxes>
-                </fieldset>
-              </div>
+            </div>
+            <div id="serializationOptions" *ngIf="showSerializationOptions">
+              <fieldset i18n-title title="Annotation layers to include in the exported files">
+                <legend i18n>Layers</legend>
+                <lib-layer-checkboxes
+                  name="layerId"
+                  participant="{{true}}" transcript="{{true}}"
+                  span="{{true}}" phrase="{{true}}" word="{{true}}" segment="{{true}}"
+                  selected="{{[schema.wordLayerId]}}"
+                  [controlsLinks]="controlsLinks"
+                  ></lib-layer-checkboxes>
+              </fieldset>
             </div>
           </td>
         </tr>

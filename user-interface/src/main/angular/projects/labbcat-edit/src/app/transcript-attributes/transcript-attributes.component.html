@@ -202,11 +202,3 @@
                 i18n-title title="Save all pronunciations"></lib-button>
   </div>
 </div>
-
-<div *ngIf="transcript" class="links">
-  <lib-link
-    href="{{baseUrl}}participants?participant_expression=labels(&quot;transcript&quot;).includes(&quot;{{id}}&quot;)&participants=Participants in {{id}}"
-    img="people.svg" icon="👥"
-    i18n-label label="Participants"
-    i18n-title title="List participant that are included in this transcript"></lib-link>
-</div>

@@ -259,7 +259,7 @@ export class ParticipantsComponent implements OnInit {
             this.p = 1;
             this.listParticipants();
             this.listParticipantsTimer = -1;
-        }, 2000);
+        }, 1000);
     }
 
     /** the user can hit enter to skip the deferral */

@@ -36,6 +36,7 @@ export class ParticipantsComponent implements OnInit {
     // new short queries already have.
     querySerial = 0;
     nextPage: string;
+    searchJson: string;
     imagesLocation: string;
     
     constructor(
@@ -120,7 +121,8 @@ export class ParticipantsComponent implements OnInit {
         /[?&](transcript_expression)=([^&]*)/,
         /[?&](transcripts)=([^&]*)/,
         /[?&](participant_expression)=([^&]*)/,
-        /[?&](participants)=([^&]*)/
+        /[?&](participants)=([^&]*)/,
+        /[?&](searchJson)=([^&]*)/
     ];
     
     /** if no query parameters are passed, load the default from system settings */
@@ -205,7 +207,10 @@ export class ParticipantsComponent implements OnInit {
             }
             if (params["to"]) {
                 this.nextPage = params["to"];
+                if (this.nextPage=="search" && params["searchJson"]) {
+                    this.searchJson = params["searchJson"];
                 }
+            }
             if (params["participant_expression"]) {
                 this.participantQuery = params["participant_expression"];
                 if (params["participants"]) {
@@ -462,6 +467,7 @@ export class ParticipantsComponent implements OnInit {
         if (this.participantDescription) queryParams.participants = this.participantDescription;
         if (this.transcriptQuery) queryParams.transcript_expression = this.transcriptQuery;
         if (this.transcriptDescription) queryParams.transcripts = this.transcriptDescription;
+        if (this.searchJson) queryParams.searchJson = this.searchJson;
         for (let layer of this.filterLayers) { // for each filter layer
             if (this.filterValues[layer.id].length > 0) { // there's at least one value
                 // add it to the query parameters
@@ -719,9 +725,9 @@ export class ParticipantsComponent implements OnInit {
     
     /** Button action */
     layeredSearch(): void {
-        this.router.navigate(["search"], {
-            queryParams: this.selectedParticipantsQueryParameters("participant_id")
-        });
+        let params = this.selectedParticipantsQueryParameters("participant_id");
+        if (this.searchJson) params["searchJson"] = this.searchJson;
+        this.router.navigate(["search"], { queryParams: params });
     }
 
     /** Button action */

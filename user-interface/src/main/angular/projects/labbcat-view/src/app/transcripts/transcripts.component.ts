@@ -39,6 +39,7 @@ export class TranscriptsComponent implements OnInit {
     // new short queries already have.
     querySerial = 0; 
     nextPage: string;
+    searchJson: string;
     imagesLocation: string;
     
     serializers: SerializationDescriptor[];
@@ -134,7 +135,8 @@ export class TranscriptsComponent implements OnInit {
         /[?&](participant_expression)=([^&]*)/,
         /[?&](participants)=([^&]*)/,
         /[?&](transcript_expression)=([^&]*)/,
-        /[?&](transcripts)=([^&]*)/
+        /[?&](transcripts)=([^&]*)/,
+        /[?&](searchJson)=([^&]*)/
     ];
     
     /** if no query parameters are passed, load the default from system settings */
@@ -229,6 +231,9 @@ export class TranscriptsComponent implements OnInit {
             }
             if (params["to"]) {
                 this.nextPage = params["to"];
+                if (this.nextPage=="search" && params["searchJson"]) {
+                    this.searchJson = params["searchJson"];
+                }
             }
             this.listTranscripts();
         });
@@ -446,6 +451,7 @@ export class TranscriptsComponent implements OnInit {
         if (this.participantDescription) queryParams.participants = this.participantDescription;
         if (this.transcriptQuery) queryParams.transcript_expression = this.transcriptQuery;
         if (this.transcriptDescription) queryParams.transcripts = this.transcriptDescription;
+        if (this.searchJson) queryParams.searchJson = this.searchJson;
         for (let layer of this.filterLayers) { // for each filter layer
             if (this.filterValues[layer.id].length > 0) { // there's at least one value
                 // add it to the query parameters
@@ -757,9 +763,9 @@ export class TranscriptsComponent implements OnInit {
 
     /** Button action */
     layeredSearch(): void {
-        this.router.navigate(["search"], {
-            queryParams: this.selectedTranscriptsQueryParameters("participant_id")
-        });
+        let params = this.selectedTranscriptsQueryParameters("participant_id");
+        if (this.searchJson) params["searchJson"] = this.searchJson;
+        this.router.navigate(["search"], { queryParams: params });
     }
 
     /** Button action */

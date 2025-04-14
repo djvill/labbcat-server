@@ -83,22 +83,23 @@ export class SearchComponent implements OnInit {
                             }]
                         } as Matrix);
                     }
-                    
+                }
+                if (!this.matrix.participantQuery) { // don't override participantQuery specified in searchJson, if any
                     this.matrix.participantQuery = params["participant_expression"];
                     if (this.matrix.participantQuery) {
                         this.participantDescription = params["participants"]; // TODO i18n
                         this.currentTab = "Participants";
                     }
-                    
+                }
+                if (!this.matrix.transcriptQuery) { // don't override transcriptQuery specified in searchJson, if any
                     this.matrix.transcriptQuery = params["transcript_expression"];
                     if (this.matrix.transcriptQuery) {
                         this.transcriptDescription = params["transcripts"]; // TODO i18n
                         this.currentTab = "Transcripts";
                     }
-                    
-                    if (params["current_tab"]) {
-                        this.currentTab = params["current_tab"];
-                    }
+                }
+                if (params["current_tab"]) {
+                    this.currentTab = params["current_tab"];
                 }
                 this.listParticipants();
                 this.listTranscripts();
@@ -136,16 +137,20 @@ export class SearchComponent implements OnInit {
                 return;
             }
         }
-        this.router.navigate(["participants"], {
-            queryParams: {
-                to: "search"
-            }
-        });
+        let params = { to: "search" };
+        // remember the search columns, if the user has made any changes to it
+        const searchColumns = JSON.stringify({ columns: this.matrix.columns });
+        const defaultColumns = JSON.stringify({columns:[{"layers":{"orthography":[{"id":"orthography","pattern":"","not":false,"min":null,"max":null,"anchorStart":false,"anchorEnd":false,"target":false}]},"adj":1}]});
+        if (searchColumns != defaultColumns) { // search columns aren't the default
+            params["searchJson"] = searchColumns;
+        }
+        this.router.navigate(["participants"], { queryParams: params });
     }
     clearParticipantFilter(): void {
         this.participantDescription = "";
         this.participantIds = [];
         this.participantCount = 0;
+        this.matrix.participantQuery = "";
         sessionStorage.removeItem("lastQueryParticipants");
         this.router.navigate([], {
             queryParams: {
@@ -157,18 +162,24 @@ export class SearchComponent implements OnInit {
         });
     }
     selectTranscripts(): void {
-        this.router.navigate(["transcripts"], {
-            queryParams: {
-                to: "search",
-                participant_expression: this.participantQueryForTranscripts(),
-                participants: this.participantDescription
-            }
-        });
+        let params = {
+            to: "search",
+            participant_expression: this.participantQueryForTranscripts(),
+            participants: this.participantDescription
+        };
+        // remember the search columns, if the user has made any changes to it
+        const searchColumns = JSON.stringify({ columns: this.matrix.columns });
+        const defaultColumns = JSON.stringify({columns:[{"layers":{"orthography":[{"id":"orthography","pattern":"","not":false,"min":null,"max":null,"anchorStart":false,"anchorEnd":false,"target":false}]},"adj":1}]});
+        if (searchColumns != defaultColumns) { // search columns aren't the default
+            params["searchJson"] = searchColumns;
+        }
+        this.router.navigate(["transcripts"], { queryParams: params });
     }
     clearTranscriptFilter(): void {
         this.transcriptDescription = "";
         this.transcriptIds = [];
         this.transcriptCount = 0;
+        this.matrix.transcriptQuery = "";
         sessionStorage.removeItem("lastQueryTranscripts");
         this.router.navigate([], {
             queryParams: {

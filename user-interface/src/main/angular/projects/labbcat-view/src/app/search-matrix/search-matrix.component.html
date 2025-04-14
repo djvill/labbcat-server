@@ -1,3 +1,4 @@
+<div class="layer-checkboxes-container">
 <lib-layer-checkboxes
   name="layer" includeAlignment="true" spoofAlignment="true"
   includeDataType="true" includeVerticalPeers="true"
@@ -8,6 +9,7 @@
   (selectedChange)="syncSelectedLayerIdsWithColumns($event)"
   [controlsLinks]="controlsLinks"
   ></lib-layer-checkboxes>
+</div>
 
 <div class="columns">
   <div class="column" *ngFor="let column of columns; index as c">

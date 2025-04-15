@@ -53,10 +53,6 @@
 .csv-options label {
     white-space: nowrap;
 }
-lib-layer-checkboxes {
-    display: flex;
-    flex-direction: row;
-}
 input[type="checkbox"]:disabled {
     cursor: not-allowed;
 }

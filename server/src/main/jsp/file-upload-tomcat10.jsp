@@ -38,26 +38,25 @@
             }
           } // multiple values for same parameter
         } else { // it's a file
-          File f = File.createTempFile("anycontainer-", "-"+item.getName());
+          String fileName = item.getName();
+          // some browsers provide a full path, which must be truncated
+          int lastSlash = fileName.lastIndexOf('/');
+          if (lastSlash < 0) lastSlash = fileName.lastIndexOf('\\');
+          if (lastSlash >= 0) fileName = fileName.substring(lastSlash + 1);
+          // // '+' is misinterpreted as an HTML-encoded ' ' in some places
+          // fileName = fileName.replaceAll("\\+","_");
+          File f = File.createTempFile("file-upload-tomcat10-", "-"+fileName);
           f.delete();
           f.deleteOnExit();
           f.mkdir();
           // ensure the server file's name is the same as the client file's name
-          f = new File(f, item.getName());
+          f = new File(f, fileName);
           f.deleteOnExit();
           item.write(f.toPath());            
           if (!parameters.containsKey(item.getFieldName())) {
-            parameters.put(item.getFieldName(), f);
-          } else { // already got a file with this name - must be multiple files with the same name
-            Vector<File> files = null;
-            if (parameters.get(item.getFieldName()) instanceof Vector) {
-              files = (Vector<File>)parameters.get(item.getFieldName());
-            } else {
-              files = new Vector<File>();
-              parameters.put(item.getFieldName(), files);
-            }
-            files.add(f);
-          } // multiple values for the same parameter
+            parameters.put(item.getFieldName(), new Vector<File>());
+          } 
+          Vector<File> files = (Vector<File>)parameters.get(item.getFieldName());
         } // it's a file
     } // next item
   } catch(FileUploadException exception) {

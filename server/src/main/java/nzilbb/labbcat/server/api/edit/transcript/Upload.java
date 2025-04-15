@@ -53,6 +53,7 @@ import nzilbb.ag.util.DefaultOffsetGenerator;
 import nzilbb.ag.util.Merger;
 import nzilbb.ag.util.Normalizer;
 import nzilbb.ag.util.ParticipantRenamer;
+import nzilbb.ag.ql.QL;
 import nzilbb.configure.Parameter;
 import nzilbb.configure.ParameterSet;
 import nzilbb.labbcat.server.api.APIRequestHandler;
@@ -416,7 +417,14 @@ public class Upload extends APIRequestHandler {
         // set parameter values from request
         for (String name : deserializerParameters.keySet()) {
           String value = requestParameters.getString(name);
-          if (value != null) deserializerParameters.get(name).setValue(value);
+          if (value != null) {
+            Parameter parameter = deserializerParameters.get(name); 
+            if (parameter.getType().equals(Layer.class)) {
+              parameter.setValue(schema.getLayer(value));
+            } else {
+              parameter.setValue(value);
+            }
+          }
         } // next deserializer parameter
         try {
           deserializer.setParameters(deserializerParameters);
@@ -458,7 +466,7 @@ public class Upload extends APIRequestHandler {
           } // no ID set
           
           // check existence
-          String regexpSafeID = IO.WithoutExtension(graph.getId())
+          String regexpSafeID = QL.Esc(IO.WithoutExtension(graph.getId()))
             // escape regexp special characters
             .replaceAll("([/\\[\\]()?.])","\\\\$1");
           boolean existingTranscript = store.countMatchingTranscriptIds​(

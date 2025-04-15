@@ -1,5 +1,5 @@
 //
-// Copyright 2015-2024 New Zealand Institute of Language, Brain and Behaviour, 
+// Copyright 2015-2025 New Zealand Institute of Language, Brain and Behaviour, 
 // University of Canterbury
 // Written by Robert Fromont - robert.fromont@canterbury.ac.nz
 //
@@ -68,6 +68,7 @@ import nzilbb.ag.automation.UsesGraphStore;
 import nzilbb.ag.automation.UsesRelationalDatabase;
 import nzilbb.ag.automation.util.AnnotatorDescriptor;
 import nzilbb.ag.ql.AGQLException;
+import nzilbb.ag.ql.QL;
 import nzilbb.ag.serialize.*;
 import nzilbb.ag.serialize.util.IconHelper;
 import nzilbb.ag.util.AnnotationsByAnchor;
@@ -1152,7 +1153,7 @@ public class SqlGraphStore implements GraphStore {
           + " INNER JOIN role_permission ON role.role_id = role_permission.role_id" 
           + " AND role_permission.attribute_name = 'corpus'" 
           + " AND role_permission.entity REGEXP '.*t.*'" // transcript access
-          + " WHERE user_id = '"+esc(getUser())+"'");
+          + " WHERE user_id = '"+QL.Esc(getUser())+"'");
         ResultSet rsValuePattern = sqlValuePattern.executeQuery();
         if (rsValuePattern.next()) {
           sql.close();
@@ -1489,21 +1490,21 @@ public class SqlGraphStore implements GraphStore {
   private String userWhereClauseGraph(String prefix, String transcriptTableAlias) {
     if (getUser() != null && !getUserRoles().contains("admin") && getPermissionsSpecified()) {
       return " " + prefix
-        +" (("+transcriptTableAlias+".create_user = '"+esc(getUser())+"')"
+        +" (("+transcriptTableAlias+".create_user = '"+QL.Esc(getUser())+"')"
         +" OR EXISTS (SELECT * FROM role"
         + " INNER JOIN role_permission ON role.role_id = role_permission.role_id" 
         + " INNER JOIN annotation_transcript access_attribute" 
         + " ON access_attribute.layer = role_permission.attribute_name" 
         + " AND access_attribute.label REGEXP role_permission.value_pattern"
         + " AND role_permission.entity REGEXP '.*t.*'" // transcript access
-        + " WHERE user_id = '"+esc(getUser())+"'"
+        + " WHERE user_id = '"+QL.Esc(getUser())+"'"
         + " AND access_attribute.ag_id = "+transcriptTableAlias+".ag_id)"
         +" OR EXISTS (SELECT * FROM role"
         + " INNER JOIN role_permission ON role.role_id = role_permission.role_id" 
         + " AND role_permission.attribute_name = 'corpus'" 
         + " AND role_permission.entity REGEXP '.*t.*'" // transcript access
         + " WHERE "+transcriptTableAlias+".corpus_name REGEXP role_permission.value_pattern"
-        + " AND user_id = '"+esc(getUser())+"')) ";
+        + " AND user_id = '"+QL.Esc(getUser())+"')) ";
     }
     return "";
   } // end of userWhereClauseGraph()
@@ -1650,7 +1651,7 @@ public class SqlGraphStore implements GraphStore {
    */
   public String[] getTranscriptIdsInCorpus(String id)
     throws StoreException, PermissionException {
-    return getMatchingTranscriptIds("first('corpus').label = '"+esc(id)+"'");
+    return getMatchingTranscriptIds("first('corpus').label = '"+QL.Esc(id)+"'");
   }
 
   /**
@@ -1662,7 +1663,7 @@ public class SqlGraphStore implements GraphStore {
    */
   public String[] getTranscriptIdsWithParticipant(String id)
     throws StoreException, PermissionException {
-    return getMatchingTranscriptIds("'"+esc(id)+"' IN labels('participant')");
+    return getMatchingTranscriptIds("'"+QL.Esc(id)+"' IN labels('participant')");
   }
    
   /**
@@ -2574,10 +2575,10 @@ public class SqlGraphStore implements GraphStore {
               && layer.getParent().getParentId().equals(
                 schema.getWordLayerId()))) { // segment child
         // table has word_annotation_id
-        String select = "DISTINCT annotation.*, '"+esc(layerId)+"' AS layer,"
+        String select = "DISTINCT annotation.*, '"+QL.Esc(layerId)+"' AS layer,"
           +" graph.transcript_id AS graph";
         if (limit.equals("COUNT(*)")) {
-          select = "COUNT(*), '"+esc(layerId)+"' AS layer";
+          select = "COUNT(*), '"+QL.Esc(layerId)+"' AS layer";
           limit = "";
         }
             
@@ -2594,9 +2595,9 @@ public class SqlGraphStore implements GraphStore {
             +" annotation.label, annotation.label_status,"
             +" annotation.annotated_by, annotation.annotated_when,"
             +" NULL AS start_anchor_id, NULL AS end_anchor_id,"
-            +" '"+esc(layerId)+"' AS layer, graph.transcript_id AS graph";
+            +" '"+QL.Esc(layerId)+"' AS layer, graph.transcript_id AS graph";
           if (limit.equals("COUNT(*)")) {
-            select = "COUNT(*), '"+esc(layerId)+"' AS layer";
+            select = "COUNT(*), '"+QL.Esc(layerId)+"' AS layer";
             limit = "";
           }
           
@@ -2605,19 +2606,19 @@ public class SqlGraphStore implements GraphStore {
             +" INNER JOIN transcript graph ON annotation.ag_id = graph.ag_id"
             +" INNER JOIN annotation_layer_0 word ON word.ag_id = graph.ag_id"
             +" WHERE word.annotation_id = " + word_annotation_id
-            +" AND layer = '"+esc(""+layer.get("attribute"))+"'"
+            +" AND layer = '"+QL.Esc(""+layer.get("attribute"))+"'"
             + userWhereClauseGraph("AND", "graph")
             +" ORDER BY annotation_id"
             + " " + limit;
         } else { // no access to layer
           if (limit.equals("COUNT(*)")) {
-            sSql = "SELECT 0, '"+esc(layerId)+"' AS layer";
+            sSql = "SELECT 0, '"+QL.Esc(layerId)+"' AS layer";
           } else {
             sSql = "SELECT NULL AS annotation_id, NULL AS speaker_number,"
               +" NULL AS label, NULL AS label_status,"
               +" NULL AS annotated_by, NULL AS annotated_when,"
               +" NULL AS start_anchor_id, NULL AS end_anchor_id,"
-              +" '"+esc(layerId)+"' AS layer, NULL AS graph";
+              +" '"+QL.Esc(layerId)+"' AS layer, NULL AS graph";
           }
         }
       } else if ("speaker".equals(layer.get("class_id"))) { // participant attribute
@@ -2626,9 +2627,9 @@ public class SqlGraphStore implements GraphStore {
             +" annotation.label, annotation.label_status,"
             +" annotation.annotated_by, annotation.annotated_when,"
             +" NULL AS start_anchor_id, NULL AS end_anchor_id,"
-            +" '"+esc(layerId)+"' AS layer, NULL AS graph";
+            +" '"+QL.Esc(layerId)+"' AS layer, NULL AS graph";
           if (limit.equals("COUNT(*)")) {
-            select = "COUNT(*), '"+esc(layerId)+"' AS layer";
+            select = "COUNT(*), '"+QL.Esc(layerId)+"' AS layer";
             limit = "";
           }
           
@@ -2637,30 +2638,30 @@ public class SqlGraphStore implements GraphStore {
             +" INNER JOIN annotation_layer_11 turn ON turn.annotation_id = word.turn_annotation_id"
             +" INNER JOIN annotation_participant annotation ON turn.label = annotation.speaker_number"
             +" WHERE word.annotation_id = " + word_annotation_id
-            +" AND layer = '"+esc(""+layer.get("attribute"))+"'"
+            +" AND layer = '"+QL.Esc(""+layer.get("attribute"))+"'"
             + userWhereClauseGraph("AND", "graph")
             +" ORDER BY annotation_id"
             + " " + limit;
         } else { // no access to layer
           if (limit.equals("COUNT(*)")) {
-            sSql = "SELECT 0, '"+esc(layerId)+"' AS layer";
+            sSql = "SELECT 0, '"+QL.Esc(layerId)+"' AS layer";
           } else {
             sSql = "SELECT NULL AS annotation_id, NULL AS speaker_number,"
               +" NULL AS label, NULL AS label_status,"
               +" NULL AS annotated_by, NULL AS annotated_when,"
               +" NULL AS start_anchor_id, NULL AS end_anchor_id,"
-              +" '"+esc(layerId)+"' AS layer, NULL AS graph";
+              +" '"+QL.Esc(layerId)+"' AS layer, NULL AS graph";
           }
         }
       } else if (layer.getParentId().equals(schema.getRoot().getId())
                  && layer.getAlignment() == Constants.ALIGNMENT_INTERVAL) { // freeform layer
         String select =
-          "DISTINCT annotation.*, '"+esc(layerId)+"' AS layer, graph.transcript_id AS graph,"
+          "DISTINCT annotation.*, '"+QL.Esc(layerId)+"' AS layer, graph.transcript_id AS graph,"
           // these required because they're in the order clause:
           +" start.offset, end.offset, parent_id, annotation_id";
         String order = " ORDER BY start.offset, end.offset DESC, parent_id, annotation_id";
         if (limit.equals("COUNT(*)")) {
-          select = "COUNT(*), '"+esc(layerId)+"' AS layer";
+          select = "COUNT(*), '"+QL.Esc(layerId)+"' AS layer";
           limit = "";
           order = "";
         }
@@ -2704,17 +2705,17 @@ public class SqlGraphStore implements GraphStore {
           +" annotation.label, annotation.label_status,"
           +" annotation.annotated_by, annotation.annotated_when,"
           +" NULL AS start_anchor_id, NULL AS end_anchor_id,"
-          +" '"+esc(layerId)+"' AS layer, graph.transcript_id AS graph";
+          +" '"+QL.Esc(layerId)+"' AS layer, graph.transcript_id AS graph";
         if (limit.equals("COUNT(*)")) {
-          select = "COUNT(*), '"+esc(layerId)+"' AS layer";
+          select = "COUNT(*), '"+QL.Esc(layerId)+"' AS layer";
           limit = "";
         }
             
         sSql = "SELECT " + select
           +" FROM annotation_transcript annotation"
           +" INNER JOIN transcript graph ON annotation.ag_id = graph.ag_id"
-          +" WHERE graph.transcript_id = '" + esc(transcriptId) + "'"
-          +" AND layer = '"+esc(""+layer.get("attribute"))+"'"
+          +" WHERE graph.transcript_id = '" + QL.Esc(transcriptId) + "'"
+          +" AND layer = '"+QL.Esc(""+layer.get("attribute"))+"'"
           + userWhereClauseGraph("AND", "graph")
           +" ORDER BY annotation_id"
           + " " + limit;
@@ -2791,7 +2792,7 @@ public class SqlGraphStore implements GraphStore {
   public long countAnnotations(String id, String layerId, Integer maxOrdinal)
     throws StoreException, PermissionException, GraphNotFoundException {
     return countMatchingAnnotations(
-      "graph.id = '" + esc(id) + "' AND layer.id = '" + esc(layerId) + "'"
+      "graph.id = '" + QL.Esc(id) + "' AND layer.id = '" + QL.Esc(layerId) + "'"
       +(maxOrdinal==null?"":" AND ordinal <= " + maxOrdinal));
   }
   /**
@@ -2814,7 +2815,7 @@ public class SqlGraphStore implements GraphStore {
     String id, String layerId, Integer maxOrdinal, Integer pageLength, Integer pageNumber)
     throws StoreException, PermissionException, GraphNotFoundException {
     Annotation[] annotations = getMatchingAnnotations(
-      "graph.id = '" + esc(id) + "' AND layer.id = '" + esc(layerId) + "'"
+      "graph.id = '" + QL.Esc(id) + "' AND layer.id = '" + QL.Esc(layerId) + "'"
       +(maxOrdinal==null?"":" AND ordinal <= " + maxOrdinal), pageLength, pageNumber);
     Layer layer = getLayer(layerId);
     if (layer != null && layer.getType().indexOf('/') > 0) { // a MIME type
@@ -4326,7 +4327,7 @@ public class SqlGraphStore implements GraphStore {
         if (!layer.getPeers()) {
           String equals = expression.indexOf("===") > 0?"===":"==="; // match exactitude
           deleteMatchingAnnotations(
-            "layer == '"+esc(layerId)+"' "
+            "layer == '"+QL.Esc(layerId)+"' "
             +wordByLabel.group("extraConditions") // e.g. language conditions etc.
             +"&& first('"+sourceLayer+"').label "+equals+" '"+wordLabel+"'");
           ordinal = 1;
@@ -5245,10 +5246,11 @@ public class SqlGraphStore implements GraphStore {
     requireEdit();
     if (transcript.getChange() == Change.Operation.NoChange) return false;
       
-    // Timers timers = new Timers();
+    Timers timers = new Timers();
     // timers.start("saveGraph");
     Schema schema = getSchema();
     Graph graph = transcript;
+    
     try {
       // validate the graph before saving it
       // TODO ensure all layers are loaded before validation
@@ -5261,7 +5263,7 @@ public class SqlGraphStore implements GraphStore {
 
         Layer layer = graph.getLayer("corpus");
         if (layer == null) { // add the layer
-          layer = getLayer("corpus");
+          layer = schema.getLayer("corpus");
           graph.addLayer(layer);
         }
         // if corpus isn't set, set to the first corpus
@@ -5276,7 +5278,7 @@ public class SqlGraphStore implements GraphStore {
 
         layer = graph.getLayer("episode");
         if (layer == null) { // add the layer
-          layer = getLayer("episode");
+          layer = schema.getLayer("episode");
           graph.addLayer(layer);
         }
         // if episode isn't set, set to the graph name without its file extension
@@ -5291,7 +5293,7 @@ public class SqlGraphStore implements GraphStore {
 
         layer = graph.getLayer("transcript_type");
         if (layer == null) { // add the layer
-          layer = getLayer("transcript_type");
+          layer = schema.getLayer("transcript_type");
           graph.addLayer(layer);
         }
         // if transcript_type is not set, set it to the first option
@@ -5304,11 +5306,41 @@ public class SqlGraphStore implements GraphStore {
             .setConfidence(Constants.CONFIDENCE_AUTOMATIC);
         }
       }
-      //v.setDebug(true);	 
-      if (graph.containsKey("@valid")) { // TODO remove this workaround
-        System.err.println("Graph " + graph.getId() + ": skipping validation");
+      //v.setDebug(true);
+      
+      // detect media-processor type changes (mediapipe, reaper) and skip unnecessary validation
+      // i.e. create/delete of annotations only on top-level childless non-interval layers
+      boolean topLevelChildlessNonIntervalChangesOnly
+        // it's a graph update:
+        = graph.getChange() != Change.Operation.Create
+        // there are no non-top-level/aligned changes:
+        && !transcript.getChangedAnnotations()
+        .filter(annotation -> annotation.getLayer() != null)
+        .map(annotation -> annotation.getLayer())
+        .distinct()
+        .filter(
+          // interval layers (interval boundaries would need checking)
+          layer -> layer.getAlignment() == Constants.ALIGNMENT_INTERVAL
+          // layers with child layers (children would need checking)
+          || layer.getChildren().size() > 0
+          // non-top-level layers (media processers are all top-level at this point)
+          || (layer.getParent() != null
+              && !layer.getParentId().equals(schema.getRoot().getId())))
+        .findAny().isPresent();
+      timers.end("topLevelChildlessNonIntervalChangesOnly"); // TODO false when it should be true
+      System.err.println("topLevelChildlessNonIntervalChangesOnly " + topLevelChildlessNonIntervalChangesOnly + " - " + timers);
+      
+      if (topLevelChildlessNonIntervalChangesOnly
+          || graph.containsKey("@valid")) { // TODO remove this workaround
+        System.err.println(
+          "Graph " + graph.getId() + ": skipping validation - "
+          + (topLevelChildlessNonIntervalChangesOnly?
+             "all top-level childless non-interval changes":"externally tagged as valid"));
+        timers.start("topLevelChildlessNonIntervalChangesOnly");
+        
         // but normalize anyway if it's new
-        if (graph.getChange() == Change.Operation.Create
+        if (!topLevelChildlessNonIntervalChangesOnly // don't need to normalize with these changes
+            && graph.getChange() == Change.Operation.Create
             && transcript.getSchema().getParticipantLayer() != null
             && transcript.getSchema().getTurnLayer() != null
             && transcript.getSchema().getUtteranceLayer() != null
@@ -5319,7 +5351,6 @@ public class SqlGraphStore implements GraphStore {
             .transform(transcript);
         }
       } else {
-
         // timers.start("normalize");
         if (transcript.getSchema().getParticipantLayer() != null
             && transcript.getSchema().getTurnLayer() != null
@@ -5350,52 +5381,49 @@ public class SqlGraphStore implements GraphStore {
       }
 
       // censor the graph?
-      String censorshipRegexp = getSystemAttribute("censorshipRegexp");
-      if (censorshipRegexp != null && censorshipRegexp.length() > 0) { // censorship required
-        // timers.start("censor");
-        Pattern censorshipPattern = Pattern.compile(censorshipRegexp);
-        String censorshipLayer = getSystemAttribute("censorshipLayer");
-        String censorshipLabel = getSystemAttribute("censorshipLabel");
-        int censoredCount = 0;
-        for (Annotation annotation : graph.all(censorshipLayer)) {
-          if (censorshipPattern.matcher(annotation.getLabel()).matches()) {
-            // matching annotation
-            censoredCount++;
-            // change all words to censorshipLabel
-            for (Annotation word : annotation.all(schema.getWordLayerId())) {
-              word.setLabel(censorshipLabel);
-            } // next word
-          } // matching annotation
-        } // next annotation
-        // timers.end("censor");
-      } // censorshipRegexp required
-
-      // last minute reversed-anchor check, just in case
-      // timers.start("reversed-anchor check");
-      for (Annotation a : graph.getAnnotationsById().values()) {
-        if (a.getChange() == Change.Operation.Destroy) continue;
-        Layer layer = a.getLayer();
-        if (layer != null && layer.getAlignment() > 0) {
-          if (a.getStart() != null) { // (could be in a fragment)
-            if (a.getStart().getOffset() == null) {
-              throw new StoreException(a.getId() + " (" + a.getLabel() + ") - no start offset.");
-            }
-            if (a.getEnd() != null) { // (could be in a fragment)
-              if (a.getEnd().getOffset() == null) {
-                throw new StoreException(a.getId() + " (" + a.getLabel() + ") - no end offset.");
+      if (!topLevelChildlessNonIntervalChangesOnly) {
+        String censorshipRegexp = getSystemAttribute("censorshipRegexp");
+        if (censorshipRegexp != null && censorshipRegexp.length() > 0) { // censorship required
+          Pattern censorshipPattern = Pattern.compile(censorshipRegexp);
+          String censorshipLayer = getSystemAttribute("censorshipLayer");
+          String censorshipLabel = getSystemAttribute("censorshipLabel");
+          int censoredCount = 0;
+          for (Annotation annotation : graph.all(censorshipLayer)) {
+            if (censorshipPattern.matcher(annotation.getLabel()).matches()) {
+              // matching annotation
+              censoredCount++;
+              // change all words to censorshipLabel
+              for (Annotation word : annotation.all(schema.getWordLayerId())) {
+                word.setLabel(censorshipLabel);
+              } // next word
+            } // matching annotation
+          } // next annotation
+        } // censorshipRegexp required
+        
+        // last minute reversed-anchor check, just in case
+        for (Annotation a : graph.getAnnotationsById().values()) {
+          if (a.getChange() == Change.Operation.Destroy) continue;
+          Layer layer = a.getLayer();
+          if (layer != null && layer.getAlignment() > 0) {
+            if (a.getStart() != null) { // (could be in a fragment)
+              if (a.getStart().getOffset() == null) {
+                throw new StoreException(a.getId() + " (" + a.getLabel() + ") - no start offset.");
               }
-              if (a.getStart().getOffset() > a.getEnd().getOffset()) {
-                throw new StoreException(
-                  a.getId() + " (" + a.getLabel() + ") - backwards: "
-                  +a.getStart()+"["+a.getStart().getId()+"]-"
-                  +a.getEnd()+"["+a.getEnd().getId()+"].");
-              }
+              if (a.getEnd() != null) { // (could be in a fragment)
+                if (a.getEnd().getOffset() == null) {
+                  throw new StoreException(a.getId() + " (" + a.getLabel() + ") - no end offset.");
+                }
+                if (a.getStart().getOffset() > a.getEnd().getOffset()) {
+                  throw new StoreException(
+                    a.getId() + " (" + a.getLabel() + ") - backwards: "
+                    +a.getStart()+"["+a.getStart().getId()+"]-"
+                    +a.getEnd()+"["+a.getEnd().getId()+"].");
+                }
             } // end is set
-          } // start is set
-        }
-      } // next annotation
-      // timers.end("reversed-anchor check");
-      // System.err.println(timers.toString());
+            } // start is set
+          }
+        } // next annotation
+      } // !mediaProcesserTypeChanges
       
       if (graph.getChange() == Change.Operation.Create) {
         // create the graph, to generate the ag_id
@@ -5435,12 +5463,20 @@ public class SqlGraphStore implements GraphStore {
       int iAgId = Integer.parseInt(graph.get("@ag_id").toString());
 
       // check changes
-      Collection<Change> changes = graph.getChanges();
-      if (changes.size() == 0) return false;
+      List<Annotation> changedAnnotations = transcript.getChangedAnnotationsOrdered();
+      Set<Anchor> changedAnchors = transcript.getChangedAnchors().collect(Collectors.toSet());
+      if (changedAnchors.size() == 0 && changedAnnotations.size() == 0) return false;
 
-      boolean utteranceChanges = graph.getChange() == Change.Operation.Create;
-      boolean wordChanges = false;
-      boolean segmentChanges = false;
+      boolean utteranceChanges = graph.getChange() == Change.Operation.Create
+        || changedAnnotations.stream()
+        .filter(a -> schema.getUtteranceLayerId().equals(a.getLayerId()))
+        .findAny().isPresent();
+      boolean wordChanges = changedAnnotations.stream()
+        .filter(a -> schema.getWordLayerId().equals(a.getLayerId()))
+        .findAny().isPresent();
+      boolean segmentChanges = changedAnnotations.stream()
+        .filter(a -> "segment".equals(a.getLayerId()))
+        .findAny().isPresent();
       // forced-alignment to a phrase layer can lead to the phrase annotation ordinals
       // starting at 1 at the beginning of each utterance
       // we need to track the phrase layers with new annotations,
@@ -5451,148 +5487,116 @@ public class SqlGraphStore implements GraphStore {
       HashMap<Integer,HashSet<String>> adjustPhraseOrdinals
         = new HashMap<Integer,HashSet<String>>();
 
-      // timers.start("check changes");
-      Object lastObject = graph;
-      for (Change change : changes) {
-        if (change.getObject() == lastObject) continue; // already did this object
-        lastObject = change.getObject();
-
+      for (Anchor anchor : changedAnchors) {
         // must be able to parse object's ID
-        if (change.getObject() instanceof Anchor) {
-          // timers.start("check anchor");
+        try {
+          if (anchor.getChange() != Change.Operation.Create) {
+            Object[] o = fmtAnchorId.parse(anchor.getId());
+            try {
+              Long databaseId = (Long)o[0];
+            } catch(ClassCastException castX) {
+              throw new StoreException("Parsed anchor ID is not a Long integer:"
+                                       + anchor.getId());
+            }
+          }
+        } catch(ParseException parseX) {
+          throw new StoreException("Could not parse anchor ID:"
+                                   + anchor.getId());
+        }
+      } // next anchor
+      for (Annotation annotation : changedAnnotations) {
+        if (annotation.getId().startsWith("m_")) {
           try {
-            if (change.getObject().getChange() != Change.Operation.Create) {
-              Object[] o = fmtAnchorId.parse(change.getObject().getId());
-              try {
-                Long databaseId = (Long)o[0];
-              } catch(ClassCastException castX) {
-                throw new StoreException("Parsed anchor ID is not a Long integer:"
-                                         + change.getObject().getId());
-              }
+            if (annotation.getChange() != Change.Operation.Create) {
+              Object[] o = fmtMetaAnnotationId.parse(annotation.getId());
             }
           } catch(ParseException parseX) {
-            throw new StoreException("Could not parse anchor ID:"
-                                     + change.getObject().getId());
+            throw new StoreException("Could not parse special annotation ID:"
+                                     + annotation.getId());
           }
-          // timers.end("check anchor");
-        } else if (change.getObject() instanceof Annotation) {
-          if (change.getObject().getId().startsWith("m_")) {
-            // timers.start("check m_");
-            try {
-              if (change.getObject().getChange() != Change.Operation.Create) {
-                Object[] o = fmtMetaAnnotationId.parse(change.getObject().getId());
-              }
-            } catch(ParseException parseX) {
-              throw new StoreException("Could not parse special annotation ID:"
-                                       + change.getObject().getId());
+        } else if (annotation.getId().startsWith("t|")) {
+          try {
+            if (annotation.getChange() != Change.Operation.Create) {
+              Object[] o = fmtTranscriptAttributeId.parse(annotation.getId());
             }
-            // timers.end("check m_");
-          } else if (change.getObject().getId().startsWith("t|")) {
-            // timers.start("check t|");
-            try {
-              if (change.getObject().getChange() != Change.Operation.Create) {
-                Object[] o = fmtTranscriptAttributeId.parse(change.getObject().getId());
-              }
-            } catch(ParseException parseX) {
-              throw new StoreException("Could not parse transcript attribute ID:"
-                                       + change.getObject().getId());
+          } catch(ParseException parseX) {
+            throw new StoreException("Could not parse transcript attribute ID:"
+                                     + annotation.getId());
+          }
+        } else if (annotation.getId().startsWith("p|")) {
+          try {
+            if (annotation.getChange() != Change.Operation.Create) {
+              Object[] o = fmtParticipantAttributeId.parse(annotation.getId());
             }
-            // timers.end("check t|");
-          } else if (change.getObject().getId().startsWith("p|")) {
-            // timers.start("check p|");
-            try {
-              if (change.getObject().getChange() != Change.Operation.Create) {
-                Object[] o = fmtParticipantAttributeId.parse(change.getObject().getId());
-              }
-            } catch(ParseException parseX) {
-              throw new StoreException("Could not parse participant attribute ID:"
-                                       + change.getObject().getId());
-            }
-            // timers.end("check p|");
-          } else if (change.getObject().getId().equals("audio_prompt")) {
-            // no particular validation, so drop through
-          } else {
-            Layer layer = getLayer(((Annotation)change.getObject()).getLayerId());
-            if (layer != null) {
-              if (layer.getId() .equals(schema.getWordLayerId())) {
-                wordChanges = true;
-              } else if (layer.getId().equals("segment")) {
-                segmentChanges = true;
-              } else {
-                if (layer.getId().equals(schema.getUtteranceLayerId())) {
-                  utteranceChanges = true;
-                }
-                if (updatingFragment
-                    && change.getObject().getChange() == Change.Operation.Create
-                    && layer.getParentId().equals(schema.getTurnLayerId())
-                    && layer.getAlignment() == Constants.ALIGNMENT_INTERVAL
-                    && layer.getPeers()
-                    /* technically, peers shouldn't overlap, but in reality
-                       layer created with the current LaBB-CAT UI have peersOverlap = true
-                       && !layer.getPeersOverlap()*/) {
-                  // timers.start("check adjustPhraseOrdinals");
-                  // we're updating a span layer from within a fragment (e.g. forced alignment),
-                  // so the ordinals might incorrecty start at 1
-                  // so we'll fix them up later
-                  Integer layer_id = (Integer)layer.get("layer_id");
-                  if (layer_id != null && !adjustPhraseOrdinals.containsKey(layer_id)) {
-                    // haven't noticed this layer yet, so add it to the collection
-                    adjustPhraseOrdinals.put(layer_id, new HashSet<String>());
-                  }
-                  // ensure the turn_annotation_id is included in the ordinal fix below
-                  adjustPhraseOrdinals.get(layer_id)
-                    .add(((Annotation)change.getObject()).getParentId());
-                  // timers.end("check adjustPhraseOrdinals");
-                }
-              }
-            } // layer isn't null
-            try {
-              if (change.getObject().getChange() != Change.Operation.Create) {
-                // timers.start("check not Create");
-                Object[] o = fmtAnnotationId.parse(change.getObject().getId());
-                String scope = o[0].toString();
-                if (scope.length() != 0 
-                    && !scope.equalsIgnoreCase(SqlConstants.SCOPE_EPISODE) 
-                    && !scope.equalsIgnoreCase(SqlConstants.SCOPE_META) 
-                    && !scope.equalsIgnoreCase(SqlConstants.SCOPE_WORD) 
-                    && !scope.equalsIgnoreCase(SqlConstants.SCOPE_SEGMENT) 
-                    && !scope.equalsIgnoreCase(SqlConstants.SCOPE_PARTICIPANT)) {
-                  throw new StoreException("Parsed annotation scope is not recognised:"
-                                           + change.getObject().getId() + " - " + scope);
-                }
-                try {
-                  Long layerId = (Long)o[1];
-                } catch(ClassCastException castX) {
-                  throw new StoreException(
-                    "Parsed annotation layer ID is not an Integer:"
-                    + change.getObject().getId() + " - " + o[1]);
-                }
-                try {
-                  Long databaseId = (Long)o[2];
-                } catch(ClassCastException castX) {
-                  throw new StoreException(
-                    "Parsed annotation ID is not a Long integer:"
-                    + change.getObject().getId() + " - " + o[2]);
-                }
-                // timers.end("check not Create");
-              }
-            } catch(ParseException parseX) {
-              // if it's for destroying, we don't care
-              if (change.getObject().getChange() != Change.Operation.Destroy) {
-                throw new StoreException(
-                  "Could not parse annotation ID " + change.getObject().getId()
-                  + " : " + change.getObject().toJsonString() + " ("+change.getObject().getChange()+" - "+change.getOperation()+")");
-              }
-            }
-          } // not a participant annotation
+          } catch(ParseException parseX) {
+            throw new StoreException("Could not parse participant attribute ID:"
+                                     + annotation.getId());
+          }
+        } else if (annotation.getId().equals("audio_prompt")) {
+          // no particular validation, so drop through
         } else {
-          // unknown object type
-          throw new StoreException("Unknown object type for change:" + change 
-                                   + " - " + change.getObject().getClass().getName());
-        }
+          Layer layer = schema.getLayer(annotation.getLayerId());
+          if (layer != null) {
+            if (updatingFragment
+                && annotation.getChange() == Change.Operation.Create
+                && layer.getParentId().equals(schema.getTurnLayerId())
+                && layer.getAlignment() == Constants.ALIGNMENT_INTERVAL
+                && layer.getPeers()
+                && !layer.getId().equals(schema.getWordLayerId())
+                /* technically, peers shouldn't overlap, but in reality
+                   layer created with the current LaBB-CAT UI have peersOverlap = true
+                   && !layer.getPeersOverlap()*/) {
+              // we're updating a span layer from within a fragment (e.g. forced alignment),
+              // so the ordinals might incorrecty start at 1
+              // so we'll fix them up later
+              Integer layer_id = (Integer)layer.get("layer_id");
+              if (layer_id != null && !adjustPhraseOrdinals.containsKey(layer_id)) {
+                // haven't noticed this layer yet, so add it to the collection
+                adjustPhraseOrdinals.put(layer_id, new HashSet<String>());
+              }
+              // ensure the turn_annotation_id is included in the ordinal fix below
+              adjustPhraseOrdinals.get(layer_id)
+                .add(annotation.getParentId());
+            }
+          } // layer isn't null
+          try {
+            if (annotation.getChange() != Change.Operation.Create) {
+              Object[] o = fmtAnnotationId.parse(annotation.getId());
+              String scope = o[0].toString();
+              if (scope.length() != 0 
+                  && !scope.equalsIgnoreCase(SqlConstants.SCOPE_EPISODE) 
+                  && !scope.equalsIgnoreCase(SqlConstants.SCOPE_META) 
+                  && !scope.equalsIgnoreCase(SqlConstants.SCOPE_WORD) 
+                  && !scope.equalsIgnoreCase(SqlConstants.SCOPE_SEGMENT) 
+                  && !scope.equalsIgnoreCase(SqlConstants.SCOPE_PARTICIPANT)) {
+                throw new StoreException("Parsed annotation scope is not recognised:"
+                                         + annotation.getId() + " - " + scope);
+              }
+              try {
+                Long layerId = (Long)o[1];
+              } catch(ClassCastException castX) {
+                throw new StoreException(
+                  "Parsed annotation layer ID is not an Integer:"
+                  + annotation.getId() + " - " + o[1]);
+              }
+              try {
+                Long databaseId = (Long)o[2];
+              } catch(ClassCastException castX) {
+                throw new StoreException(
+                  "Parsed annotation ID is not a Long integer:"
+                  + annotation.getId() + " - " + o[2]);
+              }
+            } // not creating
+          } catch(ParseException parseX) {
+            // if it's for destroying, we don't care
+            if (annotation.getChange() != Change.Operation.Destroy) {
+              throw new StoreException(
+                "Could not parse annotation ID " + annotation.getId()
+                + " : " + annotation.toJsonString() + " ("+annotation.getChange());//+" - "+change.getOperation()+")");
+            }
+          }
+        } // not a participant annotation
       } // next change
-      // timers.end("check changes");
-      // System.err.println("saveGraph: " + timers);
 
       // create a lookup list of participant names
       HashMap<String,String> participantNameToNumber = new HashMap<String,String>();
@@ -5609,10 +5613,9 @@ public class SqlGraphStore implements GraphStore {
       } // next participant
       rsParticipant.close();
       sqlParticipant.close();
-
+      
       // process changes
-      // timers.start("process changes");
-
+      // timers.start("process changes");      
       PreparedStatement sqlLastId = getConnection().prepareStatement("SELECT LAST_INSERT_ID()");
       PreparedStatement sqlInsertAnchor = getConnection().prepareStatement(
         "INSERT INTO anchor"
@@ -5768,11 +5771,7 @@ public class SqlGraphStore implements GraphStore {
       sqlAttributeLayers.close();
 
       try {
-        // there's a change for each changed attribute of each object
-        // but we'll update the whole object when we get to the first change, 
-        // then skip subsequent change elements until the next object is encountered
-        lastObject = graph; // TODO save graph changes?
-        // it's also possible that some annotations will change on the way that were
+        // it's possible that some annotations will change on the way that were
         // otherwise unchanged - e.g. as final anchor IDs are set, etc.
         HashSet<Annotation> extraUpdates = new HashSet<Annotation>();
 
@@ -5782,68 +5781,73 @@ public class SqlGraphStore implements GraphStore {
           = new LinkedHashMap<String,Annotation>(); 
         LinkedHashMap<String,Annotation> participantAttributes
           = new LinkedHashMap<String,Annotation>(); 
-        for (Change change : changes) {
-          if (change.getObject() == lastObject) continue; // already did this object
-          lastObject = change.getObject();
-          if (change.getObject() == graph) {
-            saveGraphChanges(graph);
-          } // Anchor change
-          if (change.getObject() instanceof Anchor) {
-            saveAnchorChanges((Anchor)change.getObject(), extraUpdates, 
+        saveGraphChanges(graph);
+
+        // anchor creations/updates
+        for (Anchor anchor : changedAnchors) {
+          if (anchor.getChange() != Change.Operation.Destroy) {
+            saveAnchorChanges(anchor, extraUpdates, 
                               sqlInsertAnchor, sqlLastId, sqlUpdateAnchor, 
                               sqlCheckAnchor, layerIds, sqlDeleteAnchor);
-          } // Anchor change
-          else if (change.getObject() instanceof Annotation
-                   && !(change.getObject() instanceof Graph)) {
-            Annotation annotation = (Annotation)change.getObject();
-            if (annotation.getLayerId().equals("episode")
-                || annotation.getLayerId().equals("corpus")
-                || annotation.getLayerId().equals("transcript_type")
-                || annotation.getLayerId().equals("main_participant")
-                || annotation.getLayerId().equals("participant")
-                || annotation.getLayerId().equals("audio_prompt")) { // special layer annotation
-              saveSpecialAnnotationChanges(annotation, participantNameToNumber);
-            } else if (annotation.getLayer().getAncestors()
-                       .contains(graph.getLayer("episode"))) {
-              // episode tag annotation
-              saveEpisodeAnnotationChanges(annotation, sqlLastId);
-            } else if (transcriptAttributeLayers.contains(annotation.getLayerId())) {
-              // transcript attribute
-              saveTranscriptAttributeChanges(
-                annotation, 
-                sqlInsertTranscriptAttribute, 
-                sqlUpdateTranscriptAttribute, 
-                sqlDeleteTranscriptAttribute);
-            }
-            else if (participantAttributeLayers.contains(annotation.getLayerId())) {
-              // participant attribute
-              saveParticipantAttributeChanges(
-                annotation, 
-                sqlInsertParticipantAttribute, 
-                sqlUpdateParticipantAttribute, 
-                sqlDeleteParticipantAttribute,
-                sqlDeleteAllParticipantAttributesOnLayer,
-                sqlUpdateParticipantPassword, sqlInsertParticipantCorpus,
-                sqlDeleteParticipantCorpus);
-            } else { // temporal annotation
-              saveAnnotationChanges(
-                annotation, extraUpdates, 
-                sqlInsertFreeformAnnotation, sqlInsertMetaAnnotation, 
-                sqlInsertWordAnnotation, sqlInsertSegmentAnnotation, sqlLastId, 
-                sqlUpdateTurnAnnotationId, sqlUpdateWordAnnotationId, sqlUpdateSegmentAnnotationId, 
-                sqlUpdateFreeformAnnotation, sqlUpdateMetaAnnotation, 
-                sqlSelectWordFields, sqlSelectSegmentFields, 
-                sqlUpdateWordAnnotation, sqlUpdateSegmentAnnotation, 
-                sqlDeleteAnnotation,
-                participantNameToNumber);
-            }
-          } // Annotation change
+          }
+        } // next anchor
+        for (Annotation annotation : changedAnnotations) {
+          // Annotation annotation = (Annotation)change.getObject();
+          if (annotation.getLayerId().equals("episode")
+              || annotation.getLayerId().equals("corpus")
+              || annotation.getLayerId().equals("transcript_type")
+              || annotation.getLayerId().equals("main_participant")
+              || annotation.getLayerId().equals("participant")
+              || annotation.getLayerId().equals("audio_prompt")) { // special layer annotation
+            saveSpecialAnnotationChanges(annotation, participantNameToNumber, schema);
+          } else if (annotation.getLayer().getAncestors()
+                     .contains(graph.getLayer("episode"))) {
+            // episode tag annotation
+            saveEpisodeAnnotationChanges(annotation, sqlLastId, schema);
+          } else if (transcriptAttributeLayers.contains(annotation.getLayerId())) {
+            // transcript attribute
+            saveTranscriptAttributeChanges(
+              annotation, 
+              sqlInsertTranscriptAttribute, 
+              sqlUpdateTranscriptAttribute, 
+              sqlDeleteTranscriptAttribute);
+          }
+          else if (participantAttributeLayers.contains(annotation.getLayerId())) {
+            // participant attribute
+            saveParticipantAttributeChanges(
+              annotation, 
+              sqlInsertParticipantAttribute, 
+              sqlUpdateParticipantAttribute, 
+              sqlDeleteParticipantAttribute,
+              sqlDeleteAllParticipantAttributesOnLayer,
+              sqlUpdateParticipantPassword, sqlInsertParticipantCorpus,
+              sqlDeleteParticipantCorpus);
+          } else { // temporal annotation
+            saveAnnotationChanges(
+              annotation, extraUpdates, 
+              sqlInsertFreeformAnnotation, sqlInsertMetaAnnotation, 
+              sqlInsertWordAnnotation, sqlInsertSegmentAnnotation, sqlLastId, 
+              sqlUpdateTurnAnnotationId, sqlUpdateWordAnnotationId, sqlUpdateSegmentAnnotationId, 
+              sqlUpdateFreeformAnnotation, sqlUpdateMetaAnnotation, 
+              sqlSelectWordFields, sqlSelectSegmentFields, 
+              sqlUpdateWordAnnotation, sqlUpdateSegmentAnnotation, 
+              sqlDeleteAnnotation,
+              participantNameToNumber,
+              schema);
+          }
         } // next change
-        // timers.start("process changes");
+        // anchor deletions
+        for (Anchor anchor : changedAnchors) {
+          if (anchor.getChange() == Change.Operation.Destroy) {
+            saveAnchorChanges(anchor, extraUpdates, 
+                              sqlInsertAnchor, sqlLastId, sqlUpdateAnchor, 
+                              sqlCheckAnchor, layerIds, sqlDeleteAnchor);
+          }
+        } // next anchor
+        // timers.end("process changes");
         // System.err.println("saveGraph: " + timers);
 	    
         // extras
-        // timers.start("extras");
         HashSet<Annotation> newExtraUpdates = new HashSet<Annotation>();
         for (Annotation annotation : extraUpdates) {
           saveAnnotationChanges(
@@ -5855,16 +5859,14 @@ public class SqlGraphStore implements GraphStore {
             sqlSelectWordFields, sqlSelectSegmentFields, 
             sqlUpdateWordAnnotation, sqlUpdateSegmentAnnotation, 
             sqlDeleteAnnotation,
-            participantNameToNumber);
+            participantNameToNumber,
+            schema);
         } 
-        // timers.end("extras");
         assert newExtraUpdates.size() == 0 : "newExtraUpdates.size() == 0";
 
         // untag anchors and annotations
-        // timers.start("untag");
         for (Anchor a : graph.getAnchors().values()) a.remove("@SqlUpdated");
         for (Annotation a : graph.getAnnotationsById().values()) a.remove("@SqlUpdated");
-        // timers.end("untag");
 
         if (graph.getChange() != Change.Operation.Create) { // updating
           // ensure that tag annotations have their anchors updated with their parents,
@@ -6401,7 +6403,8 @@ public class SqlGraphStore implements GraphStore {
     PreparedStatement sqlSelectWordFields, PreparedStatement sqlSelectSegmentFields,
     PreparedStatement sqlUpdateWordAnnotation, PreparedStatement sqlUpdateSegmentAnnotation, 
     PreparedStatement sqlDeleteAnnotation,
-    HashMap<String,String> participantNameToNumber)
+    HashMap<String,String> participantNameToNumber,
+    Schema schema)
     throws SQLException, PermissionException, StoreException {
     if (annotation.getId().startsWith("m_")) return; // ignore participant changes for now
 
@@ -6415,7 +6418,7 @@ public class SqlGraphStore implements GraphStore {
       case Create: {
         // get the layer_id and its scope, so we can deduce what kind of row to insert
         if (layer == null || !layer.containsKey("layer_id")) { // load our own info
-          layer = getLayer(annotation.getLayerId());
+          layer = schema.getLayer(annotation.getLayerId());
         }
         Integer layerId = (Integer)layer.get("layer_id");
         String scope = (String)layer.get("scope");
@@ -7168,7 +7171,7 @@ public class SqlGraphStore implements GraphStore {
    * @throws StoreException If some other error occurs.
    */
   protected void saveSpecialAnnotationChanges(
-    Annotation annotation, HashMap<String,String> participantNameToNumber)
+    Annotation annotation, HashMap<String,String> participantNameToNumber, Schema schema)
     throws PermissionException, StoreException, SQLException {
     try {
       if (annotation.getLayerId().equals("episode")) {
@@ -7231,7 +7234,7 @@ public class SqlGraphStore implements GraphStore {
 
             // update ID
             Object[] annotationIdParts = {
-              getLayer(annotation.getLayerId()).get("layer_id"), ""+familyId};
+              schema.getLayer(annotation.getLayerId()).get("layer_id"), ""+familyId};
             annotation.setId(fmtMetaAnnotationId.format(annotationIdParts));
 
             // also update graph
@@ -7343,7 +7346,7 @@ public class SqlGraphStore implements GraphStore {
 		  
             // reset the annotation ID
             Object[] args = {
-              getLayer(annotation.getLayerId()).get("layer_id"), ""+speakerNumber };
+              schema.getLayer(annotation.getLayerId()).get("layer_id"), ""+speakerNumber };
             annotation.setId(fmtMetaAnnotationId.format(args));
 
             // add the speaker to transcript_speaker
@@ -7416,7 +7419,7 @@ public class SqlGraphStore implements GraphStore {
    * @throws SQLException If a database error occurs.
    * @throws StoreException If some other error occurs.
    */
-  protected void saveEpisodeAnnotationChanges(Annotation annotation, PreparedStatement sqlLastId)
+  protected void saveEpisodeAnnotationChanges(Annotation annotation, PreparedStatement sqlLastId, Schema schema)
     throws PermissionException, StoreException, SQLException
   {
     try {
@@ -7425,7 +7428,7 @@ public class SqlGraphStore implements GraphStore {
       }
       switch (annotation.getChange()) {
         case Create: {
-          Layer layer = getLayer(annotation.getLayerId());
+          Layer layer = schema.getLayer(annotation.getLayerId());
           Integer layerId = (Integer)layer.get("layer_id");
           PreparedStatement sql = getConnection().prepareStatement(
             "INSERT INTO `annotation_layer_"+layerId+"`"
@@ -9666,15 +9669,5 @@ public class SqlGraphStore implements GraphStore {
       return null;
     }
   }
-
-  /**
-   * Escapes quotes in the given string for inclusion in QL or SQL queries.
-   * @param s The string to escape.
-   * @return The given string, with quotes escapeed.
-   */
-  protected String esc(String s) {
-    if (s == null) return "";
-    return s.replace("\\","\\\\").replace("'","\\'");
-  } // end of esc()
 
 } // end of class SqlGraphStore

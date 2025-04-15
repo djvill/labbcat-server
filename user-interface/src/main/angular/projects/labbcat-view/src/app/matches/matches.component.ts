@@ -46,6 +46,7 @@ export class MatchesComponent implements OnInit {
     prefixNames = false;
     wordLayers = [];
     schema: any;
+    excludeOptions: string[];
     generableLayers = []; // list of layerIds that can be generated from a list of utterances
     dictionaryDependentLayers = []; // list of layerIds managed by HTK
     dictionaryLayerIds = {}; // map of HTK layerIds to their pronunciation layer IDs
@@ -126,7 +127,10 @@ export class MatchesComponent implements OnInit {
                 // include segments in serialization by default
                 this.serializationLayers.push("segment")
             }
-            
+            this.excludeOptions = [this.task.targetLayer];
+            if (this.schema && this.schema.layers[this.task.targetLayer].scope == "S") {
+                this.excludeOptions.push("segment");
+            }
             this.readMatches();
         });
     }

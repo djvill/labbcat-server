@@ -1,6 +1,7 @@
 #attributes {
     width: 100%;
     text-align: left;
+    min-width: 70vw;
 }
 .tab-labels label {
     cursor: context-menu;

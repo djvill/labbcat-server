@@ -233,6 +233,7 @@ nav, nav > div {
 
 #attributes {
     width: 100%;
+    min-width: 70vw;
     text-align: left;
 }
 .buttons {

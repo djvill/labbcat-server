@@ -157,7 +157,7 @@ public class TestStore
   @Test public void saveTranscript() throws Exception {
     
     // get the language of a transcript
-    String[] ids = l.getMatchingTranscriptIds("/AP511.+\\.eaf/.test(id)", 1, 0);
+    String[] ids = l.getMatchingTranscriptIds("/CB01.+\\.eaf/.test(id)", 1, 0);
     assertTrue("Some graph IDs are returned",
                ids.length > 0);
     String graphId = ids[0];

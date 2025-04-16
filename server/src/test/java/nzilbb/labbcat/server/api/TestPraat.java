@@ -58,15 +58,15 @@ import nzilbb.util.IO;
  */
 public class TestPraat {
   static String labbcatUrl = "http://localhost:8080/labbcat/";
-  static String readOnlyUsername = "readOnly";
-  static String readOnlyPassword = "labbcat";
-  static String readWriteUsername = "labbcat";
-  static String readWritePassword = "labbcat";
+  static String readonly_username = "readonly";
+  static String readonly_password = "labbcat";
+  static String username = "labbcat";
+  static String password = "labbcat";
 
   /** Test that the Process with Praat endpoint generally works. */
   @Test public void processWithPraat()
     throws Exception {
-    LabbcatView l = new LabbcatView(labbcatUrl, readOnlyUsername, readOnlyPassword);
+    LabbcatView l = new LabbcatView(labbcatUrl, readonly_username, readonly_password);
     l.setBatchMode(true);
 
     // get a participant ID to use
@@ -76,7 +76,7 @@ public class TestPraat {
     String[] participantId = { ids[0] };      
 
     // all instances of any segment
-    JsonObject pattern = new PatternBuilder().addMatchLayer("segment", ".*").build();
+    JsonObject pattern = new PatternBuilder().addMatchLayer("segment", "i").build();
     String searchThreadId = l.search(pattern, participantId, null, false, null, null, null);
     try {
       TaskStatus task = l.waitForTask(searchThreadId, 30);
@@ -137,10 +137,10 @@ public class TestPraat {
    * files on the server. */
   @Test public void fileOperationsDisallowed() throws Exception {
     LabbcatView readOnlyLabbcat = new LabbcatView(
-      labbcatUrl, readOnlyUsername, readOnlyPassword);
+      labbcatUrl, readonly_username, readonly_password);
     readOnlyLabbcat.setBatchMode(true);
     LabbcatView readWriteLabbcat = new LabbcatView(
-      labbcatUrl, readWriteUsername, readWritePassword);
+      labbcatUrl, username, password);
     readWriteLabbcat.setBatchMode(true);
     
     // get a participant ID to use
@@ -150,7 +150,7 @@ public class TestPraat {
     String[] participantId = { ids[0] };      
 
     // all instances of any segment
-    JsonObject pattern = new PatternBuilder().addMatchLayer("segment", ".*").build();
+    JsonObject pattern = new PatternBuilder().addMatchLayer("segment", "i").build();
     String searchThreadId = readOnlyLabbcat.search(pattern, participantId, null, false, null, null, null);
     try {
       TaskStatus task = readOnlyLabbcat.waitForTask(searchThreadId, 30);

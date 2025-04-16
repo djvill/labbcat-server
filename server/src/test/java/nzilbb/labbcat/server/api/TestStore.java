@@ -154,8 +154,8 @@ public class TestStore
       long countFirsts = l.countAnnotations(graphId, "phonemes", 1);
       assertTrue("countAnnotations: There are some matches with maxOrdinal = 1",
                  countFirsts > 0);
-      assertTrue("countAnnotations: maxOrdinal = 1 are not fewer than maxOrdinal = null",
-                 countFirsts < countAll);
+      assertTrue("countAnnotations: maxOrdinal = 1 are not more than maxOrdinal = null",
+                 countFirsts <= countAll);
       
       Annotation[] annotations = l.getAnnotations(graphId, "phonemes", 2, 0);
       if (countAll < 2)

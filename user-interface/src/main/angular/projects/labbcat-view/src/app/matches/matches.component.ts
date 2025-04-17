@@ -67,6 +67,7 @@ export class MatchesComponent implements OnInit {
     phoneAlignmentLayerId: string;
     
     controlsLinksCSV = {
+        layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of exporting data docpage about layer picker
         about: {
             text: 'About layers and attributes',
             href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'

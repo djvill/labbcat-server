@@ -142,12 +142,15 @@ export class LayerCheckboxesComponent implements OnInit {
         this.wordLayers = [];
         this.segmentLayers = [];
         this.categorySelections = {};
-        const displayIcons = sessionStorage.getItem("displayLayerIcons");
-        this.displayIcons = JSON.parse(displayIcons || 'true');
-        const displayCounts = sessionStorage.getItem("displayLayerCounts");
-        this.displayCounts = JSON.parse(displayCounts || 'true');
-        const displayAttributePrefixes = sessionStorage.getItem("displayAttributePrefixes");
-        this.displayAttributePrefixes = JSON.parse(displayAttributePrefixes || 'false');
+        this.displayIcons = JSON.parse(sessionStorage.getItem("displayLayerIcons")) ??
+            (typeof this.displayIcons == "string" ? this.displayIcons === "true" : this.displayIcons) ??
+            true;
+        this.displayCounts = JSON.parse(sessionStorage.getItem("displayLayerCounts")) ??
+            (typeof this.displayCounts == "string" ? this.displayCounts === "true" : this.displayCounts) ??
+            true;
+        this.displayAttributePrefixes = JSON.parse(sessionStorage.getItem("displayAttributePrefixes")) ??
+            (typeof this.displayAttributePrefixes == "string" ? this.displayAttributePrefixes === "true" : this.displayAttributePrefixes) ??
+            false;
         if (!this.selected) this.selected = [] as string[];
         for (let l in this.schema.layers) {
             let layer = this.schema.layers[l] as Layer;

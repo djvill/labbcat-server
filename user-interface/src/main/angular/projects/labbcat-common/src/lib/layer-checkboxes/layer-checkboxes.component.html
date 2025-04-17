@@ -413,12 +413,12 @@
     <label
       title="Show full names for participant/transcript attributes">
       <lib-grouped-checkbox
-        group="showAttributePrefixes"
-        name="showAttributePrefixes"
-        [checked]="displayAttributePrefixes"
+        group="hideAttributePrefixes"
+        name="hideAttributePrefixes"
+        [checked]="!displayAttributePrefixes"
         (change)="toggleAttributePrefixes()"
         ></lib-grouped-checkbox>
-      Show attribute prefixes</label>
+      Hide attribute prefixes</label>
     <span *ngIf="controlsLinks['attributePrefixes']"
           class="control-link"> (<a [href]="controlsLinks['attributePrefixes']" target="_blank">about</a>)
     </span>

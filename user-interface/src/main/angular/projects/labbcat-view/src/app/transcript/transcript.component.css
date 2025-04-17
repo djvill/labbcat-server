@@ -107,7 +107,7 @@ nav, nav > div {
 }
 
 /* only the first consecutive utterance, simultaneous utterances are all labelled */
-.words {
+.words, .utterance-tag {
     margin-left: 2.5vw;
 }
 .words > .word  {
@@ -135,7 +135,7 @@ nav, nav > div {
 }
 .utterance-tag {
     display: inline-block;
-    width: 100%;
+    width: 97.5%;
 }
 .token {
     display: inline-block;

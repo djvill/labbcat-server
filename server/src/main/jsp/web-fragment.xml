@@ -20,6 +20,9 @@
   <servlet><servlet-name>files.jsp</servlet-name><jsp-file>/jsp/files.jsp</jsp-file></servlet>
   <servlet-mapping><servlet-name>files.jsp</servlet-name><url-pattern>/api/files</url-pattern></servlet-mapping>
 
+  <servlet><servlet-name>annotation/data.jsp</servlet-name><jsp-file>/jsp/annotation/data.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>annotation/data.jsp</servlet-name><url-pattern>/api/annotation/data</url-pattern></servlet-mapping>
+
   <servlet><servlet-name>serialize/fragments.jsp</servlet-name><jsp-file>/jsp/serialize/fragments.jsp</jsp-file></servlet>
   <servlet-mapping><servlet-name>serialize/fragments.jsp</servlet-name><url-pattern>/api/serialize/fragments</url-pattern></servlet-mapping>
   <servlet-mapping><servlet-name>serialize/fragments.jsp</servlet-name><url-pattern>/api/serialize/fragment</url-pattern></servlet-mapping>
@@ -73,6 +76,9 @@
   <servlet><servlet-name>edit/annotator/ext.jsp</servlet-name><jsp-file>/jsp/edit/annotator/ext.jsp</jsp-file></servlet>
   <servlet-mapping><servlet-name>edit/annotator/ext.jsp</servlet-name><url-pattern>/api/edit/annotator/ext/*</url-pattern></servlet-mapping>
   <servlet-mapping><servlet-name>edit/annotator/ext.jsp</servlet-name><url-pattern>/edit/annotator/ext/*</url-pattern></servlet-mapping>
+
+  <servlet><servlet-name>edit/transcript/upload.jsp</servlet-name><jsp-file>/jsp/edit/transcript/upload.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>edit/transcript/upload.jsp</servlet-name><url-pattern>/api/edit/transcript/upload/*</url-pattern></servlet-mapping>
   
   <servlet><servlet-name>admin/store.jsp</servlet-name><jsp-file>/jsp/admin/store.jsp</jsp-file></servlet>
   <servlet-mapping><servlet-name>admin/store.jsp</servlet-name><url-pattern>/api/admin/store/*</url-pattern></servlet-mapping>

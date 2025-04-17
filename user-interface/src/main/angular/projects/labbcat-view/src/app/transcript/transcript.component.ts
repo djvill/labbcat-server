@@ -106,30 +106,31 @@ export class TranscriptComponent implements OnInit {
                 });
             });
             this.readSerializers();
-            this.readAvailableMedia().then(()=>{
-                this.praatService.initialize().then((version: string)=>{
-                    console.log(`Praat integration version ${version}`);
-                    this.praatIntegration = version;
-                    this.praatProgress = {
-                        message: `Praat Integration ${this.praatIntegration}`,
-                        value: 0,
-                        maximum: 100
-                    };
-                    this.praatService.progressUpdates().subscribe((progress) => {
-                        this.praatProgress = progress;
-                    });
-                }, (canInstall: boolean)=>{
-                    if (canInstall) {
-                        console.log("Praat integration not installed but it could be");
-                        this.praatIntegration = "";
-                    } else {
-                        console.log("Praat integration: Incompatible browser");
-                            this.praatIntegration = null;
-                    }
-                });
-            });
             this.readSchema().then(() => {
                 this.readTranscript().then(()=>{ // some have to wait until transcript is loaded
+                    this.readAvailableMedia().then(()=>{
+                        this.praatService.initialize().then((version: string)=>{
+                            console.log(`Praat integration version ${version}`);
+                            this.praatIntegration = version;
+                            this.praatProgress = {
+                                message: `Praat Integration ${this.praatIntegration}`,
+                                value: 0,
+                                maximum: 100
+                            };
+                            this.praatService.progressUpdates().subscribe((progress) => {
+                                this.praatProgress = progress;
+                            });
+                        }, (canInstall: boolean)=>{
+                            if (canInstall) {
+                                console.log("Praat integration not installed but it could be");
+                                this.praatIntegration = "";
+                            } else {
+                                console.log("Praat integration: Incompatible browser");
+                                this.praatIntegration = null;
+                            }
+                        });
+                    });
+                    
                     // preselect layers?
                     let layerIds = params["layerId"]||params["l"]
                     if (!layerIds && sessionStorage.getItem("selectedLayerIds")) {
@@ -267,6 +268,21 @@ export class TranscriptComponent implements OnInit {
                         description: "Export the transcript in a selected format",
                         icon: "cog.svg"
                     }; // TODO i18n
+                    
+                    for (let category of categories) {
+                        const layerCategory = "transcript_"+category.category;
+                        category.label = category.category;
+                        if (!category.description) {
+                            category.description = `Attributes: ${category.category}`; // TODO i18n
+                        }
+                        category.icon = "attributes.svg";
+                        this.categories[layerCategory] = category;
+                        this.categoryLabels.push(layerCategory);
+                    }
+                    if (this.categoryLabels.length == 4) { // only one actual category
+                        // just label the tab 'attributes'
+                        this.categories[this.categoryLabels[3]].label = "Attributes" // TODO i18n
+                    }
                     resolve();
                 });
         });
@@ -348,15 +364,6 @@ export class TranscriptComponent implements OnInit {
         for (let id in this.transcript.anchors) {
             const anchor = this.transcript.anchors[id] as Anchor;
             anchor.id = id; // ensure ID is set
-            // initialise links to annotations
-            anchor.startOf = {};
-            anchor.startOf[turnLayerId] = [];
-            anchor.startOf[utteranceLayerId] = [];
-            anchor.startOf[wordLayerId] = [];
-            anchor.endOf = {};
-            anchor.endOf[turnLayerId] = [];
-            anchor.endOf[utteranceLayerId] = [];
-            anchor.endOf[wordLayerId] = [];
             this.anchors[id] = anchor;
         }
 
@@ -684,7 +691,6 @@ export class TranscriptComponent implements OnInit {
                                     unknownAnchorIds.add(a.endId);
                                 }
                             } // next annotation
-
                             
                             if (unknownAnchorIds.size) {
                                 // there might be a lot of anchors to load,
@@ -693,11 +699,12 @@ export class TranscriptComponent implements OnInit {
                                 this.loadAnchorsIncrementally(unknownAnchorIds).then(()=>{
                                     // add annotations to graph once we've got all the anchors
                                     for (let a of annotations) {
-                                        this.transcript.addAnnotation(
-                                            new this.labbcatService.ag.Annotation(
-                                                layerId, a.label, this.transcript,
-                                                a.startId, a.endId,
-                                                a.id, a.parentId));
+                                        const annotation = new this.labbcatService.ag.Annotation(
+                                            layerId, a.label, this.transcript,
+                                            a.startId, a.endId,
+                                            a.id, a.parentId);
+                                        if (a.dataUrl) annotation.dataUrl = a.dataUrl;
+                                        this.transcript.addAnnotation(annotation);
                                     }
                                     
                                     // next page
@@ -708,10 +715,11 @@ export class TranscriptComponent implements OnInit {
                             } else { // all anchors are already loaded
                                 // we've got all the anchors, so add the annotations to the graph
                                 for (let a of annotations) {
-                                    this.transcript.addAnnotation(
-                                        new this.labbcatService.ag.Annotation(
-                                            layerId, a.label, this.transcript, a.startId, a.endId,
-                                            a.id, a.parentId));
+                                    const annotation = new this.labbcatService.ag.Annotation(
+                                        layerId, a.label, this.transcript, a.startId, a.endId,
+                                        a.id, a.parentId);
+                                    if (a.dataUrl) annotation.dataUrl = a.dataUrl;
+                                    this.transcript.addAnnotation(annotation);
                                 }
                                 
                                 // next page

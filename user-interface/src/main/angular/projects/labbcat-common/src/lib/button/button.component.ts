@@ -18,6 +18,7 @@ export class ButtonComponent implements OnInit {
     @Output() press = new EventEmitter();
     @Input() processing: boolean;
     @Input() error: string;
+    @Input() autofocus: boolean;
 
     imagesLocation : string;
     classes = "btn";

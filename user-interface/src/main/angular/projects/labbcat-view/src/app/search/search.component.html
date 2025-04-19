@@ -164,8 +164,13 @@
       <div class="list">
         <span class="list-label">Match options</span>
         <div class="item">
-          <label>
-            <input type="checkbox" [(ngModel)]="mainParticipantOnly" id="mainParticipantOnly">
+          <label
+            [title]="allMainParticipants ? 'Not applicable; all selected participants are \'Main speaker\'' : ''"
+            >
+            <input [disabled]="allMainParticipants"
+              [style.display]="allMainParticipants ? 'none' : 'inline-block'"
+              type="checkbox" [(ngModel)]="mainParticipantOnly" id="mainParticipantOnly">
+            <input *ngIf="allMainParticipants" type="checkbox" checked disabled>
             <span i18n>Only include 'Main speaker' participants.</span></label>
         </div>
         <div class="item">

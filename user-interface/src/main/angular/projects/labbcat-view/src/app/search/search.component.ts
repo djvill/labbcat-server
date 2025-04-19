@@ -29,6 +29,12 @@ export class SearchComponent implements OnInit {
     transcriptIds: string[];
     transcriptsFile: File;
     mainParticipantOnly: boolean;
+    /** Parameters for how to determine whether the mainParticipantOnly
+     * checkbox will be shown as checked & disabled */
+    participantTypeLayerId = "participant_type";
+    mainParticipantTypes = ["Main speaker"];
+    mainParticipantQuery: string;
+    allMainParticipants: boolean;
     onlyAligned: boolean;
     firstMatchOnly: boolean;
     excludeSimultaneousSpeech: false;
@@ -58,7 +64,13 @@ export class SearchComponent implements OnInit {
         this.setupTabs();
         this.labbcatService.labbcat.getSchema((schema, errors, messages) => {
             this.schema = schema;
-            
+            if (Object.keys(schema.layers).includes(this.participantTypeLayerId) && this.mainParticipantTypes.length) {
+                this.mainParticipantQuery = "["
+                    + this.mainParticipantTypes.map(type => `"${type}"`).join(",")
+                    + "].includesAny(labels('"
+                    + this.participantTypeLayerId
+                    + "'))";
+            }
             // interpret URL parameters
             this.route.queryParams.subscribe((params) => {
                 if (params["searchJson"]) {
@@ -152,6 +164,7 @@ export class SearchComponent implements OnInit {
         this.participantCount = 0;
         this.matrix.participantQuery = "";
         sessionStorage.removeItem("lastQueryParticipants");
+        this.allMainParticipants = false;
         this.router.navigate([], {
             queryParams: {
                 participant_expression: null,
@@ -214,7 +227,7 @@ export class SearchComponent implements OnInit {
 
     participantCount = 0;
     loadingParticipants = false;
-    /** List participants that match the filters */
+    /** List participants that match the filters, and determine whether all are main participants */
     listParticipants(): void {
         this.participantIds = [];
         if (this.matrix.participantQuery) {
@@ -223,13 +236,28 @@ export class SearchComponent implements OnInit {
                     if (errors) errors.forEach(m => this.messageService.error(m));
                     if (messages) messages.forEach(m => this.messageService.info(m));
                     this.participantCount = participantCount;
+                    console.log("this.participantCount", this.participantCount);
                     if (this.participantCount) {
                         this.loadMoreParticipants();
                     } else if (this.participantsFile) { // list loaded from file
                         this.messageService.error("No valid participants in file."); // TODO i18n
                     }
-
                 });
+            // check if filter includes mainParticipantQuery, or if all filtered/selected participants' participantTypeLayerId is in mainParticipantTypes
+            if (this.mainParticipantQuery) {
+                if (this.matrix.participantQuery.includes(this.mainParticipantQuery)) { // does the filter include mainParticipantQuery?
+                    this.allMainParticipants = true;
+                } else { // are only main participants selected?
+                    this.labbcatService.labbcat.countMatchingParticipantIds(
+                        this.matrix.participantQuery + " && " + this.mainParticipantQuery,
+                        (participantCount, errors, messages) => {
+                            if (errors) errors.forEach(m => this.messageService.error(m));
+                            if (messages) messages.forEach(m => this.messageService.info(m));
+                            // N.B. this is not strictly equivalent to mainParticipantOnly, if some of these speakers are not in a transcript in which they're not the main participant
+                            this.allMainParticipants = participantCount == this.participantCount;
+                        });
+                }
+            }
         } // there is a participantExpression
     }
 

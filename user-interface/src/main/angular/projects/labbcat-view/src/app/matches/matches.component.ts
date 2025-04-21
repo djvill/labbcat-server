@@ -132,7 +132,7 @@ export class MatchesComponent implements OnInit {
                 this.serializationLayers.push("segment")
             }
             this.excludeOptions = [this.task.targetLayer];
-            if (this.schema && this.schema.layers[this.task.targetLayer].scope == "S") {
+            if (this.schema && this.schema.layers[this.task.targetLayer].scope && this.schema.layers[this.task.targetLayer].scope == "S") {
                 this.excludeOptions.push("segment");
             }
             this.readMatches();

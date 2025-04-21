@@ -75,8 +75,9 @@ export class TranscriptAttributesComponent implements OnInit {
                 this.schema = schema;
                 this.attributes = [];
                 this.categoryLayers = {};
-                const displayLayerIds = sessionStorage.getItem("displayLayerIds");
-                this.displayLayerIds = JSON.parse(displayLayerIds || 'true');
+                this.displayLayerIds = JSON.parse(sessionStorage.getItem("displayLayerIds")) ??
+                    (typeof this.displayLayerIds == "string" ? this.displayLayerIds === "true" : this.displayLayerIds) ??
+                    true;
                 // transcript attributes
                 for (let layerId in schema.layers) {
                     const layer = schema.layers[layerId] as Layer;

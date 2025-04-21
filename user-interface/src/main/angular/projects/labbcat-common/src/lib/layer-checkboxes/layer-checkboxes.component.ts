@@ -59,6 +59,8 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() excludeUtterance: boolean;
     /** Don't allow the 'word' layer to be selected */
     @Input() excludeWord: boolean;
+    /** Don't allow the 'language' layer to be selected */
+    @Input() excludeLanguage: boolean;
     /** Include a layer category selector, to hide/reveal layers */
     @Input() category: boolean;
     /** Allow word layers to be selected */
@@ -195,6 +197,8 @@ export class LayerCheckboxesComponent implements OnInit {
                 if (!this.excludeTurn) this.phraseLayers.push(layer);
             } else if (layer.id == this.schema.utteranceLayerId) {
                 if (!this.excludeUtterance) this.phraseLayers.push(layer);
+            } else if (layer.id == "language") {
+                if (!this.excludeLanguage) this.phraseLayers.push(layer);
             } else if (layer.parentId == this.schema.turnLayerId) {
                 this.phraseLayers.push(layer);
             } else if (layer.id == this.schema.participantLayerId) {

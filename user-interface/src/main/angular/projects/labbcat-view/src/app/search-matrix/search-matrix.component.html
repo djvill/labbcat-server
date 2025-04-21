@@ -4,6 +4,7 @@
     includeDataType="true" includeVerticalPeers="true"
     span="true" phrase="true" word="true" segment="true"
     excludeMainParticipant="true"
+    [excludeLanguage]="true"
     category="true"
     [(selected)]="selectedLayerIds"
     (selectedChange)="syncSelectedLayerIdsWithColumns($event)"

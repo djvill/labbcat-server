@@ -135,7 +135,12 @@ nav, nav > div {
 }
 .utterance-tag {
     display: inline-block;
+}
+.consecutive .utterance-tag {
     width: 97.5%;
+}
+.simultaneous .utterance-tag {
+    width: 95%;
 }
 .token {
     display: inline-block;

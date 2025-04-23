@@ -7,7 +7,7 @@ export class UploadEntry {
     episode?: string;
     transcriptType?: string;
     media: { [trackSuffix: string] : File[] };
-    exists: boolean;
+    exists?: boolean;
     status: string;
     errors: string[]
     progress: number;
@@ -17,7 +17,6 @@ export class UploadEntry {
     parameters?: any[];
     parametersVisible: boolean;
     transcriptThreads?: { [transcriptId: string] : string };
-    threadPollInterval?: number;
 
     constructor(id: string) {
         this.id = id;
@@ -26,7 +25,7 @@ export class UploadEntry {
         this.errors = [];
         this.progress = 0;
         this.selected = false;
-        this.exists = false;
+        this.exists = null; // don't know yet
     }
 
     resetState() {
@@ -38,10 +37,6 @@ export class UploadEntry {
         this.parameters = null;
         this.parametersVisible = false;
         this.transcriptThreads = null;
-        if (this.threadPollInterval) {
-            clearInterval(this.threadPollInterval);
-            this.threadPollInterval = null;
-        }
     }
 
     addMedia(file: File, trackSuffix: string): void {
@@ -69,5 +64,9 @@ export class UploadEntry {
             } // next file
         } // next track
         return names;
+    }
+    // true if there are server-side threads processing the upload, false otherwise
+    generating(): boolean {
+        return this.transcriptThreads && Object.keys(this.transcriptThreads).length > 0;
     }
 }

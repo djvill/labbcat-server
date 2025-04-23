@@ -4,12 +4,13 @@
     flex-direction: row;
 }
 #defaults {
-    width: 50%;
 }
 #buttons {
     width: 50%;
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
+    flex-grow: 1;
     align-items: center;
     justify-content: flex-end;
 }
@@ -17,6 +18,9 @@
     min-height: 300px;
     border: 2px #DEE6EF dashed;
     text-align: center;
+}
+#drag-drop.processing-entries {
+    cursor: wait;
 }
 div#drag-drop:hover, div.hover {
     border: 2px #777777 dashed;
@@ -55,6 +59,9 @@ div.transcript-batch .transcript-entry {
     text-align: left;
     padding-left: 10px;
     overflow: hidden;
+}
+span.transcript-name img {
+    width: 16px;
 }
 .transcript-entry span.media-name {
     vertical-align: middle;
@@ -99,10 +106,6 @@ span.buttons > button {
 span.buttons > button > img {
     height: 15px;
     width: 15px;
-}
-
-div.transcript-batch div.exists {
-    color: orange;
 }
 
 .parameters {

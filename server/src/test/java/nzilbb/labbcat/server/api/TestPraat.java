@@ -76,7 +76,7 @@ public class TestPraat {
     String[] participantId = { ids[0] };      
 
     // all instances of any segment
-    JsonObject pattern = new PatternBuilder().addMatchLayer("segment", "i").build();
+    JsonObject pattern = new PatternBuilder().addMatchLayer("segment", "#").build();
     String searchThreadId = l.search(pattern, participantId, null, false, null, null, null);
     try {
       TaskStatus task = l.waitForTask(searchThreadId, 30);
@@ -150,7 +150,7 @@ public class TestPraat {
     String[] participantId = { ids[0] };      
 
     // all instances of any segment
-    JsonObject pattern = new PatternBuilder().addMatchLayer("segment", "i").build();
+    JsonObject pattern = new PatternBuilder().addMatchLayer("segment", "#").build();
     String searchThreadId = readOnlyLabbcat.search(pattern, participantId, null, false, null, null, null);
     try {
       TaskStatus task = readOnlyLabbcat.waitForTask(searchThreadId, 30);

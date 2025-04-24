@@ -1,36 +1,34 @@
 <div class="valid-label-helper" [class.hierarchical]="categories">
   <ng-container *ngIf="!categories"><!-- non-heirarchical picker -->
     <span *ngFor="let label of Object.keys(layer.validLabels)">
-      <a href="#" class="valid-label" title="{{layer.validLabels[label]}}" (click)="select(label)">{{label}}</a>
+      <a href="#" class="valid-label" title="{{layer.validLabels[label]}}" (click)="select($event, label)">{{label}}</a>
     </span>
   </ng-container>
   
   <ng-container *ngIf="categories"><!-- heirarchical picker -->
     <ng-container *ngFor="let category of Object.keys(categories)">
       <div class="category" [class.unlabelled]="category == ''">
-        
         <div class="category-and-nb">
           <span *ngIf="regularExpression" class="title">
-            <a href="#" (click)="selectCategory(category)"
+            <a href="#" (click)="selectCategory($event, category)"
                i18n-title="Any CATEGORY-NAME" title="Any {{category}}">{{category}}</a>
           </span>
           <span *ngIf="!regularExpression" class="title">{{category}}</span>
           <span *ngIf="category == 'CONSONANT'" class="nb">Other consonants: Use normal IPA</span>
         </div>
-        
         <ng-container *ngFor="let subcategory of Object.keys(categories[category])">
           <div class="subcategory"
                [class.unlabelled]="subcategory == ''">
             
             <span *ngIf="regularExpression" class="title">
-              <a href="#" (click)="selectSubcategory(category, subcategory)"
+              <a href="#" (click)="selectSubcategory($event, category, subcategory)"
                  i18n-title="Any SUBCATEGORY-NAME" title="Any {{subcategory}}">{{subcategory}}</a>
             </span>
             <span *ngIf="!regularExpression" class="title">{{subcategory}}</span>
             
             <span class="label" *ngFor="let label of categories[category][subcategory]">
               <a *ngIf="label.selector || label.display"
-                 href="#" class="valid-label" title="{{label.description}}" (click)="select(label.label)">{{label.selector || label.display}}</a>
+                 href="#" class="valid-label" title="{{label.description}}" (click)="select($event, label.label)">{{label.selector || label.display}}</a>
             </span>
           </div>
         </ng-container>

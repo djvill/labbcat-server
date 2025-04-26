@@ -148,12 +148,15 @@ export class SearchComponent implements OnInit {
         this.participantCount = 0;
         this.matrix.participantQuery = "";
         sessionStorage.removeItem("lastQueryParticipants");
+        let params = {
+            participant_expression: null,
+            participants: null,
+            current_tab: 'Participants'
+        };
+        const searchJson = this.buildSearchJsonParam();
+        if (searchJson.length) params["searchJson"] = searchJson;
         this.router.navigate([], {
-            queryParams: {
-                participant_expression: null,
-                participants: null,
-                current_tab: 'Participants'
-            },
+            queryParams: params,
             queryParamsHandling: 'merge'
         });
     }
@@ -173,12 +176,15 @@ export class SearchComponent implements OnInit {
         this.transcriptCount = 0;
         this.matrix.transcriptQuery = "";
         sessionStorage.removeItem("lastQueryTranscripts");
+        let params = {
+            transcript_expression: null,
+            transcripts: null,
+            current_tab: 'Transcripts'
+        };
+        const searchJson = this.buildSearchJsonParam();
+        if (searchJson.length) params["searchJson"] = searchJson;
         this.router.navigate([], {
-            queryParams: {
-                transcript_expression: null,
-                transcripts: null,
-                current_tab: 'Transcripts'
-            },
+            queryParams: params,
             queryParamsHandling: 'merge'
         });
     }

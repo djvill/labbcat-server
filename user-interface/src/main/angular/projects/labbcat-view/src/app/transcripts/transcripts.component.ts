@@ -478,11 +478,16 @@ export class TranscriptsComponent implements OnInit {
             queryExpression, (matchCount, errors, messages) => {
                 if (thisQuery != this.querySerial) return; // new query already sent
                 this.matchCount = matchCount;
-                if (errors) {
-                    errors.forEach(m => this.messageService.error(m));
-                    this.loadingList = false;
-                }
                 if (messages) messages.forEach(m => this.messageService.info(m));
+                if (errors) {
+                    errors.forEach(m => m.includes("Request header is too large")
+                        ? this.messageService.error("Failed to process the participant filter (HTTP server returned 'Request header is too large' 400 error)")
+                        : this.messageService.error(m));
+                    this.loadingList = false;
+                    if (errors.filter(e => e.includes("Request header is too large")).length) {
+                        return; // avoid getting same error from getMatchingTranscriptIds()
+                    }
+                }
                 this.pageCount = parseInt(matchCount) / this.pageLength;
                 if (matchCount % this.pageLength != 0)  this.pageCount++;
                 if (this.p > this.pageCount) this.p = Math.max(1,this.pageCount);

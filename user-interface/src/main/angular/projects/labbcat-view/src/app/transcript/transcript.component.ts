@@ -691,7 +691,7 @@ export class TranscriptComponent implements OnInit {
                                 // there might be a lot of anchors to load,
                                 // making one request too large
                                 // so we break the anchor list into chunks
-                                this.loadAnchorsIncrementally(unknownAnchorIds).then(()=>{
+                                this.loadAnchorsIncrementally(unknownAnchorIds, layerId).then(()=>{
                                     // add annotations to graph once we've got all the anchors
                                     for (let a of annotations) {
                                         const annotation = new this.labbcatService.ag.Annotation(
@@ -737,17 +737,18 @@ export class TranscriptComponent implements OnInit {
     }
 
     /** recursive anchor loading, to prevent requests from becoming too large */
-    loadAnchorsIncrementally(unknownAnchorIds : Set<string>) : Promise<void> {
+    loadAnchorsIncrementally(unknownAnchorIds : Set<string>, layerId : string) : Promise<void> {
         const maxIds = 50;
         return new Promise<void>((resolve, reject) => {
             let idsToLoadNow = new Set<string>(Array.from(unknownAnchorIds).slice(0, maxIds));
             let idsToLoadLater = new Set<string>(Array.from(unknownAnchorIds).slice(maxIds));
             this.labbcatService.labbcat.getAnchors(
                 this.transcript.id, Array.from(idsToLoadNow), (anchors, errors, messages) => {
-                    if (errors) errors.forEach(m => 
-                        this.messageService.error(`Load anchors: ${m}`));
+                    if (errors) errors.forEach(m => m.includes("Request header is too large")
+                        ? this.messageService.error(`Failed to load anchors for ${layerId} (HTTP server returned 'Request header is too large' 400 error)`)
+                        : this.messageService.error(`Failed to load anchors for ${layerId}: ${m}`));
                     if (messages) messages.forEach(m =>
-                        this.messageService.info(`Load anchors: ${m}`));
+                        this.messageService.info(`Loading anchors for ${layerId}: ${m}`));
                     for (let a of anchors) {
                         const anchor = new this.labbcatService.ag.Anchor(
                             a.offset, this.transcript);
@@ -755,7 +756,7 @@ export class TranscriptComponent implements OnInit {
                         this.transcript.addAnchor(anchor);
                     } // next anchor
                     if (idsToLoadLater.size) {
-                        this.loadAnchorsIncrementally(idsToLoadLater).then(resolve);
+                        this.loadAnchorsIncrementally(idsToLoadLater, layerId).then(resolve);
                     } else { // finished!
                         resolve();
                     }

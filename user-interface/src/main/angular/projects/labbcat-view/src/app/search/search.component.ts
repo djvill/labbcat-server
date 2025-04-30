@@ -282,8 +282,12 @@ export class SearchComponent implements OnInit {
         if (this.matrix.participantQuery) {
             this.labbcatService.labbcat.countMatchingParticipantIds(
                 this.matrix.participantQuery, (participantCount, errors, messages) => {
-                    if (errors) errors.forEach(m => this.messageService.error(m));
                     if (messages) messages.forEach(m => this.messageService.info(m));
+                    if (errors) {
+                        errors.forEach(m => m.includes("Request header is too large")
+                            ? this.messageService.error("Failed to process the participant filter (HTTP server returned 'Request header is too large' 400 error)")
+                            : this.messageService.error(m));
+                    }
                     this.participantCount = participantCount;
                     if (this.participantCount) {
                         this.loadMoreParticipants();
@@ -317,7 +321,7 @@ export class SearchComponent implements OnInit {
             this.labbcatService.labbcat.countMatchingTranscriptIds(
                 this.transcriptQueryIncludingParticipantConditions(),
                 (transcriptCount, errors, messages) => {
-                    if (errors) errors.forEach(m => this.messageService.error(m));
+                    if (errors) { console.log("listTranscripts() errors", errors); errors.forEach(m => this.messageService.error(m)); }
                     if (messages) messages.forEach(m => this.messageService.info(m));
                     this.transcriptCount = transcriptCount;
                     if (this.transcriptCount) {

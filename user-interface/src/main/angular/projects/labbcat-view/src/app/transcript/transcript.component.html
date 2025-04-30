@@ -241,7 +241,7 @@
 
   <!-- layer selector, attributes etc. -->
   <header id="attributes" class="attribute-list tabs">
-    <div class="tab-labels">
+    <div class="tab-labels" [class.video]="visibleVideoCount > 0">
       <label *ngFor="let category of categoryLabels"
              [ngClass]="(category==currentCategory)?'tab-label active':'tab-label inactive'"
              (click)="currentCategory = currentCategory == category?null:category"
@@ -348,7 +348,7 @@
             <ul>
               <li *ngFor="let serializer of serializers"
                   i18n-title title="Convert to selected format">
-                <a href="{{baseUrl}}api/serialize/graphs?id={{transcript.id}}&mimeType={{serializer.mimeType | urlEncode}}&layerId={{schema.utteranceLayerId | urlEncode}}{{selectedLayerIdParameters('layerId')}}"
+                <a href="{{baseUrl}}api/serialize/graphs?id={{transcript.id}}&mimeType={{serializer.mimeType | urlEncode}}&layerId={{schema.wordLayerId | urlEncode}}&layerId={{schema.utteranceLayerId | urlEncode}}{{selectedLayerIdParameters('layerId')}}"
                    class="lnk">
                   <img src="{{serializer.icon}}" alt="⚙">
                   <span>{{serializer.name}}</span>
@@ -414,7 +414,7 @@
           </div>
         </div>
       </div>
-      <lib-link *ngIf="category == 'General' && user && user.roles.includes('edit')"
+      <lib-link *ngIf="user && user.roles.includes('edit')"
                 class="buttons"
                 href="{{baseUrl}}edit/transcript/attributes?id={{transcript.id}}"
                 img="wrench.svg" icon="🔧"
@@ -448,7 +448,7 @@
                     ></lib-button>        
           <!-- phrase/span layers starting and ending with this utterance  -->
           <ng-container *ngFor="let l of selectedLayerIds">
-            <span *ngIf="isSpanningLayer(transcript.schema.layers[l])"
+            <span *ngIf="isSpanningLayer(transcript.schema.layers[l]) && !isEmpty(transcript.schema.layers[l])"
                   class="layer layer-{{l}} alignment-{{transcript.schema.layers[l].alignment}} span"
                   style="color: {{transcript.schema.layers[l].colour}};"
                   title="{{l}}">
@@ -471,17 +471,17 @@
                          ><img *ngIf="!annotation.preview"
                                class="icon"
                                src="{{imagesLocation}}/image.svg"
-                               i18n-alt alt="📷"
+                               alt="📷"
                                ><img *ngIf="annotation.preview"
                                      class="preview" src="{{annotation.dataUrl}}"
-                                     i18n-alt alt="📷"></a>
+                                     alt="📷"></a>
                       <a *ngSwitchCase="annotation.layer.type.indexOf('/')>0 && !annotation.layer.type.startsWith('image/')"
                          class="blob" href="#{{annotation.id}}"
                          href="{{annotation.dataUrl}}"
                          target="{{annotation.id}}"
                          ><img class="icon"
                                src="{{imagesLocation}}/other.svg"
-                               i18n-alt alt="🗎"
+                               alt="🗎"
                                ></a>
                       <ng-container *ngSwitchDefault>{{renderLabel(annotation)}}</ng-container>
                     </ng-container>
@@ -494,7 +494,7 @@
           <span *ngIf="utterance.prependDummyToken" class="token dummy">
             <!-- phrase/span layers starting with this utterance and ending with the first word  -->
             <ng-container *ngFor="let l of selectedLayerIds">
-              <span *ngIf="isSpanningLayer(transcript.schema.layers[l])"
+              <span *ngIf="isSpanningLayer(transcript.schema.layers[l]) && !isEmpty(transcript.schema.layers[l])"
                     class="layer layer-{{l}} alignment-{{transcript.schema.layers[l].alignment}} span"
                     style="color: {{transcript.schema.layers[l].colour}};"
                     title="{{l}}">
@@ -518,17 +518,17 @@
                            ><img *ngIf="!annotation.preview"
                                  class="icon"
                                  src="{{imagesLocation}}/image.svg"
-                                 i18n-alt alt="📷"
+                                 alt="📷"
                                  ><img *ngIf="annotation.preview"
                                        class="preview" src="{{annotation.dataUrl}}"
-                                       i18n-alt alt="📷"></a>
+                                       alt="📷"></a>
                         <a *ngSwitchCase="annotation.layer.type.indexOf('/')>0 && !annotation.layer.type.startsWith('image/')"
                            class="blob" href="#{{annotation.id}}"
                            href="{{annotation.dataUrl}}"
                            target="{{annotation.id}}"
                            ><img class="icon"
                                  src="{{imagesLocation}}/other.svg"
-                                 i18n-alt alt="🗎"
+                                 alt="🗎"
                                  ></a>
                         <ng-container *ngSwitchDefault>{{renderLabel(annotation)}}</ng-container>
                       </ng-container>
@@ -560,7 +560,7 @@
             <span class="token">
               <!-- phrase/span layers for this word -->
               <ng-container *ngFor="let l of selectedLayerIds">
-                <span *ngIf="isSpanningLayer(transcript.schema.layers[l])"
+                <span *ngIf="isSpanningLayer(transcript.schema.layers[l]) && !isEmpty(transcript.schema.layers[l])"
                       class="layer layer-{{l}} alignment-{{transcript.schema.layers[l].alignment}} span"
                       style="color: {{transcript.schema.layers[l].colour}};"
                       title="{{l}}">
@@ -586,17 +586,17 @@
                              ><img *ngIf="!annotation.preview"
                                    class="icon"
                                    src="{{imagesLocation}}/image.svg"
-                                   i18n-alt alt="📷"
+                                   alt="📷"
                                    ><img *ngIf="annotation.preview"
                                          class="preview" src="{{annotation.dataUrl}}"
-                                         i18n-alt alt="📷"></a>
+                                         alt="📷"></a>
                           <a *ngSwitchCase="annotation.layer.type.indexOf('/')>0 && !annotation.layer.type.startsWith('image/')"
                              class="blob" href="#{{annotation.id}}"
                              href="{{annotation.dataUrl}}"
                              target="{{annotation.id}}"
                              ><img class="icon"
                                    src="{{imagesLocation}}/other.svg"
-                                   i18n-alt alt="🗎"
+                                   alt="🗎"
                                    ></a>
                           <ng-container *ngSwitchDefault>{{renderLabel(annotation)}}</ng-container>
                         </ng-container>
@@ -733,7 +733,7 @@
           <span *ngIf="utterance.appendDummyToken" class="token dummy">
             <!-- phrase/span layers starting with the last word and ending with this utterance  -->
             <ng-container *ngFor="let l of selectedLayerIds">
-              <span *ngIf="isSpanningLayer(transcript.schema.layers[l])"
+              <span *ngIf="isSpanningLayer(transcript.schema.layers[l]) && !isEmpty(transcript.schema.layers[l])"
                     class="layer layer-{{l}} alignment-{{transcript.schema.layers[l].alignment}} span"
                     style="color: {{transcript.schema.layers[l].colour}};"
                     title="{{l}}">
@@ -757,17 +757,17 @@
                            ><img *ngIf="!annotation.preview"
                                  class="icon"
                                  src="{{imagesLocation}}/image.svg"
-                                 i18n-alt alt="📷"
+                                 alt="📷"
                                  ><img *ngIf="annotation.preview"
                                        class="preview" src="{{annotation.dataUrl}}"
-                                       i18n-alt alt="📷"></a>
+                                       alt="📷"></a>
                         <a *ngSwitchCase="annotation.layer.type.indexOf('/')>0 && !annotation.layer.type.startsWith('image/')"
                            class="blob" href="#{{annotation.id}}"
                            href="{{annotation.dataUrl}}"
                            target="{{annotation.id}}"
                            ><img class="icon"
                                  src="{{imagesLocation}}/other.svg"
-                                 i18n-alt alt="🗎"
+                                 alt="🗎"
                                  ></a>
                         <ng-container *ngSwitchDefault>{{renderLabel(annotation)}}</ng-container>
                       </ng-container>

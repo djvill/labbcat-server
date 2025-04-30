@@ -626,8 +626,6 @@ export class TranscriptComponent implements OnInit {
                         if (page == 0) {
                             if (errors) errors.forEach(m => 
                                 this.messageService.error(`${layerId}: ${m}`));
-                            if (messages) messages.forEach(m =>
-                                this.messageService.info(`${layerId}: ${m}`));
                         }
                         if (annotations.length) {
                             const unknownAnchorIds = new Set<string>();
@@ -920,6 +918,10 @@ export class TranscriptComponent implements OnInit {
             || (layer.parentId == this.schema.root.id
                 && layer.alignment > 0);
     }
+    /** Test whether the layer is is empty */
+    isEmpty(layer : any) : boolean {
+        return !layer.annotations || layer.annotations.length == 0;
+    }
     /** Test whether the layer is word scope layer */
     isWordLayer(layer : Layer) : boolean {
         return layer.parentId == this.schema.wordLayerId && layer.id != "segment";
@@ -944,6 +946,8 @@ export class TranscriptComponent implements OnInit {
     /* convert selectedLayerIds array into a series of URL parameters with the given name */
     selectedLayerIdParameters(parameterName: string): string {
         return this.selectedLayerIds
+        // noise and comment layers are displayed by default but we don't want them here
+            .filter(layerId => layerId != "comment" && layerId != "noise")
             .map(layerId => "&"+parameterName+"="+encodeURIComponent(layerId))
             .join("");
     }
@@ -1400,7 +1404,10 @@ export class TranscriptComponent implements OnInit {
                 +"&id="+transcriptIdForUrl
                 +"&layerId="+this.schema.utteranceLayerId
                 +"&layerId="+this.schema.wordLayerId
-                +this.selectedLayerIds.map(l=>"&layerId="+l.replace(/ /g, "%20")).join("")
+                +this.selectedLayerIds
+            // noise and comment layers are displayed by default but we don't want them here
+                    .filter(l=>l != "comment" && l != "noise")
+                    .map(l=>"&layerId="+l.replace(/ /g, "%20")).join("")
                 +"&start="+utterance.start.offset
                 +"&end="+utterance.end.offset
                 +"&filter="+utterance.parentId
@@ -1508,9 +1515,7 @@ export class TranscriptComponent implements OnInit {
                     this.textGridUrl, // original URL for the file to upload
                     { automaticMapping: "true", todo: "upload" }, // extra HTTP request parameters
                     authorization).then((code: string)=>{
-                        if (code == "0") {
-                            this.praatUtterance = null;
-                        }
+                        this.praatUtterance = null;
                         this.praatProgress = {
                             message: "",
                             value: 100,

@@ -400,7 +400,7 @@ export class TranscriptComponent implements OnInit {
                     // add to the current utterance
                     // if the words starts after utterance u ends, increment
                     while (word.start.offset >= utterances[u].end.offset
-                        && u < utterances.length) {
+                        && u < utterances.length-1) {
                         u++;
                     }
                     utterances[u][wordLayerId].push(word);
@@ -924,7 +924,7 @@ export class TranscriptComponent implements OnInit {
                 const firstNonSpanIndexForWord = wordSpans.findIndex(span=>!span);
                 return Math.max(
                     maxSoFar,
-                    firstNonSpanIndexForWord == -1?wordSpans.length
+                    firstNonSpanIndexForWord == -1?wordSpans.length - 1
                         :firstNonSpanIndexForWord - 1);
             }, -1);
             utteranceWords.forEach((word)=>{
@@ -1064,7 +1064,7 @@ export class TranscriptComponent implements OnInit {
     playingId : string[]; // IDs of currently playing utterances
     previousPlayingId : string[]; // keep a buffer of old IDs, so we can fade them out
     player: HTMLMediaElement;
-    stopAfter : number; // sto time for playing a selection
+    stopAfter : number; // stop time for playing a selection
     /** Event handler for when the time of a media player is updated */
     mediaTimeUpdate(event: Event): void {
         // only pay attention to the main player
@@ -1089,7 +1089,9 @@ export class TranscriptComponent implements OnInit {
 
             const audios = document.getElementsByTagName('audio');
             const videos = document.getElementsByTagName('video');
-            if (this.stopAfter && this.stopAfter <= this.player.currentTime) {
+            if (this.stopAfter && this.stopAfter <= this.player.currentTime
+                // try to pre-empt the stop time, so it doesn't play into the next utterance:
+                + 0.3) {
                 // arrived at stop time
                 this.stopAfter = null;
                 // stop all media

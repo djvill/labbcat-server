@@ -266,7 +266,7 @@ export class SearchComponent implements OnInit {
     /** Build searchJson parameter (or return empty string if the default) */
     buildSearchJsonParam(): string {
         const searchColumns = JSON.stringify({ columns: this.condenseMatrix(this.matrix).columns });
-        const defaultColumns = JSON.stringify({columns:[{layers:{orthography:[{pattern:"",min:null,max:null}]}}]});
+        const defaultColumns = JSON.stringify({ columns: [{layers: {orthography: [{}] } }] });
         let searchJson = "";
         if (searchColumns != defaultColumns) { // search columns aren't the default
             searchJson = searchColumns;

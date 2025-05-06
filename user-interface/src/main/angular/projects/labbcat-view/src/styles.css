@@ -17,6 +17,12 @@
     90%  { opacity: 1; }
     100% { opacity: 0; }
 }
+@keyframes sidle-fade-semitrans {
+    0%   { opacity: 0; left: 5%; }
+    5%   { opacity: 0.92; left: 0%; }
+    95%  { opacity: 0.92; }
+    100% { opacity: 0; }
+}
 @keyframes fade-in {
     from { opacity: 0; }
     to { end: 1; }
@@ -96,15 +102,15 @@ article h1 {
     font-weight: normal;
 }
 
-app-root footer { color: var(--theme-text-color); }
-app-root footer a { color: var(--theme-text-color); text-decoration: none; }
+app-root footer, app-root header { color: var(--theme-text-color); }
+app-root footer a, app-root header a { color: var(--theme-text-color); text-decoration: none; }
 
 /* Layout */
-app-root, #main { display: flex; flex-direction: column; }
+app-root, #main { display: flex; flex-direction: column; min-width: 80vw; }
 app-root article, app-root nav, app-root aside { order: 0; }
 app-root article { flex: 3 1 60%; min-height: 100px; }
 app-root nav { flex: 1 6 20%; }
-app-root aside { flex: 1 6 10%; min-height: 100px; }
+app-root aside { flex: 1 6 10%; }
 app-root header { min-height: 0px; }
 app-root footer { min-height: 50px; }
 /* Layout on wider screens - 3 columns */
@@ -221,18 +227,18 @@ button {
     white-space: nowrap;
     min-width: 80px;
     height: 45px;
-    background: #CCCCCC;
-    border: 1px outset;
+    background: #AAAAAA; /* better background for pitt-gold, equally good for black */
+    border: 1.25px outset #CCCCCC;
     font-family: Atkinson-Hyperlegible, sans-serif;
     font-size: 9pt;
     padding: 1px;
 }
-button:hover {
-    background: #DDDDDD;
-}
-button:active {
-    border: 1px inset;
+button:hover:not([disabled]) {
     background: #BBBBBB;
+}
+button:active:not([disabled]) {
+    border: 1px inset;
+    background: #999999;
 }
 button img {
     width: 16px;
@@ -278,6 +284,34 @@ span.label:after {
     content: '';
 }
 
+/*
+body > app-root > header > nav, div#page_body, body > app-root > footer {
+    min-width: 98vw;
+    padding: 0px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+body > app-root > header > nav {
+    text-align: center; 
+}
+body > app-root > header > nav > ul.menu_items {
+    display: inline-block;
+    white-space: nowrap;
+    padding: 0px;
+    margin: 0px;
+}
+body > app-root > header > nav > ul.menu_items > li {
+    display: inline-block;
+    white-space: nowrap;
+    padding: 0px;
+}
+body > app-root > header > nav > ul.menu_items > li:after { content: ' - '; }
+body > app-root > header > nav > ul.menu_items > li:last-child:after { content: ''; }
+body > app-root > header > nav > ul.menu_items > li.help_item:after { content: ''; }
+body > app-root > header > nav > ul.menu_items > li.user_link:before { content: '['; }
+body > app-root > header > nav > ul.menu_items > li.user_link:after { content: ']'; }
+*/
 
 
 progress { -webkit-appearance: none; }
@@ -353,6 +387,9 @@ table {
 tbody tr:nth-child(odd) {
     background: #EEEEEE;
 }
+tbody tr:nth-child(even) {
+    background: #FFFFFF;
+}
 
 .hidden-panel {
     max-height: 0px;
@@ -369,6 +406,16 @@ tbody tr:nth-child(odd) {
     overflow: auto;
     transition: max-height 0.5s;
 }
+.short-hidden-panel {
+    max-height: 0px;
+    overflow: hidden;
+    transition: max-height 0.2s;
+}
+.short-unhidden-panel {
+    max-height: 200px;
+    overflow: auto;
+    transition: max-height 0.2s;
+}
 .header {
     font-style: italic;
 }
@@ -381,6 +428,7 @@ tbody tr:nth-child(odd) {
     width: fit-content;
     min-width: 50vw;
     margin: auto;
+    background: #FFFFFF;
 }
 .attribute-list .attribute {
     display: flex;
@@ -390,10 +438,18 @@ tbody tr:nth-child(odd) {
 .attribute-list .attribute:nth-child(odd) {
     background: #EEEEEE;
 }
+.attribute-list .attribute:nth-child(even) {
+    background: #FFFFFF;
+}
 .attribute-list .attribute label {
     width: 50%
 }
-.attribute-list .attribute label:after {
+.attribute-list .attribute .values {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+}
+.attribute-list .attribute > label:after {
     content: ':';
 }
 .attribute-list .attribute .values {
@@ -455,7 +511,8 @@ lib-pagination .current {
         display: table-row;
         padding-bottom: 0px;
     }
-    .list > .item:nth-child(even) { background: #FAFAFA; }
+    .list > .item:nth-of-type(odd) { background: #FAFAFA; }
+    .list > .item:nth-of-type(even) { background: #FFFFFF; }
     .list > .item > span { display: table-cell; }
     .list > .item > span.header-only { display: table-cell; }
     .list > .item > span > legend { display: none; }
@@ -466,5 +523,18 @@ lib-pagination .current {
         background-image: url('assets/sine.svg');
         background-size: auto 100%;
     }
+    /* transcript permalink image URL here to ensure it works from the server */
+    #word-menu .permalink:hover::after {
+        content: ' ' url('assets/link.svg') / '🔗';
+    }
 }
 
+/* APLS */
+input[type='checkbox']:disabled {
+    cursor: not-allowed;
+}
+.layer-id, .key_layer {
+    text-decoration: underline 0.1em var(--theme-text-color) dotted;
+    cursor: help;
+    text-underline-offset: 0.15em;
+}

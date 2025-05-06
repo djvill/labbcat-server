@@ -112,6 +112,18 @@
       if (!annotation.parent && annotation.parentId) {
         annotation.parent = this.annotations[annotation.parentId];
       }
+      if (this.anchors[annotation.startId]) {
+        if (!this.anchors[annotation.startId].startOf[annotation.layerId]) {
+          this.anchors[annotation.startId].startOf[annotation.layerId] = []
+        }
+        this.anchors[annotation.startId].startOf[annotation.layerId].push(annotation);
+      }
+      if (this.anchors[annotation.endId]) {
+        if (!this.anchors[annotation.endId].endOf[annotation.layerId]) {
+          this.anchors[annotation.endId].endOf[annotation.layerId] = []
+        }
+        this.anchors[annotation.endId].endOf[annotation.layerId].push(annotation);
+      }
       if (annotation.parent) {
 	if (!annotation.parent[annotation.layerId]) annotation.parent[annotation.layerId] = [];
         var existing = annotation.parent[annotation.layerId].findIndex(
@@ -143,7 +155,7 @@
     addAnchor : function(anchor) {
       anchor.graph = this;
       if (!anchor.id) anchor.id = "+" + (++nzilbb.ag._lastId);
-      this.anchors[anchor.id] = anchor;
+      this.anchors[anchor.id] = this.anchors[anchor.id] || anchor;
     },
     
     first : function(layerId) {
@@ -448,7 +460,7 @@
       var tags = [];
       for (var i in this.start.startOf[layerId]) {
 	var other = this.start.startOf[layerId][i];
-	if (this.startsWith(other)) tags.push(other);
+	if (this.endsWith(other)) tags.push(other);
       } // next annotation that starts here
       return tags;
     },
@@ -584,7 +596,7 @@
     
   } // Annotation methods
 
-  layerAndAncestors = function(schema, layerId) {
+  function layerAndAncestors(schema, layerId) {
     var ancestors = [ schema.layers[layerId] ];
     while (ancestors[ancestors.length-1].parent
            && !ancestors.includes(ancestors[ancestors.length-1].parent)) {
@@ -593,7 +605,7 @@
     return ancestors.map(l=>l.id);
   }
 
-  firstCommonAncestorLayer = function(schema, layer1, layer2) {
+  function firstCommonAncestorLayer(schema, layer1, layer2) {
     if (layer1 == layer2) return layer1;
     var ancestors1 = layerAndAncestors(schema, layer1).filter(l=>l!=layer1);
     var ancestors2 = layerAndAncestors(schema, layer2).filter(l=>l!=layer2);

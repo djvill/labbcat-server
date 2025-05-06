@@ -16,6 +16,8 @@ export class TranscriptComponent implements OnInit {
     
     schema : any;
     layerStyles : { [key: string] : any };
+    disabledLayerIds : string[];
+    layerCounts : { [key: string] : any };
     user : User;
     baseUrl : string;
     imagesLocation : string;
@@ -39,8 +41,11 @@ export class TranscriptComponent implements OnInit {
     categoryLabels: string[];
     currentCategory: string;
     categories: object; // string->Category
+    displayLayerIds: boolean;
 
     selectedLayerIds : string[];
+    preselectedLayerIds = ['noise','word'];
+    predisabledLayerIds = ['word'];
     interpretedRaw: { [key: string] : boolean };
 
     temporalBlocks : { consecutive : boolean, utterances : Annotation[] }[];
@@ -65,6 +70,13 @@ export class TranscriptComponent implements OnInit {
 
     threadId : string;
     matchTokens = {} as { [key: string] : number };
+    controlsLinks = {
+        layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of transcript docpage about layer picker
+        about: {
+            text: 'About layers',
+            href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
+        }
+    };
     
     constructor(
         private labbcatService : LabbcatService,
@@ -78,11 +90,15 @@ export class TranscriptComponent implements OnInit {
         this.selectedLayerIds = [];
         this.interpretedRaw = {};
         this.layerStyles = {};
+        this.disabledLayerIds = [];
+        this.categoryLabels = [];
+        this.layerCounts = {};
         this.playingId = [];
         this.previousPlayingId = [];
     }
     
     ngOnInit() : void {        
+        this.disabledLayerIds = this.predisabledLayerIds;
         this.route.queryParams.subscribe((params) => {
             this.id = params["id"]||params["transcript"]||params["ag_id"];
             this.threadId = params["threadId"];
@@ -94,20 +110,6 @@ export class TranscriptComponent implements OnInit {
             this.readSerializers();
             this.readSchema().then(() => {
                 this.readTranscript().then(()=>{ // some have to wait until transcript is loaded
-                    // preselect layers?
-                    let layerIds = params["layerId"]||params["l"]
-                    if (!layerIds && sessionStorage.getItem("selectedLayerIds")) {
-                        layerIds = JSON.parse(sessionStorage.getItem("selectedLayerIds"));
-                    }
-                    if (layerIds) {
-                        if (Array.isArray(layerIds)) {
-                            this.layersChanged(layerIds);
-                        } else {
-                            this.layersChanged([ layerIds ]);
-                        }
-                    }
-                    if (this.threadId) this.loadThread();
-                    this.setOriginalFile();
                     this.readAvailableMedia().then(()=>{
                         this.praatService.initialize().then((version: string)=>{
                             console.log(`Praat integration version ${version}`);
@@ -125,11 +127,31 @@ export class TranscriptComponent implements OnInit {
                                 console.log("Praat integration not installed but it could be");
                                 this.praatIntegration = "";
                             } else {
-                                console.log("Incompatible browser");
+                                console.log("Praat integration: Incompatible browser");
                                 this.praatIntegration = null;
                             }
                         });
                     });
+                    
+                    // preselect layers?
+                    let layerIds = params["layerId"]||params["l"]
+                    if (!layerIds && sessionStorage.getItem("selectedLayerIds")) {
+                        layerIds = JSON.parse(sessionStorage.getItem("selectedLayerIds"));
+                    }
+                    // Robert's solution (from 7273a50)
+                    /* if (!layerIds) layerIds = ["noise","comment"]; // noise and comment by default */
+                    // Mine (from 03bfa29, 0e5547f, da6bca8)
+                    if (!layerIds) {
+                        layerIds = this.preselectedLayerIds;
+                    } else {
+                        layerIds = [...new Set(layerIds.concat(this.preselectedLayerIds))];
+                    }
+                    this.layersChanged(layerIds);
+                    if (this.threadId) this.loadThread();
+                    this.setOriginalFile();
+                    this.displayLayerIds = JSON.parse(sessionStorage.getItem("displayLayerIds")) ??
+                        (typeof this.displayLayerIds == "string" ? this.displayLayerIds === "true" : this.displayLayerIds) ??
+                        true;
                 }); // transcript read
             }); // subscribed to queryParams
         }); // after readSchema
@@ -147,7 +169,6 @@ export class TranscriptComponent implements OnInit {
                 this.generableLayers = [];
                 this.attributes = [];
                 this.categoryLayers = {};
-                this.categoryLabels = ["Participants", "Layers", "Formats"]; // TODO i18n
                 for (let layerId in this.schema.layers) {
                     const layer = this.schema.layers[layerId] as Layer;
                     // detemine which layers can be regenerated
@@ -168,19 +189,21 @@ export class TranscriptComponent implements OnInit {
                     // identify transcript attribute layers
                     if (layer.parentId == "transcript"
                         && layer.alignment == 0
-                        && layer.id != schema.participantLayerId
-                        && layer.id != schema.episodeLayerId
-                        && layer.id != schema.corpusLayerId) {
+                        && layer.id != schema.participantLayerId) {
 
                         // ensure we can iterate all layer IDs
                         this.attributes.push(layer.id);
                         
-                        // ensure the transcript type layer has a category
-                        if (layer.id == "transcript_type") layer.category = "General";
+                        // ensure 'organizational' layers have a category
+                        if (["transcript_type", schema.corpusLayerId, schema.episodeLayerId].includes(layer.id)) {
+                            layer.category = "transcript_General";
+                            layer.hint = layer.id == "transcript_type" ? "Sociolinguistic interview section"
+                                : layer.id == schema.corpusLayerId ? "Collection of transcripts from a single research project"
+                                : "Series of transcripts from a single sociolinguistic interview";
+                        }
                         
                         if (!this.categoryLayers[layer.category]) {
                             this.categoryLayers[layer.category] = [];
-                            this.categoryLabels.push(layer.category);
                         }
                         this.categoryLayers[layer.category].push(layer);
                     }
@@ -227,25 +250,42 @@ export class TranscriptComponent implements OnInit {
             this.labbcatService.labbcat.readOnlyCategories(
                 "transcript", (categories, errors, messages) => {
                     for (let category of categories) {
+                        const layerCategory = "transcript_"+category.category;
+                        category.label = category.category;
                         if (!category.description) {
                             category.description = `Attributes: ${category.category}`; // TODO i18n
                         }
                         category.icon = "attributes.svg";
-                        this.categories[category.category] = category;
+                        this.categories[layerCategory] = category;
+                        this.categoryLabels.push(layerCategory);
+                    }
+                    if (this.categoryLabels.length == 1) { // only one actual category
+                        // just label the tab 'attributes' with the tooltip 'Transcript attributes'
+                        this.categories[this.categoryLabels[0]].label = "Attributes" // TODO i18n
+                        this.categories[this.categoryLabels[0]].description = "Transcript attributes" // TODO i18n
                     }
                     // extra pseudo categories
                     this.categories["Layers"] = { // TODO i18n
+                        label: "Layers", // TODO i18n
                         description: "Annotation layers for display",
                         icon: "layers.svg"
                     }; // TODO i18n
                     this.categories["Participants"] = { // TODO i18n
+                        label: "Participants", // TODO i18n
                         description: "The participants in the transcript",
                         icon: "people.svg"
                     }; // TODO i18n
-                    this.categories["Formats"] = { // TODO i18n
-                        description: "Export the transcript in a selected format",
-                        icon: "document.svg"
+                    this.categories["Search"] = { // TODO i18n
+                        label: "Search", // TODO i18n
+                        description: "Search this transcript",
+                        icon: "magnifying-glass.svg"
                     }; // TODO i18n
+                    this.categories["Export"] = { // TODO i18n
+                        label: "Export", // TODO i18n
+                        description: "Export the transcript in a selected format",
+                        icon: "cog.svg"
+                    }; // TODO i18n
+                    this.categoryLabels = this.categoryLabels.concat(["Participants","Layers","Search","Export"]);
                     resolve();
                 });
         });
@@ -291,16 +331,21 @@ export class TranscriptComponent implements OnInit {
                             if (layer.id == this.schema.corpusLayerId) continue;
                             if (layer.id == this.schema.episodeLayerId) continue;
                             if (layer.id == this.schema.participantLayerId) continue;
-                            if (layer.id == this.schema.utteranceLayerId) continue;
-                            if (layer.id == this.schema.wordLayerId) continue;
                             // a temporal layer
-                            this.layerStyles[l] = { color: "silver" };
                             this.labbcatService.labbcat.countAnnotations(
                                 this.transcript.id, l, (count, errors, messages) => {
+                                    this.layerCounts[l] = count;
                                     if (count) { // annotations in this layer
-                                        // remove grey-out style
-                                        this.schema.layers[l].description += ` (${count})`;
+                                        if (count == 1) {
+                                            this.schema.layers[l].description += ` (${count} annotation)`;
+                                        } else {
+                                            this.schema.layers[l].description += ` (${count} annotations)`;
+                                        }
                                         this.layerStyles[l] = {};
+                                    } else {
+                                        this.schema.layers[l].description += ' (0 annotations)';
+                                        this.layerStyles[l] = { color: "silver" };
+                                        this.disabledLayerIds.push(l); // if the layer was in sessionStorage, it's already accounted for
                                     }
                                 });
                         } // next temporal layer
@@ -321,15 +366,6 @@ export class TranscriptComponent implements OnInit {
         for (let id in this.transcript.anchors) {
             const anchor = this.transcript.anchors[id] as Anchor;
             anchor.id = id; // ensure ID is set
-            // initialise links to annotations
-            anchor.startOf = {};
-            anchor.startOf[turnLayerId] = [];
-            anchor.startOf[utteranceLayerId] = [];
-            anchor.startOf[wordLayerId] = [];
-            anchor.endOf = {};
-            anchor.endOf[turnLayerId] = [];
-            anchor.endOf[utteranceLayerId] = [];
-            anchor.endOf[wordLayerId] = [];
             this.anchors[id] = anchor;
         }
 
@@ -364,7 +400,7 @@ export class TranscriptComponent implements OnInit {
                     // add to the current utterance
                     // if the words starts after utterance u ends, increment
                     while (word.start.offset >= utterances[u].end.offset
-                        && u < utterances.length) {
+                        && u < utterances.length-1) {
                         u++;
                     }
                     utterances[u][wordLayerId].push(word);
@@ -435,7 +471,8 @@ export class TranscriptComponent implements OnInit {
     loadThread(): void {
         this.labbcatService.labbcat.taskStatus(this.threadId, (task, errors, messages) => {
             if (task) {
-                if (task.layers) this.layersChanged(task.layers.filter(l=>l!="orthography"));
+                let taskLayers = task.layers.filter(l=>l!="orthography");
+                if (task.layers) this.layersChanged(taskLayers, true);
                 this.highlightSearchResults(0);
             }
         });
@@ -513,7 +550,7 @@ export class TranscriptComponent implements OnInit {
     readAvailableMedia() : Promise<void> {
         return new Promise((resolve, reject) => {
             this.labbcatService.labbcat.getAvailableMedia(
-                this.transcript.id, (mediaTracks, errors, messages) => {
+                this.id, (mediaTracks, errors, messages) => {
                     if (errors) errors.forEach(m => this.messageService.error(m));
                     if (messages) messages.forEach(m => this.messageService.info(m));
                     this.availableMedia = mediaTracks;
@@ -558,26 +595,34 @@ export class TranscriptComponent implements OnInit {
         });
     }
     
-    layersChanged(selectedLayerIds : string[]) : void {
+    layersChanged(selectedLayerIds : string[], fromTask = false) : void {
         const addedLayerIds = selectedLayerIds.filter((x)=>this.selectedLayerIds.indexOf(x) < 0);
         const loadingLayers = [] as Promise<string>[];
-        const deferredLayerIds = [] as string[]; // for deferred visualization
+        let deferredLayerIds = [] as string[]; // for deferred visualization
         this.loading = true;
 
-        // remove unticked layers
-        this.selectedLayerIds = selectedLayerIds.filter((x)=>addedLayerIds.indexOf(x) < 0);
-        // remember the deselections for next time
-        sessionStorage.setItem("selectedLayerIds", JSON.stringify(this.selectedLayerIds));
+        // remove unticked layers, but don't have task layers override preselected
+        if (!fromTask) {
+            this.selectedLayerIds = selectedLayerIds.filter((x)=>addedLayerIds.indexOf(x) < 0);
+            // remember the deselections for next time
+            sessionStorage.setItem("selectedLayerIds", JSON.stringify(this.selectedLayerIds));
+        }
+        const storedLayerIds = JSON.parse(sessionStorage.getItem("selectedLayerIds"));
 
         // load new layers one at a time
         for (let layerId of addedLayerIds) {
             const layer = this.schema.layers[layerId];
-            loadingLayers.push(this.loadLayerIncrementally(layerId, 0));
-            if (this.isSpanningLayer(layer)) { // spanning layer
+            let lli = this.loadLayerIncrementally(layerId, 0);
+            loadingLayers.push(lli);
+            if (this.preselectedLayerIds.includes(layerId)) { // preselected
+                this.selectedLayerIds.push(layerId);
+            } else if (storedLayerIds.includes(layerId)) { // layer comes from sessionStorage
+                // defer visualization in case it turns out to be empty
+                deferredLayerIds.push(layerId);
+            } else if (this.isSpanningLayer(layer)) { // spanning layer
                 // defer visualization until all annotations are loaded and indexed
                 deferredLayerIds.push(layerId);
             } else { // immediate incremental vizualization is ok
-                console.log("selecting " + layerId);
                 this.selectedLayerIds.push(layerId);
             }
         } // next newly selected layer
@@ -585,10 +630,15 @@ export class TranscriptComponent implements OnInit {
         // once everything's finished loading
         Promise.all(loadingLayers).then(()=>{
             this.loading = false;
+            // remove empty layers (but not layers that are predisabled *and* preselected - i.e., we want their checkbox to always show as selected)
+            this.selectedLayerIds = this.selectedLayerIds.filter((x) =>
+                !this.disabledLayerIds.includes(x) ||
+                (this.predisabledLayerIds.includes(x) && this.preselectedLayerIds.includes(x)));
+            deferredLayerIds = deferredLayerIds.filter((x) =>
+                !this.disabledLayerIds.includes(x));
 
             // visualize deferred layers
             for (let layerId of deferredLayerIds) {
-                console.log("selecting span " + layerId);
                 this.selectedLayerIds.push(layerId);
             }
             
@@ -625,8 +675,13 @@ export class TranscriptComponent implements OnInit {
                         if (page == 0) {
                             if (errors) errors.forEach(m => 
                                 this.messageService.error(`${layerId}: ${m}`));
-                            if (messages) messages.forEach(m =>
-                                this.messageService.info(`${layerId}: ${m}`));
+                            if (messages) {
+                                messages.forEach(m => this.messageService.info(`${layerId}: ${m}`));
+                                if (messages.includes("There are no annotations.")) {
+                                    this.layerStyles[layerId] = { color: "silver" };
+                                    this.disabledLayerIds.push(layerId);
+                                }
+                            }
                         }
                         if (annotations.length) {
                             const unknownAnchorIds = new Set<string>();
@@ -638,20 +693,20 @@ export class TranscriptComponent implements OnInit {
                                     unknownAnchorIds.add(a.endId);
                                 }
                             } // next annotation
-
                             
                             if (unknownAnchorIds.size) {
                                 // there might be a lot of anchors to load,
                                 // making one request too large
                                 // so we break the anchor list into chunks
-                                this.loadAnchorsIncrementally(unknownAnchorIds).then(()=>{
+                                this.loadAnchorsIncrementally(unknownAnchorIds, layerId).then(()=>{
                                     // add annotations to graph once we've got all the anchors
                                     for (let a of annotations) {
-                                        this.transcript.addAnnotation(
-                                            new this.labbcatService.ag.Annotation(
-                                                layerId, a.label, this.transcript,
-                                                a.startId, a.endId,
-                                                a.id, a.parentId));
+                                        const annotation = new this.labbcatService.ag.Annotation(
+                                            layerId, a.label, this.transcript,
+                                            a.startId, a.endId,
+                                            a.id, a.parentId);
+                                        if (a.dataUrl) annotation.dataUrl = a.dataUrl;
+                                        this.transcript.addAnnotation(annotation);
                                     }
                                     
                                     // next page
@@ -662,10 +717,11 @@ export class TranscriptComponent implements OnInit {
                             } else { // all anchors are already loaded
                                 // we've got all the anchors, so add the annotations to the graph
                                 for (let a of annotations) {
-                                    this.transcript.addAnnotation(
-                                        new this.labbcatService.ag.Annotation(
-                                            layerId, a.label, this.transcript, a.startId, a.endId,
-                                            a.id, a.parentId));
+                                    const annotation = new this.labbcatService.ag.Annotation(
+                                        layerId, a.label, this.transcript, a.startId, a.endId,
+                                        a.id, a.parentId);
+                                    if (a.dataUrl) annotation.dataUrl = a.dataUrl;
+                                    this.transcript.addAnnotation(annotation);
                                 }
                                 
                                 // next page
@@ -688,17 +744,18 @@ export class TranscriptComponent implements OnInit {
     }
 
     /** recursive anchor loading, to prevent requests from becoming too large */
-    loadAnchorsIncrementally(unknownAnchorIds : Set<string>) : Promise<void> {
-        const maxIds = 150;
+    loadAnchorsIncrementally(unknownAnchorIds : Set<string>, layerId : string) : Promise<void> {
+        const maxIds = 30;
         return new Promise<void>((resolve, reject) => {
             let idsToLoadNow = new Set<string>(Array.from(unknownAnchorIds).slice(0, maxIds));
             let idsToLoadLater = new Set<string>(Array.from(unknownAnchorIds).slice(maxIds));
             this.labbcatService.labbcat.getAnchors(
                 this.transcript.id, Array.from(idsToLoadNow), (anchors, errors, messages) => {
-                    if (errors) errors.forEach(m => 
-                        this.messageService.error(`Load anchors: ${m}`));
+                    if (errors) errors.forEach(m => m.includes("Request header is too large")
+                        ? this.messageService.error(`Failed to load anchors for ${layerId} (HTTP server returned 'Request header is too large' 400 error)`)
+                        : this.messageService.error(`Failed to load anchors for ${layerId}: ${m}`));
                     if (messages) messages.forEach(m =>
-                        this.messageService.info(`Load anchors: ${m}`));
+                        this.messageService.info(`Loading anchors for ${layerId}: ${m}`));
                     for (let a of anchors) {
                         const anchor = new this.labbcatService.ag.Anchor(
                             a.offset, this.transcript);
@@ -706,7 +763,7 @@ export class TranscriptComponent implements OnInit {
                         this.transcript.addAnchor(anchor);
                     } // next anchor
                     if (idsToLoadLater.size) {
-                        this.loadAnchorsIncrementally(idsToLoadLater).then(resolve);
+                        this.loadAnchorsIncrementally(idsToLoadLater, layerId).then(resolve);
                     } else { // finished!
                         resolve();
                     }
@@ -716,6 +773,7 @@ export class TranscriptComponent implements OnInit {
     
     indexTokensOnLayer(layer : Layer) : void {
         const wordLayerId = this.schema.wordLayerId;
+        const utteranceLayerId = this.schema.utteranceLayerId;
         // spans can overlap (e.g. n-gram annotations, syntactic parses)
         // we want
         //  a) each span to be visualised at the same height across all tokens, and
@@ -726,7 +784,7 @@ export class TranscriptComponent implements OnInit {
         // process them by parent, so that phrases from one speaker can't interfere with
         // those of another speaker
         for (let parent of this.transcript.all(layer.parentId)) {
-            const spans = parent.all(layer.id)
+            const spans = (parent.all(layer.id)||[])
             // first, order all annotations so that
             // i) annotations with earlier starts are earlier
             // ii) where starts are equal, longer annotations are earlier
@@ -770,15 +828,49 @@ export class TranscriptComponent implements OnInit {
                     } // next contained token
                     span[wordLayerId] = tokens;
                     // were there any?
-                    if (span[wordLayerId].length == 0) { // no tokens included
+                    let linkedUtterance = null;
+                    
+                    if (span.start.startOf[utteranceLayerId] // starts with utterance
+                        && span.start.startOf[utteranceLayerId].length) {
+                        const utterance = span.start.startOf[utteranceLayerId][0];
+                        if (utterance.end.offset == span.end.offset) {
+                            linkedUtterance = utterance;
+                            if (!linkedUtterance[layer.id]) linkedUtterance[layer.id] = [];
+                            linkedUtterance[layer.id].push(span);
+                            span.tagsUtterance = linkedUtterance;
+                        }
+                    }
+                    if (!linkedUtterance // not linked to an utterance
+                        && span[wordLayerId].length == 0) { // no tokens included
                         let nearestWord = null;
-                        
-                        if (span.end.startOf[wordLayerId] // immediately precedes a word?
-                            && span.end.startOf[wordLayerId].length) {
-                            nearestWord = span.end.startOf[wordLayerId][0];
-                        } else if (span.start.endOf[wordLayerId] // immediately follows a word?
+                        if (span.start.endOf[wordLayerId] // immediately follows a word?
                             && span.start.endOf[wordLayerId].length) {
                             nearestWord = span.start.endOf[wordLayerId][0];
+                            // is it strung from the word end to the utterance end?
+                            const utterance = nearestWord.first(utteranceLayerId);
+                            if (utterance && utterance.endId == span.endId) {
+                                linkedUtterance = utterance
+                                // tag the utterance so the visualization knows to prepend a column
+                                utterance.appendDummyToken = true;
+                                // ensure the span doesn't also get visualized with the word
+                                nearestWord = null;
+                            } else {
+                                // tag the span to 'jump' ahead, so it offset to the right to 
+                                // represent that it's between this word and the next
+                                span.jump = true;
+                            }
+                        } else if (span.end.startOf[wordLayerId] // immediately precedes a word?
+                            && span.end.startOf[wordLayerId].length) {
+                            nearestWord = span.end.startOf[wordLayerId][0];
+                            // is it strung from the utterance start to the word start?
+                            const utterance = nearestWord.first(utteranceLayerId);
+                            if (utterance && utterance.startId == span.startId) {
+                                linkedUtterance = utterance
+                                // tag the utterance so the visualization knows to prepend a column
+                                utterance.prependDummyToken = true;
+                                // ensure the span doesn't also get visualized with the word
+                                nearestWord = null;
+                            }
                         } else if (span.start.startOf[wordLayerId] // starts with word?
                             && span.start.startOf[wordLayerId].length) {
                             nearestWord = span.start.startOf[wordLayerId][0];
@@ -815,7 +907,7 @@ export class TranscriptComponent implements OnInit {
                                 nearestWord[layer.id] = new Array(maxDepth+1);
                             }
                             nearestWord[layer.id][span._depth] = span;
-                        } else {
+                        } else if (!linkedUtterance) {
                             console.error(`Could not visualize: ${span.label}#${span.id} (${span.start}-${span.end})`);
                         }
                     } // no tokens included
@@ -824,7 +916,7 @@ export class TranscriptComponent implements OnInit {
         } // next parent
 
         // for each utterance
-        for (let utterance of this.transcript.all(this.schema.utteranceLayerId)) {
+        for (let utterance of this.transcript.all(utteranceLayerId)) {
             // drop spans so that they're as near as possible to their tokens
             const utteranceWords = utterance.all(wordLayerId);
             const maxSpanIndexDuringUtterance = utteranceWords.reduce((maxSoFar, word) => {
@@ -832,10 +924,9 @@ export class TranscriptComponent implements OnInit {
                 const firstNonSpanIndexForWord = wordSpans.findIndex(span=>!span);
                 return Math.max(
                     maxSoFar,
-                    firstNonSpanIndexForWord == -1?wordSpans.length
+                    firstNonSpanIndexForWord == -1?wordSpans.length - 1
                         :firstNonSpanIndexForWord - 1);
             }, -1);
-            console.log(`utterance ${utterance.id} maxSpanIndexDuringUtterance ${maxSpanIndexDuringUtterance}`);
             utteranceWords.forEach((word)=>{
                 word.all(layer.id).length = maxSpanIndexDuringUtterance + 1;
             });
@@ -848,7 +939,7 @@ export class TranscriptComponent implements OnInit {
     stringToColour(str : string) : string {
         var hash = 0;
         for (var i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            hash = str.charCodeAt(i) + ((hash << 4) - hash);
         }
         var colour = '#';
         for (var i = 0; i < 3; i++) {
@@ -884,6 +975,10 @@ export class TranscriptComponent implements OnInit {
             || (layer.parentId == this.schema.root.id
                 && layer.alignment > 0);
     }
+    /** Test whether the layer is is empty */
+    isEmpty(layer : any) : boolean {
+        return !layer.annotations || layer.annotations.length == 0;
+    }
     /** Test whether the layer is word scope layer */
     isWordLayer(layer : Layer) : boolean {
         return layer.parentId == this.schema.wordLayerId && layer.id != "segment";
@@ -897,15 +992,19 @@ export class TranscriptComponent implements OnInit {
     highlitId: string;
     highlight(id: string): void {
         this.highlitId = id;
-        document.getElementById(id).scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
+        try {
+            document.getElementById(id).scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        } catch (x) {}
     }
 
     /* convert selectedLayerIds array into a series of URL parameters with the given name */
     selectedLayerIdParameters(parameterName: string): string {
         return this.selectedLayerIds
+        // noise and comment layers are displayed by default but we don't want them here
+            .filter(layerId => layerId != "comment" && layerId != "noise")
             .map(layerId => "&"+parameterName+"="+encodeURIComponent(layerId))
             .join("");
     }
@@ -965,7 +1064,7 @@ export class TranscriptComponent implements OnInit {
     playingId : string[]; // IDs of currently playing utterances
     previousPlayingId : string[]; // keep a buffer of old IDs, so we can fade them out
     player: HTMLMediaElement;
-    stopAfter : number; // sto time for playing a selection
+    stopAfter : number; // stop time for playing a selection
     /** Event handler for when the time of a media player is updated */
     mediaTimeUpdate(event: Event): void {
         // only pay attention to the main player
@@ -990,7 +1089,9 @@ export class TranscriptComponent implements OnInit {
 
             const audios = document.getElementsByTagName('audio');
             const videos = document.getElementsByTagName('video');
-            if (this.stopAfter && this.stopAfter <= this.player.currentTime) {
+            if (this.stopAfter && this.stopAfter <= this.player.currentTime
+                // try to pre-empt the stop time, so it doesn't play into the next utterance:
+                + 0.3) {
                 // arrived at stop time
                 this.stopAfter = null;
                 // stop all media
@@ -1021,7 +1122,6 @@ export class TranscriptComponent implements OnInit {
     mediaPause(event: Event): void {
         // only pay attention to the main player
         if (this.player == event.target) {
-            console.log(`${this.player.id} paused...`);
             // tell all other media elements to play
             const audios = document.getElementsByTagName('audio');
             for (let p = 0; p < audios.length; p++) {
@@ -1048,11 +1148,9 @@ export class TranscriptComponent implements OnInit {
             this.player = player;
             // if it's a video, it may have been previosly muted
             this.player.muted = false;
-            console.log(`Main player is now ${this.player.id}`);
         }
         // only pay attention to the main player
         if (this.player == event.target) {
-            console.log(`${this.player.id} play...`);
             // tell all other media elements to play
             const audios = document.getElementsByTagName('audio');
             for (let p = 0; p < audios.length; p++) {
@@ -1100,25 +1198,21 @@ export class TranscriptComponent implements OnInit {
     }
     /** Play a selected utterance */
     playSpan(annotation: Annotation): void {
-        console.log(`playSpan ${annotation.id} (${annotation.start.offset}-${annotation.end.offset}))`);
         if (!annotation || !annotation.anchored()) return;
         // is there a player yet?
         if (!this.player || this.player != document.getElementById(this.player.id)) { // no player
             const audios = document.getElementsByTagName('audio');
             if (audios.length > 0) {
                 this.player = audios.item(0);
-                console.log(`Main player is now ${this.player.id}`);
             } else { // no audio elements
                 const videos = document.getElementsByTagName('video');
                 if (videos.length > 0) {
                     this.player = videos.item(0);
-                    console.log(`Main player is now ${this.player.id}`);
                 }
             }
         }
         if (this.player) {
             // set time of all first
-            console.log(`setting time to ${annotation.start.offset}`);
             const audios = document.getElementsByTagName('audio');
             const videos = document.getElementsByTagName('video');
             for (let p = 0; p < audios.length; p++) {
@@ -1128,7 +1222,6 @@ export class TranscriptComponent implements OnInit {
                 videos.item(p).currentTime = annotation.start.offset;
             }
             // then play all
-            console.log(`play ${audios.length} audios and ${videos.length} videos`);
             for (let p = 0; p < audios.length; p++) {
                 audios.item(p).play();
             }
@@ -1276,7 +1369,7 @@ export class TranscriptComponent implements OnInit {
         } else {
             return new Promise<string>((resolve, reject) => {
                 // ask for the current authorization
-                this.labbcatService.labbcat.createRequest(
+                const a = this.labbcatService.labbcat.createRequest(
                     "a", null, (a, errors, messages) => {
                         if (!errors) {
                             if (typeof a === 'string') {
@@ -1285,19 +1378,46 @@ export class TranscriptComponent implements OnInit {
                                 this.authorization = "";
                             }
                             resolve(this.authorization);
-                        } else {
-                            reject(errors);
+                        } else { 
+                            // no authorization might be fine?
+                            errors.forEach(m => this.messageService.error("Authorization error: " + m));
+                            this.authorization = "";
+                            resolve(this.authorization);
                         }                        
                     },
-                    this.baseUrl+"a")
-                    .send();        
+                    this.baseUrl+"a");
+                const mainScript = document.querySelector("script[src*=main]");
+                if (mainScript && mainScript.getAttribute("src")) {
+                    // ensure the server knows it's us asking...
+                    const nonce = mainScript.getAttribute("src").replace(/.*main(.*)\.js/,"$1");
+                    a.setRequestHeader("If-Match", nonce);
+                }
+                try {
+                    a.send();
+                } catch (x) {
+                    // no authorization might be fine?
+                    // this is most likely a cross-origin browser error from working
+                    // in the development environment, where there's not auth anyway
+                    this.messageService.error("Authorization request error: " + x);
+                    this.authorization = "";
+                    resolve(this.authorization);
+                }
             });
         }
     }
 
     /** Open utterance audio in Praat */
     praatUtteranceAudio(utterance: Annotation): void {
-        this.getAuthorization().then((authorization: string)=>{
+        this.getAuthorization().catch((errors: string[])=>{
+            errors.forEach(m => this.messageService.error("Authorization error: " + m));
+            this.praatProgress = {
+                message: "",
+                value: 100,
+                maximum: 100,
+                code: errors.join(", "),
+                error: "Authorization error: "+errors.join(", ")
+            }
+        }).then((authorization: string)=>{ // getAuthorization...
             const transcriptIdForUrl = this.transcript.id.replace(/ /g, "%20");
             const audioUrl = this.baseUrl+"soundfragment"
                 +"?id="+transcriptIdForUrl
@@ -1306,22 +1426,20 @@ export class TranscriptComponent implements OnInit {
             this.praatService.sendPraat([
                 "Read from file... "+audioUrl,
                 "Edit"
-            ], authorization).then((code: string)=>{
-                console.log(`sendPraat ${code}`);
+            ], authorization).catch((errors: string[])=>{
+                this.praatProgress = {
+                    message: "",
+                    value: 100,
+                    maximum: 100,
+                    code: errors.join(", "),
+                    error: errors.join(", ")
+                }
+            }).then((code: string)=>{ // sendPraat...
                 this.praatProgress = {
                     message: `Opened: ${transcriptIdForUrl} (${utterance.start}-${utterance.end})`, // TODO i18n
                     value: 100,
                     maximum: 100,
                     code: code
-                }
-            }).catch((error: string)=>{
-                console.log(`sendpraat error ${error}`);
-                this.praatProgress = {
-                    message: "",
-                    value: 100,
-                    maximum: 100,
-                    code: error,
-                    error: error
                 }
             });
         });
@@ -1331,11 +1449,13 @@ export class TranscriptComponent implements OnInit {
     praatUtteranceTextGrid(utterance: Annotation): void {
         this.getAuthorization().then((authorization: string)=>{
             const transcriptIdForUrl = this.transcript.id.replace(/ /g, "%20");
-            this.praatUtteranceName = this.transcript.id.replace(/\....$/,"")
+            this.praatUtteranceName = this.transcript.id
+                .replace(/\.[a-zA-Z][^.]*$/,"") // remove extension
+                .replace(/[^a-zA-Z0-9]+/g,"_") // Praat isn't inclusive about object names
                 +("__"+utterance.start.offset).replace(".","_")
                 +("_"+utterance.end.offset).replace(".","_");
             const audioUrl = this.baseUrl+"soundfragment"
-                +"?id="+this.transcript.id
+                +"?id="+transcriptIdForUrl
                 +"&start="+utterance.start.offset
                 +"&end="+utterance.end.offset;
             this.textGridUrl = this.baseUrl
@@ -1343,7 +1463,10 @@ export class TranscriptComponent implements OnInit {
                 +"&id="+transcriptIdForUrl
                 +"&layerId="+this.schema.utteranceLayerId
                 +"&layerId="+this.schema.wordLayerId
-                +this.selectedLayerIds.map(l=>"&layerId="+l.replace(/ /g, "%20")).join("")
+                +this.selectedLayerIds
+            // noise and comment layers are displayed by default but we don't want them here
+                    .filter(l=>l != "comment" && l != "noise")
+                    .map(l=>"&layerId="+l.replace(/ /g, "%20")).join("")
                 +"&start="+utterance.start.offset
                 +"&end="+utterance.end.offset
                 +"&filter="+utterance.parentId
@@ -1359,7 +1482,6 @@ export class TranscriptComponent implements OnInit {
                 if (code == "0") {
                     this.praatUtterance = utterance;
                 }
-                console.log(`sendPraat ${code}`);
                 this.praatProgress = {
                     message: `Opened: ${this.praatUtteranceName}`, // TODO i18n
                     value: 100,
@@ -1367,7 +1489,6 @@ export class TranscriptComponent implements OnInit {
                     code: code
                 }
             }).catch((error: string)=>{
-                console.log(`sendpraat error ${error}`);
                 this.praatProgress = {
                     message: "",
                     value: 100,
@@ -1385,11 +1506,14 @@ export class TranscriptComponent implements OnInit {
             const firstUtterance = utterance.previous||utterance;
             const lastUtterance = utterance.next||utterance;
             const transcriptIdForUrl = this.transcript.id.replace(/ /g, "%20");
-            this.praatUtteranceName = this.transcript.id.replace(/\....$/,"")
+            this.praatUtteranceName = this.transcript.id
+                .replace(/\.[a-zA-Z][^.]*$/,"") // remove extension
+                .replace(/[^a-zA-Z0-9]+/g,"_") // Praat isn't inclusive about object names
+                .replace(" ","_")
                 +("__"+firstUtterance.start.offset).replace(".","_")
                 +("_"+lastUtterance.end.offset).replace(".","_");
             const audioUrl = this.baseUrl+"soundfragment"
-                +"?id="+this.transcript.id
+                +"?id="+transcriptIdForUrl
                 +"&start="+firstUtterance.start.offset
                 +"&end="+lastUtterance.end.offset;
             this.textGridUrl = this.baseUrl
@@ -1418,7 +1542,6 @@ export class TranscriptComponent implements OnInit {
                 if (code == "0") {
                     this.praatUtterance = utterance;
                 }
-                console.log(`sendPraat ${code}`);
                     this.praatProgress = {
                         message: `Opened: ${this.praatUtteranceName}`, // TODO i18n
                         value: 100,
@@ -1426,7 +1549,6 @@ export class TranscriptComponent implements OnInit {
                         code: code
                     }
             }).catch((error: string)=>{
-                console.log(`sendpraat error ${error}`);
                 this.praatProgress = {
                     message: "",
                     value: 100,
@@ -1452,9 +1574,7 @@ export class TranscriptComponent implements OnInit {
                     this.textGridUrl, // original URL for the file to upload
                     { automaticMapping: "true", todo: "upload" }, // extra HTTP request parameters
                     authorization).then((code: string)=>{
-                        if (code == "0") {
-                            this.praatUtterance = null;
-                        }
+                        this.praatUtterance = null;
                         this.praatProgress = {
                             message: "",
                             value: 100,
@@ -1462,7 +1582,6 @@ export class TranscriptComponent implements OnInit {
                             code: code
                         }
                     }).catch((error: string)=>{
-                        console.log(`upload error ${error}`);
                         this.praatProgress = {
                             message: "",
                             value: 100,
@@ -1474,5 +1593,65 @@ export class TranscriptComponent implements OnInit {
             });
         } // 'edit' user
     }
+    /** Participants button actions */
+    viewAttributes(participant: string): void {
+        if (this.user.roles.includes("edit")) {
+            this.router.navigate(["edit","participant"], {
+                queryParams: {
+                    id: participant
+                }
+            });
+        } else {
+            this.router.navigate(["participant"], {
+                queryParams: {
+                    id: participant
+                }
+            });
+        }
+    }
+    listTranscripts(participant: string): void {
+        this.router.navigate(["transcripts"], {
+            queryParams: {
+                participant_expression: "['" + participant + "'].includesAny(labels('participant'))",
+                participants: participant
+            }
+        });
+    }
+    /** Search button actions */
+    searchTranscript(): void {
+        this.router.navigate(["search"], {
+            queryParams: {
+                transcript_expression: "['" + this.id + "'].includes(id)",
+                transcripts: this.id
+            }
+        });
+    }
+    searchEpisode(): void {
+        this.router.navigate(["search"], {
+            queryParams: {
+                transcript_expression: "first('episode').label == '" + this.transcript.first('episode').label + "'",
+                transcripts: 'episode = ' + this.transcript.first('episode').label
+            }
+        });
+    }
+    searchParticipant(participant: string): void {
+        this.router.navigate(["search"], {
+            queryParams: {
+                participant_expression: "['" + participant + "'].includes(id)",
+                participants: participant
+            }
+        });
+    }
+    /** Toggle attribute IDs in Attributes tab(s) */
+    toggleLayerIds(): void {
+        this.displayLayerIds = !this.displayLayerIds;
+        sessionStorage.setItem("displayLayerIds", JSON.stringify(this.displayLayerIds));
+    }
+    TranscriptLayerLabel(id): string {
+        return id.replace(/^transcript_/,"");
+    }
 
+    hideWordMenu(): void {
+        this.menuId = null;
+    }
 }

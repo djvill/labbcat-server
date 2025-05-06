@@ -11,10 +11,13 @@ import { ValidLabelDefinition } from '../valid-label-definition';
 export class ValidLabelHelperComponent implements OnInit {
     @Input() layer: Layer;
     @Input() regularExpression: boolean;
+    @Input() nbText: string;
+    @Input() nbCategory: string;
     @Output() symbolSelected = new EventEmitter<string>();
 
     categories: any;
     maxLabelLength = 0;
+    nbLabels = [];
     
     Object = Object; // so we can call Object.keys in the template
 
@@ -35,16 +38,16 @@ export class ValidLabelHelperComponent implements OnInit {
                     this.categories[definition.category][definition.subcategory] = [];
                 }
                 this.categories[definition.category][definition.subcategory].push(definition);
+                if (!definition.display && !definition.selector) {
+                    this.nbLabels.push(definition.label);
+                }
             } // next label
         }
     }
     
-    select(symbol: string): boolean {
-        if (this.regularExpression) {
-            // escape for regular expression
-            symbol = symbol.replace(/([\?\.\*\|\^\$\(\)])/g,"\\$1");
-        }
-        this.symbolSelected.emit(symbol);
+    select(event: Event, symbol: string): boolean {
+        this.symbolSelected.emit(this.escapeRegex(symbol));
+        if (event) event.stopPropagation();
         return false;
     }
     
@@ -53,12 +56,7 @@ export class ValidLabelHelperComponent implements OnInit {
         if (this.maxLabelLength == 1) { // can use [...]
             for (let label of labels) {
                 if (!pattern) pattern = "[";
-                let symbol = label.label;
-                // escape for regular expression
-                if (symbol == "]" || symbol == "^" || symbol == "-") {
-                    symbol = "\\" + symbol;
-                }
-                pattern += symbol;
+                pattern += this.escapeRegex(label.label);
             }
             if (pattern) pattern += "]";
         } else { // multi-character symbols - have to use (...|...|...)
@@ -68,13 +66,7 @@ export class ValidLabelHelperComponent implements OnInit {
                 } else {
                     pattern += "|";
                 }
-                let symbol = label.label;
-                // escape for regular expression
-                if (symbol == "|" || symbol == "(" || symbol == ")"
-                    || symbol == "^" || symbol == "$") {
-                    symbol = "\\" + symbol;
-                }
-                pattern += symbol;
+                pattern += this.escapeRegex(label.label);
             }
             if (pattern) pattern += ")";
         }
@@ -82,7 +74,7 @@ export class ValidLabelHelperComponent implements OnInit {
             this.symbolSelected.emit(pattern);
         }
     }
-    selectCategory(category: string): boolean {
+    selectCategory(event: Event, category: string): boolean {
         const labels = [] as ValidLabelDefinition[];
         for (let subcategory of Object.keys(this.categories[category])) {
             for (let label of this.categories[category][subcategory]) {
@@ -92,9 +84,10 @@ export class ValidLabelHelperComponent implements OnInit {
         if (labels.length) {
             this.selectLabels(labels);
         }
+        if (event) event.stopPropagation();
         return false;
     }
-    selectSubcategory(category: string, subcategory: string): boolean {
+    selectSubcategory(event: Event, category: string, subcategory: string): boolean {
         const labels = [] as ValidLabelDefinition[];
         for (let label of this.categories[category][subcategory]) {
             labels.push(label);
@@ -102,7 +95,11 @@ export class ValidLabelHelperComponent implements OnInit {
         if (labels.length) {
             this.selectLabels(labels);
         }
+        if (event) event.stopPropagation();
         return false;
     }
-    
+    escapeRegex(symbol: string): string {
+        if (!this.regularExpression) return symbol;
+        return symbol.replace(/([\?\.\*\|\^\$\(\)\{\}\[\]\-])/g,"\\$1");
+    }
 }

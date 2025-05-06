@@ -12,10 +12,13 @@ export class ButtonComponent implements OnInit {
     @Input() label: string;
     @Input() icon: string;
     @Input() img: string;
+    @Input() imgStyle: string;
     @Input() disabled: boolean;
+    @Input() noCaps: boolean;
     @Output() press = new EventEmitter();
     @Input() processing: boolean;
     @Input() error: string;
+    @Input() autofocus: boolean;
 
     imagesLocation : string;
     classes = "btn";
@@ -47,7 +50,7 @@ export class ButtonComponent implements OnInit {
         if (!this.label) this.classes += " icon-only";
     }
 
-    handlePress(): void {
-        this.press.emit();
+    handlePress(event: Event): void {
+        this.press.emit(event);
     }
 }

@@ -20,6 +20,14 @@ export class SearchMatrixComponent implements OnInit, OnChanges {
     helperMatch: MatrixLayerMatch;
     imagesLocation : string;
     
+    controlsLinks = {
+        layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of search docpage about layer picker
+        about: {
+            text: 'About layers',
+            href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
+        }
+    };
+    
     constructor(@Inject('environment') private environment) {
         this.imagesLocation = this.environment.imagesLocation;
     }
@@ -88,6 +96,12 @@ export class SearchMatrixComponent implements OnInit, OnChanges {
                 } // the layer isn't selected
             } // next column layer
             
+            // put layers in selectedLayerIds order
+            let newLayers = {};
+            for (let layerId of selectedLayerIds) {
+                newLayers[layerId] = column.layers[layerId];
+            }
+            column.layers = newLayers;
         } // next column
     }
 
@@ -154,12 +168,13 @@ export class SearchMatrixComponent implements OnInit, OnChanges {
         column.layers[layerId].pop();
     }
 
-    appendToPattern(match: MatrixLayerMatch, suffix: string, focusId: string): void {
-        match.pattern += suffix;
+    appendToPattern(match: MatrixLayerMatch, insertion: string, focusId: string): void {
         const input = document.getElementById(focusId) as any;
-        if (input) { // set the text cursor to after the inserted text
+        if (input) {
+            const oldCursor = input.selectionStart;
+            match.pattern = match.pattern.substring(0, oldCursor) + insertion + match.pattern.substring(oldCursor, input.value.length);
             input.focus();
-            input.selectionStart = input.value.length;
+            input.setSelectionRange(oldCursor, oldCursor + insertion.length); // highlight insertion - doesn't seem to work
             // make sure toolip is updated:
             window.setTimeout(()=>{
                 input.dispatchEvent(new Event('input'));
@@ -172,7 +187,7 @@ export class SearchMatrixComponent implements OnInit, OnChanges {
     }
 
     isSpanningLayer(layer: Layer): boolean {
-        return layer.alignment == 2
+        return layer.alignment != 1
             && (layer.parentId == this.schema.root.id
                 || layer.parentId == this.schema.participantLayerId
                 || layer.parentId == this.schema.turnLayerId)
@@ -195,5 +210,9 @@ export class SearchMatrixComponent implements OnInit, OnChanges {
     isSegmentLayer(layer: Layer): boolean {
         return layer.id == 'segment'
             || layer.parentId == 'segment';
+    }
+
+    hideHelper() {
+        this.helperMatch = null;
     }
 }

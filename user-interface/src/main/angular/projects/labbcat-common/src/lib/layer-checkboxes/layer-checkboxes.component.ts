@@ -23,8 +23,20 @@ export class LayerCheckboxesComponent implements OnInit {
     /** Allow the relationship (containing or contained) to be specified when a spanning
         layer is selected */ 
     @Input() includeRelationship: boolean;
+    /** Display icons */
+    @Input() displayIcons: boolean;
+    /** Display layer counts */
+    @Input() displayCounts: boolean;
+    /** Display prefixes for participant/transcript attributes */
+    @Input() displayAttributePrefixes: boolean;
+    /** Show the data type of each layer */
+    @Input() includeDataType: boolean;
     /** Show the alignment of each layer */
     @Input() includeAlignment: boolean;
+    /** Show alignment as 0 for turn/word/segment */
+    @Input() spoofAlignment: boolean;
+    /** Show whether each layer allows vertical peers */
+    @Input() includeVerticalPeers: boolean;
     /** Allow participant attribute layers to be selected */
     @Input() participant: boolean;
     /** Don't allow the 'participant' layer to be selected */
@@ -47,6 +59,8 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() excludeUtterance: boolean;
     /** Don't allow the 'word' layer to be selected */
     @Input() excludeWord: boolean;
+    /** Don't allow the 'language' layer to be selected */
+    @Input() excludeLanguage: boolean;
     /** Include a layer category selector, to hide/reveal layers */
     @Input() category: boolean;
     /** Allow word layers to be selected */
@@ -55,16 +69,27 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() segment: boolean;
     /** Layer styles - key is the layerId, value is the CSS style definition for the layer */
     @Input() styles: { [key: string] : any };
+    /** Annotation counts - key is the layerId, value is the number of annotations (e.g. in a transcript) */
+    @Input() annotationCounts: { [key: string] : any };
+    /** Input list of IDs of layers whose checkbox should be disabled */
+    @Input() disabled: string[];
     /** A layer ID to exclude options (annotation count, anchoring, etc.) for */
-    @Input() excludeOptionsForLayerId: string;
+    @Input() excludeOptionsForLayerId: string[];
     /** Input list of IDs of selected (ticked) layers */
     @Input() selected: string[];
+    /** Input list of IDs of preselected (ticked) layers for which we don't want to display their project */
+    @Input() preselected: string[];
     /** Output list of IDs of selected (ticked) layers */
     @Output() selectedChange = new EventEmitter<string[]>();
     /** Input list of layers with interpreted (true) or raw (false) labels */
     @Input() interpretedRaw: { [key: string] : any };
     /** Output list of layers with interpreted (true) or raw (false) labels */
     @Output() interpretedRawChange = new EventEmitter<{ [key: string] : any }>();
+    /** Links for controls bar - key is the control name (e.g. layerIcons), value is the URL.
+        key = 'about' for the right-hand help, with value {text: (link text), href: (URL) }*/
+    @Input() controlsLinks: { [key: string] : any };
+    /** Hide controls bar, overriding the effect of any other settings that would normally trigger showing it */
+    @Input() hideControls = false;
     
     participantAttributes: Layer[];
     transcriptAttributes: Layer[];
@@ -97,7 +122,12 @@ export class LayerCheckboxesComponent implements OnInit {
         if (this.word) this.scopeCount++;
         if (this.segment) this.scopeCount++;
         if (!this.styles) this.styles = {};
+        if (!this.annotationCounts) this.annotationCounts = {};
+        if (!this.disabled) this.disabled = [];
+        if (!this.excludeOptionsForLayerId) this.excludeOptionsForLayerId = [];
+        if (!this.preselected) this.preselected = [];
         if (!this.interpretedRaw) this.interpretedRaw = {};
+        if (!this.controlsLinks) this.controlsLinks = {};
     }
 
     loadSchema(): void {
@@ -114,28 +144,61 @@ export class LayerCheckboxesComponent implements OnInit {
         this.wordLayers = [];
         this.segmentLayers = [];
         this.categorySelections = {};
+        this.displayIcons = JSON.parse(sessionStorage.getItem("displayLayerIcons")) ??
+            (typeof this.displayIcons == "string" ? this.displayIcons === "true" : this.displayIcons) ??
+            true;
+        this.displayCounts = JSON.parse(sessionStorage.getItem("displayLayerCounts")) ??
+            (typeof this.displayCounts == "string" ? this.displayCounts === "true" : this.displayCounts) ??
+            true;
+        this.displayAttributePrefixes = JSON.parse(sessionStorage.getItem("displayAttributePrefixes")) ??
+            (typeof this.displayAttributePrefixes == "string" ? this.displayAttributePrefixes === "true" : this.displayAttributePrefixes) ??
+            false;
         if (!this.selected) this.selected = [] as string[];
+
+        // add category selectors in defined order
+        for (let c in this.schema.categories) {
+            if (c.startsWith("participant_")) { // participant attribute category
+                if (this.participant) this.categorySelections[c] = false;
+            } else if (c.startsWith("transcript_")) {  // transcript attribute category
+                if (this.transcript) this.categorySelections[c] = false;
+            } else  { // temporal layer category/project
+                if (this.span || this.phrase || this.word) {
+                     this.categorySelections[c] = false;
+                }
+            }
+
+        } // next category
+        
         for (let l in this.schema.layers) {
             let layer = this.schema.layers[l] as Layer;
             if (this.selected.includes(layer.id)) {
                 layer._selected = true;
-                if (layer.category) {
+                if (layer.category && !this.preselected.includes(layer.id)) {
                     this.categorySelections[layer.category] = true;
                 }
             }
+            // fill in missing attribute hints
+            if (layer.id == "participant") layer.hint = "APLS speaker code";
+            if (layer.id == "main_participant") layer.hint = "APLS speaker code for the participant being interviewed in a given transcript";
+            if (layer.id == "transcript") layer.hint = "Transcript file name";
+            if (layer.id == "corpus") layer.hint = "Collection of transcripts from a single research project";
+            if (layer.id == "episode") layer.hint = "Series of transcripts from a single sociolinguistic interview";
+            if (layer.id == "transcript_type") layer.hint = "Sociolinguistic interview section";
             if (layer.id == this.schema.root.id) {
                 if (!this.excludeRoot) this.transcriptAttributes.push(layer);
             } else if (layer.id == "segment"
                 || layer.parentId == "segment") {
                 this.segmentLayers.push(layer);
             } else if (layer.id == this.schema.wordLayerId) {
-                if (!this.excludeWord) this.phraseLayers.push(layer);
+                if (!this.excludeWord) this.wordLayers.push(layer);
             } else if (layer.parentId == this.schema.wordLayerId) {
                 this.wordLayers.push(layer);
             } else if (layer.id == this.schema.turnLayerId) {
                 if (!this.excludeTurn) this.phraseLayers.push(layer);
             } else if (layer.id == this.schema.utteranceLayerId) {
                 if (!this.excludeUtterance) this.phraseLayers.push(layer);
+            } else if (layer.id == "language") {
+                if (!this.excludeLanguage) this.phraseLayers.push(layer);
             } else if (layer.parentId == this.schema.turnLayerId) {
                 this.phraseLayers.push(layer);
             } else if (layer.id == this.schema.participantLayerId) {
@@ -164,11 +227,6 @@ export class LayerCheckboxesComponent implements OnInit {
         if (this.span) allLayers = allLayers.concat(this.spanLayers);
         if (this.phrase) allLayers = allLayers.concat(this.phraseLayers);
         if (this.word) allLayers = allLayers.concat(this.wordLayers);
-        for (let layer of allLayers) {
-            if (layer.category && !this.categorySelections.hasOwnProperty(layer.category)) {
-                this.categorySelections[layer.category] = false;
-            }
-        }
     }
     
     Categories(): string[] {
@@ -187,7 +245,18 @@ export class LayerCheckboxesComponent implements OnInit {
             && layer.id != this.schema.utteranceLayerId
             && layer.id != this.schema.wordLayerId
             && layer.peers // multiple child annotations
-            && layer.alignment == 2; // inntervals
+            && layer.alignment == 2; // intervals
+            // N.B. not included in span layer fieldset
+    }
+    IsCountable(layer: Layer): boolean {
+        return this.includeCounts // only if enabled
+            && layer.id != this.schema.participantLayerId // not system layers...
+            && layer.id != this.schema.corpusLayerId
+            && layer.id != this.schema.root.id
+            && layer.id != this.schema.turnLayerId
+            && layer.id != this.schema.utteranceLayerId
+            && layer.id != this.schema.wordLayerId
+            && layer.peers; // multiple child annotations
     }
 
     handleCheckbox(layerId:string): void {
@@ -214,7 +283,22 @@ export class LayerCheckboxesComponent implements OnInit {
         this.selectedChange.emit(this.selected);
     }
     handleInterpretedRaw(layerId:string): void {
-        this.interpretedRaw[layerId] = !this.interpretedRaw[layerId];
-        this.interpretedRawChange.emit(this.interpretedRaw);
+        if (!this.disabled || !this.disabled.includes(layerId)) {
+            this.interpretedRaw[layerId] = !this.interpretedRaw[layerId];
+            this.interpretedRawChange.emit(this.interpretedRaw);
+        }
+    }
+    
+    toggleLayerIcons(): void {
+        this.displayIcons = !this.displayIcons;
+        sessionStorage.setItem("displayLayerIcons", JSON.stringify(this.displayIcons));
+    }
+    toggleLayerCounts(): void {
+        this.displayCounts = !this.displayCounts;
+        sessionStorage.setItem("displayLayerCounts", JSON.stringify(this.displayCounts));
+    }
+    toggleAttributePrefixes(): void {
+        this.displayAttributePrefixes = !this.displayAttributePrefixes;
+        sessionStorage.setItem("displayAttributePrefixes", JSON.stringify(this.displayAttributePrefixes));
     }
 }

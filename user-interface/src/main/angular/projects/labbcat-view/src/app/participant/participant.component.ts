@@ -25,6 +25,7 @@ export class ParticipantComponent implements OnInit {
     currentCategory: string;
     categories: object; // string->Category
     participant: Annotation;
+    displayLayerIds: boolean;
     
     constructor(
         @Inject('environment') private environment,
@@ -59,7 +60,7 @@ export class ParticipantComponent implements OnInit {
             this.labbcatService.labbcat.readOnlyCategories(
                 "participant", (categories, errors, messages) => {
                     for (let category of categories) {
-                        this.categories[category.category] = category;
+                        this.categories["participant_"+category.category] = category;
                     }
                     resolve();
                 });
@@ -82,6 +83,9 @@ export class ParticipantComponent implements OnInit {
                 this.attributes = [];
                 this.categoryLayers = {};
                 this.categoryLabels = [];
+                this.displayLayerIds = JSON.parse(sessionStorage.getItem("displayLayerIds")) ??
+                    (typeof this.displayLayerIds == "string" ? this.displayLayerIds === "true" : this.displayLayerIds) ??
+                    true;
                 // participant attributes
                 for (let layerId in schema.layers) {
                     // main_participant this relates participants to transcripts, so ignore that
@@ -120,4 +124,11 @@ export class ParticipantComponent implements OnInit {
             });       
     }
 
+    ParticipantLayerLabel(id): string {
+        return id.replace(/^participant_/,"");
+    }
+    toggleLayerIds(): void {
+        this.displayLayerIds = !this.displayLayerIds;
+        sessionStorage.setItem("displayLayerIds", JSON.stringify(this.displayLayerIds));
+    }
 }

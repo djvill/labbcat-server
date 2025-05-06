@@ -35,18 +35,21 @@ export class MatchesComponent implements OnInit {
     serializers: SerializationDescriptor[];
     mimeTypeToSerializer = {};
     mimeType = "text/praat-textgrid";
-    serializeImg = "zip.png";
+    serializeImg = "cog.svg";
     showSerializationOptions = false;
     serializationLayers = [ "utterance", "word" ];
     showCsvOptions = false;
     selectedLayers: string[];
     showEmuOptions = false;
     emuLayers = [ "word", "segment" ];
+    showAudioOptions = false;
+    prefixNames = false;
     wordLayers = [];
     schema: any;
     generableLayers = []; // list of layerIds that can be generated from a list of utterances
     dictionaryDependentLayers = []; // list of layerIds managed by HTK
     dictionaryLayerIds = {}; // map of HTK layerIds to their pronunciation layer IDs
+    showDictionaryOptions = false;
     phoneAlignmentLayerIds = {}; // map of HTK layerIds to their phone layer IDs
     baseUrl: string;
     emuWebApp = false;
@@ -55,12 +58,27 @@ export class MatchesComponent implements OnInit {
     moreLoading = false;
     allLoading = false;
     readingMatches = false;
+    alreadySelected: boolean[]; // just for onChangeWordsContext()
 
     // for HTK/layer generation
     generateLayerId: string;
     tokenLayerId: string;
     annotationLayerId: string;
     phoneAlignmentLayerId: string;
+    
+    controlsLinksCSV = {
+        layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of exporting data docpage about layer picker
+        about: {
+            text: 'About layers and attributes',
+            href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
+        }
+    };
+    controlsLinksSerialization = {
+        about: {
+            text: 'About layers',
+            href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
+        }
+    };
     
     constructor(
         private labbcatService: LabbcatService,
@@ -71,6 +89,7 @@ export class MatchesComponent implements OnInit {
     
     ngOnInit(): void {
         this.matches = [];
+        if (!this.alreadySelected) this.alreadySelected = [];
         this.transcriptUrl = this.labbcatService.labbcat.baseUrl + "transcript";
         this.readingMatches = true;
         this.route.queryParams.subscribe((params) => {
@@ -105,13 +124,12 @@ export class MatchesComponent implements OnInit {
             this.zeroPad = (""+task.size).length;
             this.searchedLayers = task.layers || [];
             this.selectedLayers = this.searchedLayers
-                .concat([ "word", "participant", "transcript", "corpus" ]);
+                .concat([ "word", "participant", "transcript" ]);
             // if they searched the segment layer
             if (this.searchedLayers.includes("segment")) {
                 // include segments in serialization by default
                 this.serializationLayers.push("segment")
             }
-            
             this.readMatches();
         });
     }
@@ -133,17 +151,26 @@ export class MatchesComponent implements OnInit {
     
     readMatches(): void {
         this.readingMatches = true;
+        const pageLength = this.alreadySelected.length || this.pageLength;
         this.labbcatService.labbcat.getMatches(
-            this.threadId, this.wordsContext, this.pageLength, this.pageNumber,
+            this.threadId, this.wordsContext, pageLength, this.pageNumber,
             (results, errors, messages) => {
             if (errors) errors.forEach(m => this.messageService.error(m));
             if (messages) messages.forEach(m => this.messageService.info(m));
                 this.name = results.name;
                 this.matchCount = results.matchCount;
-                for (let match of results.matches) {
-                    match._selected = true;
-                    this.matches.push(match as Match);
+                if (this.alreadySelected.length) {
+                    for (let [idx, match] of results.matches.entries()) {
+                        match._selected = this.alreadySelected[idx];
+                        this.matches.push(match as Match);
+                    }
+                } else {
+                    for (let match of results.matches) {
+                        match._selected = true;
+                        this.matches.push(match as Match);
+                    }
                 }
+                this.alreadySelected = [];
                 this.moreLoading = this.allLoading = this.readingMatches = false;
             });
     }
@@ -204,7 +231,11 @@ export class MatchesComponent implements OnInit {
                 } // generable layer
                 if (layer.parentId == schema.wordLayerId
                     && layer.alignment == 0) {
-                    this.wordLayers.push(layer);
+                        if (layer.id == "orthography") { // orthography always at front
+                            this.wordLayers.unshift(layer);
+                        } else {
+                            this.wordLayers.push(layer);
+                        }
                 }
             }
         });
@@ -239,9 +270,10 @@ export class MatchesComponent implements OnInit {
     }
 
     onChangeWordsContext(): void {
-        // reload the first page
+        // get already-selected
+        this.alreadySelected = this.matches.map(match => match._selected);
+        // reload the currently-showing results
         this.matches = [];
-        this.pageLength = 20;
         this.pageNumber = 0;
         this.readMatches();
     }
@@ -269,8 +301,14 @@ export class MatchesComponent implements OnInit {
     serializationOptions(): void {
         this.showSerializationOptions = !this.showSerializationOptions;
     }
+    audioOptions(): void {
+        this.showAudioOptions = !this.showAudioOptions;
+    }
     emuOptions(): void {
         this.showEmuOptions = !this.showEmuOptions;
+    }
+    dictionaryOptions(): void {
+        this.showDictionaryOptions = !this.showDictionaryOptions;
     }
     emuWebapp(): void {
         let serverUrl = this.baseUrl.replace(/^http/,"ws") + "emu";
@@ -362,5 +400,8 @@ export class MatchesComponent implements OnInit {
     // Math.min
     min(n1: number, n2: number): number {
         return Math.min(n1, n2);
+    }
+    togglePrefixNames(): void {
+        this.prefixNames = !this.prefixNames;
     }
 }

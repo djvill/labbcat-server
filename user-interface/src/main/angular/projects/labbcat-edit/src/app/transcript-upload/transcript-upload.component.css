@@ -1,0 +1,124 @@
+#header {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+#defaults {
+}
+#buttons {
+    width: 50%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    align-items: center;
+    justify-content: flex-end;
+}
+#drag-drop {
+    min-height: 300px;
+    border: 2px #DEE6EF dashed;
+    text-align: center;
+}
+#drag-drop.processing-entries {
+    cursor: wait;
+}
+div#drag-drop:hover, div.hover {
+    border: 2px #777777 dashed;
+}
+div#drag-drop.dragover {
+    border: 2px var(--theme-block-color) dashed;
+}
+div.transcript-batch {
+    width: 100%;
+    padding: 0px;
+    text-align: left;
+}
+
+div.transcript-batch .transcript-entry {
+    display: flex;
+    flex-direction: row;
+    height: 23px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.transcript-entry span.header {
+}
+.transcript-entry span {
+    text-align: center;
+}
+.transcript-entry span.entry-selector {
+    width: 3%;
+    vertical-align: middle;
+    text-align: left;
+    padding-left: 0px;
+}
+.transcript-entry span.transcript-name {
+    width: 15%;
+    vertical-align: middle;
+    text-align: left;
+    padding-left: 10px;
+    overflow: hidden;
+}
+span.transcript-name img {
+    width: 16px;
+}
+.transcript-entry span.media-name {
+    vertical-align: middle;
+    padding-left: 10px;
+    width: 10%;
+    overflow: hidden;
+}
+.transcript-entry .episode-name {
+    vertical-align: middle;
+    width: 10%;
+}
+.transcript-entry .corpus {
+    vertical-align: middle;
+    width: 5%;
+}
+.transcript-entry .transcript-type {
+    vertical-align: middle;
+    width: 10%;
+}
+.transcript-entry span.status {
+    vertical-align: middle;
+    width: 20%;
+    padding-left: 10px;
+    overflow: hidden;
+}
+.transcript-entry progress, .transcript-entry .progress {
+    vertical-align: middle;
+    max-width: 20%;
+}
+
+.transcript-entry div.buttons {
+    width: 5%;
+    margin-left: 10px;
+}
+span.buttons > button {
+    height: 20px;
+    min-height: 20px;
+    width: 20px;
+    min-width: 20px;
+    padding: 0px;
+}
+span.buttons > button > img {
+    height: 15px;
+    width: 15px;
+}
+
+.parameters {
+    width: auto;
+    margin-left: 10px;
+    animation-name: roll-down;
+    animation-duration: 2s;
+    display: block;
+}
+.controls {
+    text-align: right;
+}
+
+.error {
+    color: red;
+}

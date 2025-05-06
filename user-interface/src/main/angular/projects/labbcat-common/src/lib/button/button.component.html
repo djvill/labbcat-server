@@ -1,8 +1,10 @@
-<button (click)="handlePress()"
+<button (click)="handlePress($event)"
         [disabled]="disabled"
         title="{{error || title}}"
         class="{{classes}}"
-        [class.error]="error">
-  <img src="{{processing?imagesLocation+'/wait.gif':img.startsWith('http')?img:imagesLocation+'/'+img}}" alt="{{icon}}">
+        [style.text-transform]="noCaps ? '' : 'capitalize'"
+        [class.error]="error"
+        [appAutofocus]="autofocus?true:false">
+  <img src="{{processing?imagesLocation+'/wait.gif':img.startsWith('http')?img:imagesLocation+'/'+img}}" [style]="imgStyle" alt="{{icon}}">
   <label i18n>{label, select, New {New} Save {Save} Delete {Delete} other {{{label}}}}</label>
 </button>

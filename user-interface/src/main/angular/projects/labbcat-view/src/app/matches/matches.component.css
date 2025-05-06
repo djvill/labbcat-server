@@ -53,9 +53,11 @@
 .csv-options label {
     white-space: nowrap;
 }
-lib-layer-checkboxes {
-    display: flex;
-    flex-direction: column;
+input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+}
+#serialization-options {
+    max-width: fit-content;
 }
 .controls lib-button[label], label > span {
     min-width: 150px;
@@ -64,5 +66,10 @@ label > span {
     display: inline-block;
 }
 @media all and (min-width: 640px) {
-    .csv-checkboxes, lib-layer-checkboxes { flex-direction: row; }
+    .csv-checkboxes {
+        flex-direction: row;
+    }
+    lib-layer-checkboxes {
+        flex-direction: column;
+    }
 }

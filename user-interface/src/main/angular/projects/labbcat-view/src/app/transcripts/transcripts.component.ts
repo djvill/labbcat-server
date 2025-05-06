@@ -34,15 +34,25 @@ export class TranscriptsComponent implements OnInit {
     participantDescription = ""; // Human readable description of participant query
     transcriptQuery = ""; // AGQL query string for pre-matching transcripts
     transcriptDescription = ""; // Human readable description of transcript query
+    defaultParticipantFilter = "";
     // track how many queries we're up to, to avoid old long queries updating the UI when
     // new short queries already have.
     querySerial = 0; 
     nextPage: string;
+    searchJson: string;
     imagesLocation: string;
     
     serializers: SerializationDescriptor[];
     mimeTypeToSerializer = {};
     mimeType = "text/praat-textgrid";
+
+    controlsLinks = {
+        layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of exporting data docpage about layer picker
+        about: {
+            text: 'About layers and attributes',
+            href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
+        }
+    };
 
     constructor(
         private labbcatService: LabbcatService,
@@ -110,6 +120,12 @@ export class TranscriptsComponent implements OnInit {
                     this.generableLayers.push(layer);
                 }
             }
+            // read default participant filter
+            this.labbcatService.labbcat.getSystemAttribute("defaultParticipantFilter",
+                (attribute, errors, messages) => {
+                    this.defaultParticipantFilter = attribute.value;
+                }
+            );
             resolve();
         });
     }
@@ -120,7 +136,8 @@ export class TranscriptsComponent implements OnInit {
         /[?&](participant_expression)=([^&]*)/,
         /[?&](participants)=([^&]*)/,
         /[?&](transcript_expression)=([^&]*)/,
-        /[?&](transcripts)=([^&]*)/
+        /[?&](transcripts)=([^&]*)/,
+        /[?&](searchJson)=([^&]*)/
     ];
     
     /** if no query parameters are passed, load the default from system settings */
@@ -215,6 +232,9 @@ export class TranscriptsComponent implements OnInit {
             }
             if (params["to"]) {
                 this.nextPage = params["to"];
+                if (this.nextPage=="search" && params["searchJson"]) {
+                    this.searchJson = params["searchJson"];
+                }
             }
             this.listTranscripts();
         });
@@ -261,7 +281,7 @@ export class TranscriptsComponent implements OnInit {
             this.p = 1;
             this.listTranscripts();
             this.listTranscriptsTimer = -1;
-        }, 2000);
+        }, 1000);
     }
 
     /** the user can hit enter to skip the deferral */
@@ -298,6 +318,7 @@ export class TranscriptsComponent implements OnInit {
                     this.query += " && ";
                     this.queryDescription += ", ";
                 }
+                this.filterValues[layer.id].sort();
 
                 // the value "!" means "a label other than the labels in validLabels"...
                 
@@ -310,7 +331,7 @@ export class TranscriptsComponent implements OnInit {
                             + " = " + this.filterValues[layer.id][0];
                     } else {
                         this.queryDescription += layer.description
-                            + " in " + this.filterValues[layer.id].join(",");
+                            + " in (" + this.filterValues[layer.id].join(",") + ")";
                     }
                 } else { // "!" 'other' selected
                     // so we *exclude* all values not selected
@@ -331,10 +352,7 @@ export class TranscriptsComponent implements OnInit {
                 
                 // from?
                 if (this.filterValues[layer.id][0]) {
-                    if (this.query) {
-                    this.query += " && ";
-                    this.queryDescription += ", ";
-                }
+                    if (this.query) this.query += " && ";
                     const value = (layer.subtype == "integer"?
                         parseInt:parseFloat)(this.filterValues[layer.id][0])
                     this.query += "first('"+this.esc(layer.id)+"').label >= "+ value;
@@ -342,11 +360,7 @@ export class TranscriptsComponent implements OnInit {
                 
                 // to?
                 if (this.filterValues[layer.id][1]) {
-                    if (this.query) {
-                    this.query += " && ";
-                    this.queryDescription += ", ";
-                }
-                    
+                    if (this.query) this.query += " && ";
                     const value = (layer.subtype == "integer"?
                         parseInt:parseFloat)(this.filterValues[layer.id][1])
                     this.query += "first('"+this.esc(layer.id)+"').label <= "+ value;
@@ -356,7 +370,7 @@ export class TranscriptsComponent implements OnInit {
                     if (this.queryDescription) this.queryDescription += ", ";
                     this.queryDescription += layer.description
                         +" " + this.filterValues[layer.id][0]
-                        + "-" + this.filterValues[layer.id][1];
+                        + "–" + this.filterValues[layer.id][1];
                 } else if (this.filterValues[layer.id][0]) {
                     if (this.queryDescription) this.queryDescription += ", ";
                     this.queryDescription += layer.description
@@ -397,7 +411,7 @@ export class TranscriptsComponent implements OnInit {
                     if (this.queryDescription) this.queryDescription += ", ";
                     this.queryDescription += layer.description
                         +" " + this.filterValues[layer.id][0]
-                        + "-" + this.filterValues[layer.id][1];
+                        + "–" + this.filterValues[layer.id][1];
                 } else if (this.filterValues[layer.id][0]) {
                     if (this.queryDescription) this.queryDescription += ", ";
                     this.queryDescription += layer.description
@@ -439,6 +453,7 @@ export class TranscriptsComponent implements OnInit {
         if (this.participantDescription) queryParams.participants = this.participantDescription;
         if (this.transcriptQuery) queryParams.transcript_expression = this.transcriptQuery;
         if (this.transcriptDescription) queryParams.transcripts = this.transcriptDescription;
+        if (this.searchJson) queryParams.searchJson = this.searchJson;
         for (let layer of this.filterLayers) { // for each filter layer
             if (this.filterValues[layer.id].length > 0) { // there's at least one value
                 // add it to the query parameters
@@ -463,11 +478,16 @@ export class TranscriptsComponent implements OnInit {
             queryExpression, (matchCount, errors, messages) => {
                 if (thisQuery != this.querySerial) return; // new query already sent
                 this.matchCount = matchCount;
-                if (errors) {
-                    errors.forEach(m => this.messageService.error(m));
-                    this.loadingList = false;
-                }
                 if (messages) messages.forEach(m => this.messageService.info(m));
+                if (errors) {
+                    errors.forEach(m => m.includes("Request header is too large")
+                        ? this.messageService.error("Failed to process the participant filter (HTTP server returned 'Request header is too large' 400 error)")
+                        : this.messageService.error(m));
+                    this.loadingList = false;
+                    if (errors.filter(e => e.includes("Request header is too large")).length) {
+                        return; // avoid getting same error from getMatchingTranscriptIds()
+                    }
+                }
                 this.pageCount = parseInt(matchCount) / this.pageLength;
                 if (matchCount % this.pageLength != 0)  this.pageCount++;
                 if (this.p > this.pageCount) this.p = Math.max(1,this.pageCount);
@@ -547,6 +567,19 @@ export class TranscriptsComponent implements OnInit {
     }
 
     /** Button action */
+    clearParticipantFilter() : void {
+        this.participantQuery = "";
+        this.participantDescription = "";
+        this.router.navigate([], {
+            queryParams: {
+                participant_expression: null,
+                participants: null
+            },
+            queryParamsHandling: 'merge'
+        });
+    }
+
+    /** Button action */
     clearFilters() : void {
         this.initializeFilters().then(()=>{
             this.listTranscripts();
@@ -594,10 +627,14 @@ export class TranscriptsComponent implements OnInit {
         if (!this.showGenerateLayerSelection) { // show options
             this.showGenerateLayerSelection = true;
             this.showAttributesSelection = this.showSerializationOptions = false;
+            this.serializeImg = "cog.svg";
         } else { // options selected, so go ahead and do it
             this.form.nativeElement.action = this.baseUrl + "edit/layers/regenerate";
             this.form.nativeElement.submit();
         }
+    }
+    collapseGenerate(): void {
+        this.showGenerateLayerSelection = false;
     }
 
     /** Button action */
@@ -640,6 +677,7 @@ export class TranscriptsComponent implements OnInit {
         if (!this.showAttributesSelection) { // show options
             this.showAttributesSelection = true;
             this.showSerializationOptions = this.showGenerateLayerSelection = false;
+            this.serializeImg = "cog.svg";
         } else { // options selected, so go ahead and do it            
             if (this.selectedIds.length == 0 && this.matchCount > 10) {
                 if (!confirm("This will export all "+this.matchCount+" matches.\nAre you sure?")) { // TODO i18n
@@ -649,6 +687,9 @@ export class TranscriptsComponent implements OnInit {
             this.form.nativeElement.action = this.baseUrl + "api/attributes";
             this.form.nativeElement.submit();
         }
+    }
+    collapseExportAttributes(): void {
+        this.showAttributesSelection = false;
     }
 
     serializeImg = "cog.svg";
@@ -675,12 +716,63 @@ export class TranscriptsComponent implements OnInit {
     onChangeMimeType(): void {
         this.serializeImg = this.mimeTypeToSerializer[this.mimeType].icon;
     }
-    
+    collapseExportFormat(): void {
+        this.showSerializationOptions = false;
+        this.serializeImg = "cog.svg";
+    }
+
+    /** Button action */
+    participants(): void {
+        let params = {};
+        if (this.selectedIds.length > 0) { // individual check-boxes selected
+            // check if the user has selected all check-boxes corresponding to a filter
+            // TODO handle the case where all transcripts' check-boxes are selected
+            const allFilteredSelected = this.selectedIds.length == this.matchCount &&
+                this.selectedIds.length == this.transcriptIds.length &&
+                this.selectedIds.every((x, i) => x == this.transcriptIds[i]);
+            // participants page will throw an error if passed transcript query attributes
+            //   "Can only get labels list for participant or transcript attributes: labels('transcript_type')"
+            // so we just pass the transcripts as a list and dress up the description
+            params = {
+                transcript_expression: "["
+                    + this.selectedIds.map(id=>"'"+id.replace(/'/,"\\'")+"'").join(",")
+                    + "].includesAny(labels('transcript'))"
+            };
+            if (allFilteredSelected) { // user has selected all check-boxes corresponding to a filter
+                params["transcripts"] = this.queryDescription;
+            } else { // typical check-box use case: a proper subset of filtered check-boxes are selected
+                params["transcripts"] = this.selectedIds.length + " selected transcript" + (this.selectedIds.length > 1 ? "s" : "");
+            }
+        } else if (this.query) { // no check-boxes selected but some filter applied
+            // participants page will throw an error if passed transcript attributes
+            //   "Can only get labels list for participant or transcript attributes: labels('transcript_type')"
+            // so we just pass the transcripts as a list and dress up the description
+            const ids = this.transcriptIds.map(id=>"'"+this.esc(id)+"'").join(",");
+            // this won't include transcripts that were selected prior to the filter then deselected - but that's consistent with other button behaviors
+            params = {
+                transcript_expression: `[${ids}].includesAny(labels('transcript'))`,
+                transcripts: this.queryDescription
+            }
+        } else { // no check-boxes selected or filter applied
+            params = {
+                transcript_expression: "/.+/.test(id)",
+                transcripts: "all transcripts"
+            };
+        }
+        // if there's a default participant filter and no remembered participant filter, override the default
+        if (this.defaultParticipantFilter && !sessionStorage.getItem("lastQueryParticipants")) {
+            for (let param of this.defaultParticipantFilter.split("&").map(a => a.replace(/=.+/, ''))) {
+                params[param] = "";
+            }
+        }
+        this.router.navigate(["participants"], { queryParams: params });
+    }
+
     /** Button action */
     layeredSearch(): void {
-        this.router.navigate(["search"], {
-            queryParams: this.selectedTranscriptsQueryParameters("participant_id")
-        });
+        let params = this.selectedTranscriptsQueryParameters("participant_id");
+        if (this.searchJson) params["searchJson"] = this.searchJson;
+        this.router.navigate(["search"], { queryParams: params });
     }
 
     /** Button action */
@@ -702,47 +794,53 @@ export class TranscriptsComponent implements OnInit {
     /** Query string for selected transcripts */
     selectedTranscriptsQueryParameters(transcriptIdParameter: string): Params {
         let params = {};
-        if (this.selectedIds.length > 0) {
-            let description = `${this.selectedIds.length} selected transcripts`; // TODO i18n
-            switch (this.selectedIds.length) {
-                case 1:
-                    description = this.selectedIds[0];
-                    break;
-                case 2:
-                    description = `${this.selectedIds[0]} and ${this.selectedIds[1]}`; // TODO i18n
-                    break;
-                case 3:
-                    description = `${this.selectedIds[0]}, ${this.selectedIds[1]}, and ${this.selectedIds[2]}`; // TODO i18n
-                    break;
-                default:
-                    description = this.selectedIds[0]
-                        + " ... "
-                        + this.selectedIds[this.selectedIds.length - 1]
-                        + " ("+this.selectedIds.length+" selected transcripts)"; // TODO i18n
-                    break;
+        if (this.selectedIds.length > 0) { // individual check-boxes selected
+            // check if the user has selected all check-boxes corresponding to a filter
+            const allFilteredSelected = this.selectedIds.length == this.matchCount &&
+                this.selectedIds.length == this.transcriptIds.length &&
+                this.selectedIds.every((x, i) => x == this.transcriptIds[i]);
+            // TODO handle the case where all transcripts' check-boxes are selected
+            if (allFilteredSelected) { // user has selected all check-boxes corresponding to a filter
+                params = {
+                    transcript_expression: this.query,
+                    transcripts: this.queryDescription
+                };
+            } else { // typical check-box use case: a proper subset of filtered check-boxes are selected
+                // don't send a transcripts param (transcript count is visible in tab title)
+                params = {
+                    transcript_expression: "["
+                        + this.selectedIds.map(id=>"'"+id.replace(/'/,"\\'")+"'").join(",")
+                        + "].includes(id)"
+                };
             }
-            params = {
-                transcript_expression : "["
-                    + this.selectedIds.map(id=>"'"+id.replace(/'/,"\\'")+"'").join(",")
-                    + "].includes(id)",
-                transcripts: description
-            };
-        } else if (this.query) {
+        } else if (this.query) { // no check-boxes selected but some filter applied
             params = {
                 transcript_expression: this.query,
                 transcripts: this.queryDescription
             };
+        } else { // no check-boxes selected or filter applied
+            params = {
+                transcript_expression: "/.+/.test(id)",
+                transcripts: "all transcripts"
+            };
         }
         if (this.participantQuery) {
             // expressions like:
-            // labels("participant").includes(["AP511_MikeThorpe"])
+            //  labels("participant").includes(["AP511_MikeThorpe"])
+            // or from participantso page:
+            //  ['AP511_MikeThorpe'].includesAny(labels('participant'))
             // have to be replaced with:
-            // ['AP511_MikeThorpe'].includes(id)
+            //  ['AP511_MikeThorpe'].includes(id)
             params["participant_expression"] = 
                 this.participantQuery
                     .replace(/labels\('participant'\).includesAny\((\[.*\])\)/,
-                             "$1\.includes\(id\)");
-            params["participants"] = this.participantDescription;
+                             "$1\.includes\(id\)")
+            // from participants page:
+                    .replace(".includesAny(labels('participant'))",
+                             ".includes(id)");
+            if (this.selectedIds.length==0 && !this.query) {
+                params["transcripts"] = "all transcripts with selected participants"
+            };
         }
         return params;
     }

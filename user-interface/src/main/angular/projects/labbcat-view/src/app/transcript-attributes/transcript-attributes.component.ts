@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Annotation, Response, Layer, User } from 'labbcat-common';
@@ -21,13 +21,18 @@ export class TranscriptAttributesComponent implements OnInit {
     currentCategory: string;
     categories: object; // string->Category
     transcript: Annotation;
+    displayLayerIds: boolean;
+    imagesLocation: string;
     
     constructor(
         private labbcatService: LabbcatService,
         private messageService: MessageService,
         private route: ActivatedRoute,
-        private router: Router
-    ) { }
+        private router: Router,
+        @Inject('environment') private environment
+    ) {
+        this.imagesLocation = this.environment.imagesLocation;
+    }
     
     ngOnInit(): void {
         this.readBaseUrl();
@@ -46,8 +51,13 @@ export class TranscriptAttributesComponent implements OnInit {
         return new Promise((resolve, reject) => {
             this.labbcatService.labbcat.readOnlyCategories(
                 "transcript", (categories, errors, messages) => {
+                    this.categoryLabels = [];
                     for (let category of categories) {
-                        this.categories[category.category] = category;
+                        const layerCategory = "transcript_"+category.category;
+                        this.categories[layerCategory] = category;
+                        this.categoryLabels.push(layerCategory);
+                        // select first category by default
+                        if (!this.currentCategory) this.currentCategory = layerCategory;
                     }
                     resolve();
                 });
@@ -69,29 +79,27 @@ export class TranscriptAttributesComponent implements OnInit {
                 this.schema = schema;
                 this.attributes = [];
                 this.categoryLayers = {};
-                this.categoryLabels = [];
+                this.displayLayerIds = JSON.parse(sessionStorage.getItem("displayLayerIds")) ??
+                    (typeof this.displayLayerIds == "string" ? this.displayLayerIds === "true" : this.displayLayerIds) ??
+                    true;
                 // transcript attributes
                 for (let layerId in schema.layers) {
                     const layer = schema.layers[layerId] as Layer;
                     if (layer.parentId == "transcript"
                         && layer.alignment == 0
-                        && layer.id != schema.participantLayerId
-                        && layer.id != schema.episodeLayerId
-                        && layer.id != schema.corpusLayerId) {
+                        && layer.id != schema.participantLayerId) {
 
                         // ensure we can iterate all layer IDs
                         this.attributes.push(layer.id);
                         
                         // ensure the transcript type layer has a category
-                        if (layer.id == "transcript_type") layer.category = "General";
-                        
-                        if (!this.categoryLayers[layer.category]) {
-                            this.categoryLayers[layer.category] = [];
-                            this.categoryLabels.push(layer.category);
-                            // select first category by default
-                            if (!this.currentCategory) this.currentCategory = layer.category;
+                        if (layer.id == "transcript_type") layer.category = "transcript_General";
+                        if (layer.category) {
+                            if (!this.categoryLayers[layer.category]) {
+                                this.categoryLayers[layer.category] = [];
+                            }
+                            this.categoryLayers[layer.category].push(layer);
                         }
-                        this.categoryLayers[layer.category].push(layer);
                     }
                 }
                 resolve();
@@ -107,10 +115,18 @@ export class TranscriptAttributesComponent implements OnInit {
     
     readTranscript(): void {
         this.labbcatService.labbcat.getTranscript(
-            this.id, this.attributes, (transcript, errors, messages) => {
+            this.id, this.attributes.concat(["previous-transcript", "next-transcript"]),
+            (transcript, errors, messages) => {
                 if (errors) errors.forEach(m => this.messageService.error(m));
                 if (messages) messages.forEach(m => this.messageService.info(m));
                 this.transcript = transcript;
             });       
+    }
+    TranscriptLayerLabel(id): string {
+        return id.replace(/^transcript_/,"");
+    }
+    toggleLayerIds(): void {
+        this.displayLayerIds = !this.displayLayerIds;
+        sessionStorage.setItem("displayLayerIds", JSON.stringify(this.displayLayerIds));
     }
 }

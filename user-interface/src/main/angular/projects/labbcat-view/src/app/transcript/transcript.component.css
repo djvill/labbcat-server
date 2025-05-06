@@ -9,8 +9,8 @@ lib-wait {
 #transcript {
     max-width: 1000px;
     margin: auto;
+    margin-top: 50px; /* Don't have media cover up tabs */
 }
-
 .main-participant {
     font-weight: bold;
 }
@@ -19,6 +19,10 @@ lib-wait {
 }
 .match {
     background-color: lightgreen;
+}
+.menu-word {
+    font-style: italic;
+    color: #003594;
 }
 @keyframes fade-background-in {
     from { background-color: transparent; }
@@ -49,16 +53,19 @@ lib-wait {
 #word-menu .header {
     height: 18px;
 }
-/* TODO This does't work in production because the URL fails:
-.permalink:hover::after {
-    content: ' ' url('/assets/link.svg') / '🔗';
-}*/
+.permalink {
+    font-size: 16px;
+}
+.permalink:hover {
+    text-decoration: none;
+}
 nav, nav > div {
     position: fixed;
     top: 50%;
+    z-index: 5; /* above media */
 }
 #previous-transcript-link {
-    left: 0px;
+    left: 10px;
     text-align: left;
 }
 #previous-transcript-link a:hover::after {
@@ -66,7 +73,7 @@ nav, nav > div {
     background-color: var(--theme-background-color);
 }
 #next-transcript-link {
-    right: 0px;
+    right: 10px;
     text-align: right;
 }
 #next-transcript-link a:hover::before {
@@ -77,6 +84,16 @@ nav, nav > div {
     width: 16px;
     height: 16px;
     vertical-align: middle;
+}
+#attr-controls {
+    display: flex;
+    align-items: center;
+}
+#attr-controls > .label-spacer {
+    flex-grow: 1;
+}
+#attr-controls label {
+    font-style: italic;
 }
 /* consecutive blocks are vertical, simultaneous are horizontal */
 #temporal-blocks .block {
@@ -90,6 +107,7 @@ nav, nav > div {
 }
 #temporal-blocks .simultaneous .utterance {
     flex-grow: 1;
+    flex-basis: 0;
 }
 #temporal-blocks .consecutive, #temporal-blocks .simultaneous .utterance {
     border-left: 1px darkgray solid;
@@ -102,8 +120,8 @@ nav, nav > div {
 }
 
 /* only the first consecutive utterance, simultaneous utterances are all labelled */
-.words {
-    margin-left: 5%;
+.words, .utterance-tag {
+    margin-left: 2.5vw;
 }
 .words > .word  {
     padding-left: 0px;
@@ -124,6 +142,19 @@ nav, nav > div {
     display: block;
 }
 
+/* padding between utterances in the same turn */
+.utterance:not(:first-child) {
+    padding-top: 0.75em;
+}
+.utterance-tag {
+    display: inline-block;
+}
+.consecutive .utterance-tag {
+    width: 97.5%;
+}
+.simultaneous .utterance-tag {
+    width: 95%;
+}
 .token {
     display: inline-block;
 }
@@ -138,40 +169,50 @@ nav, nav > div {
     display: flex;
     flex-direction: column;
 }
-.token .layer.span .annotation.during {
+.layer.span .annotation.during {
     border-top: 1px solid;
 }
-.token .layer.span .annotation.during label {
+.layer.span .annotation.during label {
     position: absolute;
 }
-.token .layer.span .annotation.first {
+.layer.span .annotation.first {
     border-top: 1px solid;
     border-left: 1px solid;
     border-top-left-radius: 5px;
 }
-.token .layer.span.alignment-2 .annotation.last {
+.layer.span.alignment-2 .annotation.last {
     border-top: 1px solid;
     border-right: 1px solid;
     border-top-right-radius: 5px;
 }
-.token .layer.span.alignment-2 .annotation.first.last {
+.layer.span.alignment-2 .annotation.first.last {
     text-align: center;
 }
-.token .layer.span .annotation.first.last label {
+.layer.span .annotation.first.last label {
     position: revert;
 }
-.token .layer.span .annotation.empty {
+.layer.span .annotation.empty {
     border-top: 1px solid transparent;
 }
-.token .alignment-0 .annotation:not(:first-child) {
+.alignment-0 .annotation:not(:first-child) {
     position: fixed;
     opacity: 0;
 }
-.token .layer.span .annotation label.continued {
+.layer.span .annotation label.continued {
     margin-left: 10px;
 }
-.token .layer.span .annotation label.continued::before {
-    content: '… ';
+.layer.span .annotation.jump {
+    position: relative;
+    max-width: 50px;
+    left: 50%;
+    white-space: nowrap;
+}
+/* special styling for imported layers */
+.layer-comment, .layer-noise, .layer-redaction {
+    font-style: italic;
+}
+.layer-noise {
+    color: black;
 }
 
 .generate-layer {
@@ -183,6 +224,10 @@ nav, nav > div {
 
 /* Meta-data */
 
+.tab-labels.video {
+    width: 70vw; /* squish tabes to the right to avoid video */
+    max-width: 100%;
+}
 .tab-labels label {
     cursor: context-menu;
 }
@@ -190,6 +235,16 @@ nav, nav > div {
     width: 16px;
     height: 16px;
     vertical-align: middle;
+}
+#layers, #participants, #formats {
+    padding-top: 10px;
+}
+@media all and (min-width: 640px) {
+    #layers { 
+        display: flex;
+        flex-direction: column; 
+        align-items: center;
+    }
 }
 /* TODO This does't work in production because the URL fails:
 .participants ul {
@@ -208,6 +263,7 @@ nav, nav > div {
     width: 100%;
     text-align: left;
 }
+
 .buttons {
     display: block;
     padding-top: 4px;
@@ -230,6 +286,12 @@ nav, nav > div {
     border-top: none;
     margin-left: -1px; /* to make annoying overshoot at least symmetrical */
 }
+.tab-body > div {
+    padding: 10px;
+}
+#attributes .attribute {
+    padding: 4px 10px;
+}
 .attribute-list .participant {
     padding: 5px;
 }
@@ -239,7 +301,23 @@ nav, nav > div {
     display: inline-block;
     vertical-align: middle;
 }
+.attribute-list .attribute.speaker,
+.attribute-list .attribute.search {
+    align-items: center;
+}
+.attribute-list .attribute.speaker label,
+.attribute-list .attribute.search label {
+    width: 20%;
+    min-width: 10em;
+}
+.speaker label.main-participant:after {
+    content: ' (main participant):';
+}
+#export .layer-id:not(:last-of-type):not(.no-pad) {
+    padding-right: 0.5em;
+}
 /* Media */
+
 
 lib-layer-checkboxes {  /* layer selection on top of media */
     background-color: var(--theme-background-color);
@@ -249,7 +327,7 @@ lib-layer-checkboxes {  /* layer selection on top of media */
 
 #media {
     position: fixed;
-    top: 60px;
+    top: 20px; /* don't cover up tabs */
     right: 10px;
     min-width: 300px;
     background: var(--theme-background-color);
@@ -322,11 +400,24 @@ lib-layer-checkboxes {  /* layer selection on top of media */
     z-index: 5;
 }
 
+.annotation img.icon {
+}
+img.preview {
+    max-width: 200px;
+    position: absolute;
+    z-index: 5;
+}
+
 /* Layout on wider screens */
 @media all and (min-width: 640px) {
-    lib-layer-checkboxes { /* layer selector is horizontal*/
+    lib-layer-checkboxes {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         justify-content: center;
     }
+}
+
+.ul-nb {
+    list-style-type: none;
+    font-style: italic;
 }

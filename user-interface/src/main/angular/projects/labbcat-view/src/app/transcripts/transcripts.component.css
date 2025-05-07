@@ -66,7 +66,7 @@ span.attribute {
     content: '';
 }
 #serializationOptions  lib-layer-checkboxes {
-    display: flex;
+    display: inline-flex;
     flex-direction: column;
 }
 #generateLayerSelection {

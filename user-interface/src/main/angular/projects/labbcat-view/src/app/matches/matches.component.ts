@@ -74,6 +74,7 @@ export class MatchesComponent implements OnInit {
         }
     };
     controlsLinksSerialization = {
+        layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of exporting data docpage about layer picker
         about: {
             text: 'About layers',
             href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'

@@ -2,7 +2,7 @@
         [disabled]="disabled"
         title="{{error || title}}"
         class="{{classes}}"
-        [style.text-transform]="noCaps ? '' : 'capitalize'"
+        [class.no-caps]="noCaps"
         [class.error]="error"
         [appAutofocus]="autofocus?true:false">
   <img src="{{processing?imagesLocation+'/wait.gif':img.startsWith('http')?img:imagesLocation+'/'+img}}" [style]="imgStyle" alt="{{icon}}">

@@ -74,6 +74,7 @@ export class MatchesComponent implements OnInit {
         }
     };
     controlsLinksSerialization = {
+        layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of exporting data docpage about layer picker
         about: {
             text: 'About layers',
             href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'
@@ -144,6 +145,8 @@ export class MatchesComponent implements OnInit {
                 this.mimeTypeToSerializer[descriptor.mimeType]
                     = descriptor as SerializationDescriptor;
             }
+            // alphabetical order
+            this.serializers.sort((a,b) => a.name.charCodeAt(0) - b.name.charCodeAt(0));
             // set initial icon
             this.onChangeMimeType();
         });

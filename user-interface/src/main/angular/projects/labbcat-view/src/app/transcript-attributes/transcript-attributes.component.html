@@ -1,8 +1,8 @@
-<h1 id="title" i18n>Transcript attributes: {{transcript.id}}</h1>
+<h1 id="title" i18n>Transcript attributes<span *ngIf="transcript">{{transcript.id}}</span></h1>
 <lib-wait *ngIf="!transcript"></lib-wait>
 <!-- previous/next transcript -->
 <nav>
-  <div *ngIf="transcript['previous-transcript']"
+  <div *ngIf="transcript && transcript['previous-transcript']"
        id="previous-transcript-link">
     <a rel="prev" href="transcript/attributes?id={{transcript['previous-transcript'][0].label}}"
        i18n-title title="Previous">
@@ -11,7 +11,7 @@
            i18n-title title="Previous transcript in the episode">
     </a>
   </div>
-  <div *ngIf="transcript['next-transcript']"
+  <div *ngIf="transcript && transcript['next-transcript']"
        id="next-transcript-link">
     <a rel="next" href="transcript/attributes?id={{transcript['next-transcript'][0].label}}"
        i18n-title title="Next">
@@ -45,7 +45,7 @@
   <div *ngFor="let category of categoryLabels"
        [ngClass]="(category==currentCategory)?'attribute-list tab-body active':'attribute-list tab-body inactive'">
       <div *ngFor="let layer of categoryLayers[category]" class="attribute">
-        <label for="{{layer.id}}" title="{{layer.id=='transcript_type'?'Sociolinguistic interview section' : layer.hint?''+layer.hint:''}}">{{layer.description}}<span class="layer-name" [style.display]="displayLayerIds ? 'inline' : 'none'"> (<span class="layer-id">{{TranscriptLayerLabel(layer.id)}}</span>)</span></label>
+        <label for="{{layer.id}}" title="{{layer.id=='transcript_type'?'Sociolinguistic interview section' : layer.hint?''+layer.hint:''}}">{{layer.description}}<span class="layer-name" [style.display]="displayLayerIds ? 'inline' : 'none'"> (<span class="layer-id">{{displayAttributePrefixes ? layer.id : TranscriptLayerLabel(layer.id)}}</span>)</span></label>
         <span *ngIf="transcript[layer.id]"
               id="{{layer.id}}" class="values">
           <div *ngFor="let annotation of transcript[layer.id]" class="value">
@@ -60,9 +60,25 @@
           </div>
         </span>
       </div>
-      <label id="toggleLayerIds">
-        <input type="checkbox" name="toggleLayerIds" [checked]="!displayLayerIds" (change)="toggleLayerIds()">
-        Hide attribute names
-      </label>
+      <div id="controls">
+        <div class="label-spacer">
+          <label id="toggleLayerIds">
+            <input type="checkbox" name="toggleLayerIds" [checked]="!displayLayerIds" (change)="toggleLayerIds()">
+            Hide attribute names
+          </label>
+        </div>
+        <div class="label-spacer">
+          <label
+            [class.disabled]="!displayLayerIds"
+            title="Show full names for attributes">
+            <lib-grouped-checkbox
+              name="hideAttributePrefixes"
+              [checked]="!displayAttributePrefixes"
+              [disabled]="!displayLayerIds"
+              (change)="toggleAttributePrefixes()"
+              ></lib-grouped-checkbox>
+            Hide attribute prefixes</label>
+        </div>
+      </div>
     </div>
 </div>

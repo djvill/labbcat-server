@@ -42,6 +42,7 @@ export class TranscriptComponent implements OnInit {
     currentCategory: string;
     categories: object; // string->Category
     displayLayerIds: boolean;
+    displayAttributePrefixes: boolean;
 
     selectedLayerIds : string[];
     preselectedLayerIds = ['noise','word'];
@@ -152,6 +153,9 @@ export class TranscriptComponent implements OnInit {
                     this.displayLayerIds = JSON.parse(sessionStorage.getItem("displayLayerIds")) ??
                         (typeof this.displayLayerIds == "string" ? this.displayLayerIds === "true" : this.displayLayerIds) ??
                         true;
+                    this.displayAttributePrefixes = JSON.parse(sessionStorage.getItem("displayAttributePrefixes")) ??
+                        (typeof this.displayAttributePrefixes == "string" ? this.displayAttributePrefixes === "true" : this.displayAttributePrefixes) ??
+                        false;
                 }); // transcript read
             }); // subscribed to queryParams
         }); // after readSchema
@@ -241,6 +245,8 @@ export class TranscriptComponent implements OnInit {
                 this.mimeTypeToSerializer[descriptor.mimeType]
                     = descriptor as SerializationDescriptor;
             }
+            // alphabetical order
+            this.serializers.sort((a,b) => a.name.charCodeAt(0) - b.name.charCodeAt(0));
         });
     }
 
@@ -1646,6 +1652,10 @@ export class TranscriptComponent implements OnInit {
     toggleLayerIds(): void {
         this.displayLayerIds = !this.displayLayerIds;
         sessionStorage.setItem("displayLayerIds", JSON.stringify(this.displayLayerIds));
+    }
+    toggleAttributePrefixes(): void {
+        this.displayAttributePrefixes = !this.displayAttributePrefixes;
+        sessionStorage.setItem("displayAttributePrefixes", JSON.stringify(this.displayAttributePrefixes));
     }
     TranscriptLayerLabel(id): string {
         return id.replace(/^transcript_/,"");

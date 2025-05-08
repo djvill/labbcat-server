@@ -4,7 +4,7 @@
 # and deploying them to a local instance of LaBB-CAT,
 # adding "prev-" prefix to existing index.html
 
-LOCAL_LABBCAT="/c/Program Files/Apache Software Foundation/Tomcat 9.0/webapps/labbcat"
+LOCAL_LABBCAT="/c/Program Files/Apache Software Foundation/Tomcat 9.0/webapps/apls-dev"
 LL_UI="$LOCAL_LABBCAT/user-interface/en"
 
 common=${1}

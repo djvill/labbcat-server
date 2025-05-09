@@ -137,7 +137,7 @@
            [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
            [alt]="layer.peersOverlap ? '[|=]' : ''"
            i18n-title="Layer vertical-peers descriptions"
-           [title]="'Allows vertical peers: ' + layer.peersOverlap ? 'True' : 'False'">
+           [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')">
       <span class="layer-id">{{layer.id}}</span>
       <span 
         *ngIf="annotationCounts[layer.id] > -1" 
@@ -220,7 +220,7 @@
            [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
            [alt]="layer.peersOverlap ? '[|=]' : ''"
            i18n-title="Layer vertical-peers descriptions"
-           [title]="'Allows vertical peers: ' + layer.peersOverlap ? 'True' : 'False'">
+           [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')">
       <span class="layer-id">{{layer.id}}</span>
       <span 
         *ngIf="annotationCounts[layer.id] > -1" 
@@ -307,7 +307,7 @@
            [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
            [alt]="layer.peersOverlap ? '[|=]' : ''"
            i18n-title="Layer vertical-peers descriptions"
-           [title]="'Allows vertical peers: ' + layer.peersOverlap ? 'True' : 'False'">
+           [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')">
       <span class="layer-id">{{layer.id}}</span>
       <span 
         *ngIf="annotationCounts[layer.id] > -1" 
@@ -391,7 +391,7 @@
            [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
            [alt]="layer.peersOverlap ? '[|=]' : ''"
            i18n-title="Layer vertical-peers descriptions"
-           [title]="'Allows vertical peers: ' + layer.peersOverlap ? 'True' : 'False'">
+           [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')">
       <span class="layer-id">{{layer.id}}</span>
       <span 
         *ngIf="annotationCounts[layer.id] > -1" 

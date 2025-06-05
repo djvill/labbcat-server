@@ -21,6 +21,7 @@ export class MatchesComponent implements OnInit {
     name: string;
     status: string;
     matchCount: number;
+    taskDuration: number;
     totalUtteranceDuration: number;
     zeroPad: number;
     searchedLayers: string[];
@@ -121,6 +122,7 @@ export class MatchesComponent implements OnInit {
             if (messages) messages.forEach(m => this.messageService.info(m));
             this.task = task;
             this.status = task.status;
+            if (this.status.match(/^Found [1-9]\d* results?$/)) this.taskDuration = task.duration;
             this.totalUtteranceDuration = task.totalUtteranceDuration;
             this.zeroPad = (""+task.size).length;
             this.searchedLayers = task.layers || [];

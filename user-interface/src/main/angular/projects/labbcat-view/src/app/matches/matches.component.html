@@ -1,6 +1,15 @@
 <h1 id="title">{{name}}</h1>
 
-<p>{{status}} <span *ngIf="totalUtteranceDuration">(<span i18n>Total utterance duration:</span> {{totalUtteranceDuration | duration}})</span></p>
+<p>{{status}}
+  <span
+    *ngIf="taskDuration"
+    i18n-title title="Time that it took LaBB-CAT to find these results"
+    i18n> in {{taskDuration}} milliseconds</span>
+  <span
+    *ngIf="totalUtteranceDuration"
+    i18n-title title="Total duration (minutes:seconds) of all utterances with at least one result"
+    > (<span i18n>Total utterance duration:</span> {{totalUtteranceDuration | duration}})</span>
+</p>
 
 <lib-wait *ngIf="readingMatches"></lib-wait>
 <form #form method="POST" id="frm" *ngIf="matches.length" todotarget="_blank">

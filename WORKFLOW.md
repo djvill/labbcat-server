@@ -30,10 +30,12 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 ## Workflow
 
 > [!NOTE]
-> This workflow has been heavily revised relative to the previous version in `9d4b6e7`.
+> This workflow has been heavily revised relative to the previous version in [`9d4b6e7`].
 > That workflow prioritized developing directly in `apls-dev` and cherry-picking from feature branches.
 > But that proved to be a mess when I wanted to contribute to the upstream remote.
 > The current workflow instead prioritizes a hard separation between APLS-specific development and main-trunk development.
+
+[`9d4b6e7`]: https://github.com/djvill/labbcat-server/tree/9d4b6e7
 
 ### Remotes
 
@@ -53,15 +55,11 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 | `<addl-labbcat>`[^al] | Production                | Medium  | `new-corpus` | `apls-dev`                        | No     |
 | `apls-dev`            | Development               | Fastish | `upstream`   | `exclusive-apls`, `<feat-branch>` | Yes    |
 | `exclusive-apls`[^ea] | Development               | Fast    | `upstream`   | N/A                               | Yes    |
-| `<feat-branch>`[^fb]  | Development, contribution | Fast    | `apls-dev`   | N/A                               | Yes    |
+| `<feat-branch>`       | Development, contribution | Fast    | `apls-dev`   | N/A                               | Yes    |
 
 [^u]:  Depends on how quickly Robert modifies `upstream/main`
 [^al]: One branch per actually-deployed LaBB-CAT instance, named after its root directory on the server
 [^ea]: Potentially also `exclusive-<addl-labbcat>`
-[^fb]: See [below](#optional-feature-branches).
-
-[`2075533`]: https://github.com/djvill/labbcat-server/tree/2075533
-[`4e13ef8`]: https://github.com/djvill/labbcat-server/tree/4e13ef8
 
 
 ### Commits
@@ -98,7 +96,7 @@ So the process is like:
    1. If I need to throw something out, while in `apls-dev` use `git rebase` to drop commit(s)
 
 
-### Syncing with upstream
+### Syncing with `upstream/main`
 
 Always start from `upstream`, then merge with `apls-dev`:
 
@@ -131,10 +129,12 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 1. Patch:
    1. `git switch apls`
    1. `git merge apls-dev`
-   1. `git stash apply N` -- to point `deploy-user-interface.sh` and `deploy-view.sh` to the right targets (without creating a commit history that differs from `apls-dev`)
+   1. `git stash apply N` -- to point `deploy-user-interface.sh` and `deploy-view.sh` to the right targets[^stash-1]
    1. Run [`deploy-user-interface.sh`](deploy-user-interface.sh)
 1. `git push origin apls`
 1. Repeat the "Patch" step for all other production corpora
+
+[^stash-1]: These changes are stashed rather than committed to `apls` so the `apls` commit history doesn't differ from `apls-dev`.
 
 
 #### Package releases
@@ -151,14 +151,12 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 1. Repeat the "Update" step for `new-corpus`
 1. `git push origin new-corpus`
 
-[^stash-1]: These changes are stashed rather than committed to `apls` so the `apls` commit history doesn't differ from `apls-dev`.
-
 
 ### Suggesting main-trunk changes
   
 1. Ensure `upstream` and `<feat-branch>` are synced with upstream
 1. `git switch <feat-branch>`
-1. `git stash apply N` -- to add `deploy-view.sh` and modify `angular.json`
+1. `git stash apply N` -- to add `deploy-view.sh` and modify `angular.json`[^stash-2]
 1. Run [`deploy-view.sh`](user-interface/src/main/angular/deploy-view.sh)
 1. `git push -u origin <feat-branch>`
 1. At <https://github.com/nzilbb/labbcat-server>, create a PR (with `origin/<feat-branch>` as source) for the suggested change.

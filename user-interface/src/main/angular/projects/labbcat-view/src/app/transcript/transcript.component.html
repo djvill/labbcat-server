@@ -310,29 +310,26 @@
         <div *ngFor="let participant of transcript.all('participant')" class="attribute speaker">
           <label class="participant" [class.main_participant]="participant.first('main_participant')"
             >{{participant.label}}<span *ngIf="participant.first('main_participant')" class="main" i18n> (main participant)</span></label>
-          <lib-link
+          <lib-button
             *ngIf="user && user.roles.includes('edit')"
-            class="buttons"
-            href="edit/participant?id={{ participant.label | urlEncode }}"
+            (press)="viewAttributes(participant.label)"
             img="wrench.svg" icon=",a,"
             i18n-label label="Attributes"
             i18n-title title="Edit this participant's attributes"
-            ></lib-link>
-          <lib-link
+            ></lib-button>
+          <lib-button
             *ngIf="!user || !user.roles.includes('edit')"
-            class="buttons"
-            href="edit/participant?id={{ participant.label | urlEncode }}"
+            (press)="viewAttributes(participant.label)"
             img="csv.svg" icon=",a,"
             i18n-label label="Attributes"
             i18n-title title="View this participant's attributes"
-            ></lib-link>
-          <lib-link
-            class="buttons"
-            href="transcripts?participant_expression=%5B%27{{ participant.label | urlEncode }}%27%5D.includesAny(labels(%27participant%27))&participants={{ participant.label | urlEncode }}"
+            ></lib-button>
+          <lib-button
+            (press)="listTranscripts(participant.label)"
             img="document.svg" icon="📄"
             i18n-label label="List transcripts"
             i18n-title title="List transcripts including this participant"
-            ></lib-link>
+            ></lib-button>
         </div>
         <lib-link *ngIf="user && user.roles.includes('edit')"
                   class="buttons"

@@ -11,7 +11,7 @@ This fork is for developing the [LaBB-CAT] user interface[^ui], with two specifi
     Some finer points:
     
     - By _user interface_, I also mean the framework for developing & deploying the Angular-based LaBB-CAT UI (e.g., [`deploy-user-interface.sh`](deploy-user-interface.sh)).
-    - Some of LaBB-CAT's UI is implemented via the 'classic' [legacy code] based on JavaServer Pages. This UI has increasingly been migrated to the Angular framework, on a page-by-page basis, but (as of March 2025) this migration is still ongoing. As a result, some pages' UI can only be modified via their JSP implementation (stored on the server in `<corpus-root-directory>/mvc/`).
+    - Some of LaBB-CAT's UI is implemented via the 'classic' [legacy code] based on JavaServer Pages. This UI has increasingly been migrated to the Angular framework, on a page-by-page basis, but (as of September 2025) this migration is still ongoing. As a result, some pages' UI can only be modified via their JSP implementation (stored on the server in `<corpus-root-directory>/mvc/`).
     - Down the line, I may try to develop/tailor other functionalities included in both this repo and [`nzilbb/ag`]: the data schema, API, formatter modules, annotator modules, etc.
 
 While these two purposes are in a push-pull relationship, the majority of changes will serve purpose (1).
@@ -29,6 +29,11 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 
 ## Workflow
 
+> [!NOTE]
+> This workflow has been heavily revised relative to the previous version in `9d4b6e7`.
+> That workflow prioritized developing directly in `apls-dev` and cherry-picking from feature branches.
+> But that proved to be a mess when I wanted to contribute to the upstream remote.
+> The current workflow instead prioritizes a hard separation between APLS-specific development and main-trunk development.
 
 ### Remotes
 
@@ -40,16 +45,19 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 
 ### (Local) branches
 
-|                       | Purpose      | Speed   | Start-point  | Cherry-picks from | Merges          | Pushed |
-|-----------------------|--------------|---------|--------------|-------------------|-----------------|--------|
-| `main`                | Creating PRs | Slowest | [`2075533`]  | `apls-dev`        | N/A             | Yes    |
-| `new-corpus`          | Production   | Slow    | [`4e13ef8`]  | N/A               | `apls-dev`      | Yes    |
-| `apls`                | Production   | Medium  | [`4e13ef8`]  | `apls-dev`        | `apls-dev`      | Yes    |
-| `<addl-labbcat>`[^al] | Production   | Medium  | `new-corpus` | `apls-dev`        | `apls-dev`      | No     |
-| `apls-dev`            | Development  | Fast    | [`4e13ef8`]  | N/A               | `<feat-branch>` | Yes    |
-| `<feat-branch>`[^fb]  | Development  | Fast    | `apls-dev`   | N/A               | N/A             | No     |
+|                       | Purpose                   | Speed   | Start-point  | Merges                            | Pushed |
+|-----------------------|---------------------------|---------|--------------|-----------------------------------|--------|
+| `upstream`            | Tracking `upstream/main`  | N/A[^u] | N/A          | `upstream/main`                   | Yes    |
+| `new-corpus`          | Production                | Slow    | `upstream`   | `apls-dev`                        | Yes    |
+| `apls`                | Production                | Medium  | `upstream`   | `apls-dev`                        | Yes    |
+| `<addl-labbcat>`[^al] | Production                | Medium  | `new-corpus` | `apls-dev`                        | No     |
+| `apls-dev`            | Development               | Fastish | `upstream`   | `exclusive-apls`, `<feat-branch>` | Yes    |
+| `exclusive-apls`[^ea] | Development               | Fast    | `upstream`   | N/A                               | Yes    |
+| `<feat-branch>`[^fb]  | Development, contribution | Fast    | `apls-dev`   | N/A                               | Yes    |
 
+[^u]:  Depends on how quickly Robert modifies `upstream/main`
 [^al]: One branch per actually-deployed LaBB-CAT instance, named after its root directory on the server
+[^ea]: Potentially also `exclusive-<addl-labbcat>`
 [^fb]: See [below](#optional-feature-branches).
 
 [`2075533`]: https://github.com/djvill/labbcat-server/tree/2075533
@@ -58,7 +66,7 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 
 ### Commits
 
-- Small, atomic, and targeted (like in upstream).
+- Small, atomic, and targeted (like in upstream remote).
 - Commit messages start with one of the following:
   - app/library name (e.g., [`transcripts`])
   - `Development`
@@ -68,36 +76,41 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 
 ### Development
 
-- Development happens in `apls-dev` (which branched off of `main` .
+- Development happens in `apls-dev`, though changes get **committed** to either:
+  - A feature branch (for features to be suggested to `upstream/main`), or
+  - `exclusive-apls` (for APLS-specific features, like APLS-specific wording or deployment tools)
+- Commits from feature branches and `exclusive-apls` get merged to `apls-dev`
+  - Feature doesn't need to be "complete" before merging
 - For testing purposes, `apls-dev` gets deployed to the APLS-Dev corpus.
 - Always test changes in APLS-Dev (with [`deploy-view.sh`]) before committing.
 - Periodically rebuild the whole app properly with [`deploy-user-interface.sh`]
-- Periodic batches of commits are pushed from `apls-dev` to `origin/apls` for backup purposes.
-- Periodically [sync with upstream](#syncing-with-upstream).
+- Periodic batches of commits are pushed from `apls-dev` to `origin/apls-dev` for backup purposes.
+- Periodically [sync with `upstream/main`](#syncing-with-upstreammain).
 
+So the process is like:
 
-#### Optional: feature branches
-
-- For projects that are more complicated (like making multiple changes to [`lib-layer-checkboxes`]).
-- Branch off of tip of `apls-dev`.
-- While in progress, development happens in the feature branch with deployment to APLS-Dev.
-- Once complete, `git switch apls-dev ; git merge <feat-branch>`.
-- No development in `apls-dev` while feature branch is in-progress, to avoid ambiguity with APLS-Dev.
-- Feature branch doesn't get pushed to `origin`.
+1. `git switch <feat-branch>` (with `-c` if it doesn't exist) or `git switch exclusive-apls`
+1. Create commit(s)
+1. `git switch apls-dev`
+1. `git merge <feat-branch>`
+1. [`deploy-user-interface.sh`](deploy-user-interface.sh)
+1. Assess
+   1. If I need to throw something out, while in `apls-dev` use `git rebase` to drop commit(s)
 
 
 ### Syncing with upstream
 
-Always start from `main`, then merge with `apls-dev`:
+Always start from `upstream`, then merge with `apls-dev`:
 
 ```
-git switch main
+git switch upstream
 git pull upstream main
-git push main
+git push upstream
 git switch apls-dev
-git merge main
+git merge upstream
 ```
 
+Possible future change: Use `git rebase` rather than `git merge`
 
 ### Deployment
 
@@ -113,40 +126,44 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 
 #### Patches 
 
-1. [Sync `apls-dev` with upstream](#syncing-with-upstream)
+1. [Sync `apls-dev` with `upstream/main`](#syncing-with-upstreammain)
+1. [Development workflow](#development)
 1. Patch:
    1. `git switch apls`
-   1. `git cherry-pick <commits>`
-   1. [`deploy-user-interface.sh`]
+   1. `git merge apls-dev`
+   1. `git stash apply N` -- to point `deploy-user-interface.sh` and `deploy-view.sh` to the right targets (without creating a commit history that differs from `apls-dev`)
+   1. Run [`deploy-user-interface.sh`](deploy-user-interface.sh)
 1. `git push origin apls`
 1. Repeat the "Patch" step for all other production corpora
 
 
 #### Package releases
 
-1. [Sync `apls-dev` with upstream](#syncing-with-upstream)
-   - N.B. Possible revision in the future: _Don't_ sync `apls-dev` with upstream _until_ the next (public) LaBB-CAT release.
+1. [Sync `apls-dev` with `upstream/main`](#syncing-with-upstreammain)
 1. Update:
    1. `git switch apls`
    1. `git merge apls-dev`
-   1. Resolve any merge conflicts
-      - If there have been any patches since the last package release, there might be some weirdness, but it'll all work out
-   1. [`deploy-user-interface.sh`]
+   1. `git stash apply N` -- to point `deploy-user-interface.sh` and `deploy-view.sh` to the right targets[^stash-1]
+   1. Run [`deploy-user-interface.sh`](deploy-user-interface.sh)
    1. Increment [APLS version]
 1. `git push origin apls`
 1. Repeat the "Update" step for all other production corpora
 1. Repeat the "Update" step for `new-corpus`
 1. `git push origin new-corpus`
 
+[^stash-1]: These changes are stashed rather than committed to `apls` so the `apls` commit history doesn't differ from `apls-dev`.
+
 
 ### Suggesting main-trunk changes
   
-1. Ensure `apls-dev` and `main` are synced with upstream
-1. `git cherry-pick` the relevant commit(s) from `apls-dev` to `main`.
-1. `git push origin main`
-1. On <https://github.com/nzilbb/labbcat-server>, create a PR (with `origin/main` as source) for the suggested change.
-- N.B. Possible revision in the future: To accommodate multiple simultaneous PRs, PR source should be a feature branch off of `origin/main` rather than `origin/main` itself.
+1. Ensure `upstream` and `<feat-branch>` are synced with upstream
+1. `git switch <feat-branch>`
+1. `git stash apply N` -- to add `deploy-view.sh` and modify `angular.json`
+1. Run [`deploy-view.sh`](user-interface/src/main/angular/deploy-view.sh)
+1. `git push -u origin <feat-branch>`
+1. At <https://github.com/nzilbb/labbcat-server>, create a PR (with `origin/<feat-branch>` as source) for the suggested change.
 
+[^stash-2]: These changes are stashed rather than committed to `<feat-branch>` so the `<feat-branch>` commit history doesn't include changes that shouldn't go in the pull request.
 
 
 [labb-cat]: https://nzilbb.github.io/labbcat-doc

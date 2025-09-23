@@ -71,6 +71,8 @@ export class TranscriptComponent implements OnInit {
 
     threadId : string;
     matchTokens = {} as { [key: string] : number };
+
+    arpabet = true;
     
     constructor(
         private labbcatService : LabbcatService,
@@ -1052,16 +1054,32 @@ export class TranscriptComponent implements OnInit {
         let display = annotation.label;
         if (this.interpretedRaw[annotation.layer.id]) {
             for (let definition of annotation.layer.validLabelsDefinition) {
-                if (definition.display
-                    && (display == definition.label // replace whole labels only
-                        || annotation.layer.type == "ipa") // unless it's a phonological layer
-                   ) { // there is a display version of this label
-                    display = display.replaceAll(definition.label, definition.display);
-                    if (annotation.layer.type != "ipa") { // whole label replaced
-                        break;
+                if (this.arpabet) {
+                    if (definition.display)  { // there is a display version of this label
+			if (display == definition.label) { // whole labels
+ 	                    display = display.replaceAll(definition.label, definition.display);
+			} else { // possibly the annotation is a space-separated string of labels that have a display version
+			    let displayParts = display.split(' ');
+			    if (displayParts.some(a => a == definition.label)) {
+				display = displayParts.map(a => a.replaceAll(definition.label, definition.display)).join(' ');
+			    }
+			}
+		    }
+                } else {
+                    if (definition.display
+                        && (display == definition.label // replace whole labels only
+                            || annotation.layer.type == "ipa") // unless it's a phonological layer
+                       ) { // there is a display version of this label
+                        display = display.replaceAll(definition.label, definition.display);
+                        if (annotation.layer.type != "ipa") { // whole label replaced
+                            break;
+                        }
                     }
                 }
             } // next definition
+	    if (this.arpabet) {
+		display = display.replaceAll(' ', '');
+	    }
         } // a conversion is required
         return display;
     }

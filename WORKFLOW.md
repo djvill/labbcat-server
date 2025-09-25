@@ -47,19 +47,20 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 
 ### (Local) branches
 
-|                       | Purpose                   | Speed   | Start-point  | Merges                            | Pushed |
-|-----------------------|---------------------------|---------|--------------|-----------------------------------|--------|
-| `upstream`            | Tracking `upstream/main`  | N/A[^u] | N/A          | `upstream/main`                   | Yes    |
-| `new-corpus`          | Production                | Slow    | `upstream`   | `apls-dev`                        | Yes    |
-| `apls`                | Production                | Medium  | `upstream`   | `apls-dev`                        | Yes    |
-| `<addl-labbcat>`[^al] | Production                | Medium  | `new-corpus` | `apls-dev`                        | No     |
-| `apls-dev`            | Development               | Fastish | `upstream`   | `exclusive-apls`, `<feat-branch>` | Yes    |
-| `exclusive-apls`[^ea] | Development               | Fast    | `upstream`   | N/A                               | Yes    |
-| `<feat-branch>`       | Development, contribution | Fast    | `apls-dev`   | N/A                               | Yes    |
+|                            | Purpose                   | Speed   | Start-point  | Merges                                      | Pushed |
+|----------------------------|---------------------------|---------|--------------|---------------------------------------------|--------|
+| `upstream`                 | Tracking `upstream/main`  | N/A[^u] | N/A          | `upstream/main`                             | Yes    |
+| `new-corpus`               | Production                | Slow    | `upstream`   | `<feat-branch>`                             | Yes    |
+| `apls`                     | Production                | Medium  | `upstream`   | `apls-dev`                                  | Yes    |
+| `apls-dev`                 | Development               | Fastish | `upstream`   | `exclusive-apls`, `<feat-branch>`           | Yes    |
+| `<addl-labbcat>`[^al]      | Production                | Fastish | `new-corpus` | `exclusive-<addl-labbcat>`, `<feat-branch>` | No     |
+| `exclusive-apls`           | Development               | Fast    | `upstream`   | `<narrow-feat-branch>`                      | Yes    |
+| `exclusive-<addl-labbcat>` | Development               | Fast    | `upstream`   | `<narrow-feat-branch>`                      | Yes    |
+| `<feat-branch>`            | Development, contribution | Fast    | `apls-dev`   | N/A                                         | Yes    |
+| `<narrow-feat-branch>`     | Development               | Fast    | `apls-dev`   | N/A                                         | Yes    |
 
 [^u]:  Depends on how quickly Robert modifies `upstream/main`
 [^al]: One branch per actually-deployed LaBB-CAT instance, named after its root directory on the server
-[^ea]: Potentially also `exclusive-<addl-labbcat>`
 
 
 ### Commits
@@ -75,9 +76,11 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 ### Development
 
 - Development happens in `apls-dev`, though changes get **committed** to either:
-  - A feature branch (for features to be suggested to `upstream/main`), or
-  - `exclusive-apls` (for APLS-specific features, like APLS-specific wording or deployment tools)
-- Commits from feature branches and `exclusive-apls` get merged to `apls-dev`
+  - A **general** feature branch (for features to be suggested to `upstream/main`), or
+  - An **exclusive** production branch like `exclusive-apls` (for features specific to a single corpus, e.g. deployment paths, APLS-specific wording)
+  - A **narrow** feature branch (in between the previous two; features not to be suggested to `upstream/main` but that may be useful for multiple corpora)
+- Narrow feature branches get merged to whichever exclusive production branches are desired
+- General feature branches and `exclusive-apls` get merged to `apls-dev`
   - Feature doesn't need to be "complete" before merging
 - For testing purposes, `apls-dev` gets deployed to the APLS-Dev corpus.
 - Always test changes in APLS-Dev (with [`deploy-view.sh`]) before committing.

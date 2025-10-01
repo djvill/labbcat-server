@@ -9,7 +9,9 @@
                type="text"
                i18n-placeholder placeholder="Username"
                i18n-title title="Your user ID"
-               name="j_username" autofocus></span>
+               name="j_username"
+               (keydown.enter)="login()"
+	       autofocus></span>
     </div>
     <div class="item">
       <label for="password">Password</label>

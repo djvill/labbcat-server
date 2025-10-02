@@ -54,10 +54,10 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 | `apls`                     | Production                | Medium  | `upstream`   | `apls-dev`                                  | Yes    |
 | `apls-dev`                 | Development               | Fastish | `upstream`   | `exclusive-apls`, `<feat-branch>`           | Yes    |
 | `<addl-labbcat>`[^al]      | Production                | Fastish | `new-corpus` | `exclusive-<addl-labbcat>`, `<feat-branch>` | No     |
-| `exclusive-apls`           | Development               | Fast    | `upstream`   | `<narrow-feat-branch>`                      | Yes    |
-| `exclusive-<addl-labbcat>` | Development               | Fast    | `upstream`   | `<narrow-feat-branch>`                      | Yes    |
+| `exclusive-apls`           | Development               | Fast    | `upstream`   | `<limited-feat-branch>`                     | Yes    |
+| `exclusive-<addl-labbcat>` | Development               | Fast    | `upstream`   | `<limited-feat-branch>`                     | Yes    |
 | `<feat-branch>`            | Development, contribution | Fast    | `apls-dev`   | N/A                                         | Yes    |
-| `<narrow-feat-branch>`     | Development               | Fast    | `apls-dev`   | N/A                                         | Yes    |
+| `<limited-feat-branch>`    | Development               | Fast    | `apls-dev`   | N/A                                         | Yes    |
 
 [^u]:  Depends on how quickly Robert modifies `upstream/main`
 [^al]: One branch per actually-deployed LaBB-CAT instance, named after its root directory on the server
@@ -78,7 +78,7 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 - Development happens in `apls-dev`, though changes get **committed** to either:
   - A **general** feature branch (for features to be suggested to `upstream/main`), or
   - An **exclusive** production branch like `exclusive-apls` (for features specific to a single corpus, e.g. deployment paths, APLS-specific wording)
-  - A **narrow** feature branch (in between the previous two; features not to be suggested to `upstream/main` but that may be useful for multiple corpora)
+  - A **limited** feature branch (in between the previous two; features not to be suggested to `upstream/main` but that may be useful for multiple corpora)
 - Narrow feature branches get merged to whichever exclusive production branches are desired
 - General feature branches and `exclusive-apls` get merged to `apls-dev`
   - Feature doesn't need to be "complete" before merging

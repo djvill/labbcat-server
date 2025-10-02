@@ -90,10 +90,11 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 
 So the process is like:
 
-1. `git switch <feat-branch>` (with `-c` if it doesn't exist) or `git switch exclusive-apls`
+1. If a feat branch: `git switch -c <feat-branch> upstream` if it doesn't exist, `git switch <feat-branch>` if it does. Or `git switch exclusive-apls`
 1. Create commit(s)
 1. `git switch apls-dev`
 1. `git merge <feat-branch>`
+   - Possible future tweak: Use GitHub pull requests instead of merging locally, to keep track of what's been merged when (especially given the multiple production branches)
 1. [`deploy-user-interface.sh`](deploy-user-interface.sh)
 1. Assess
    1. If I need to throw something out, while in `apls-dev` use `git rebase` to drop commit(s)
@@ -174,5 +175,6 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 [`transcripts`]: user-interface/src/main/angular/projects/labbcat-view/src/app/transcripts
 [`lib-layer-checkboxes`]: user-interface/src/main/angular/projects/labbcat-common/src/lib/layer-checkboxes
 [apls documentation]: https://djvill.github.io/APLS
-[`deploy-view.sh`]: user-interface/src/main/angular
+[`deploy-view.sh`]: user-interface/src/main/angular/deploy-view.sh
+[`deploy-user-interface.sh`]: deploy-user-interface.sh
 [apls version]: https://github.com/djvill/APLS/tree/main/_versions

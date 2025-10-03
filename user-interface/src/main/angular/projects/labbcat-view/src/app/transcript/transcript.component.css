@@ -309,6 +309,10 @@ nav, nav > div {
     left: 50%;
     white-space: nowrap;
 }
+/* special styling for imported layers */
+.layer-comment, .layer-noise, .layer-redaction {
+    font-style: italic;
+}
 
 .generate-layer {
     display: flex;

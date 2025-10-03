@@ -1,9 +1,6 @@
 #layerSelector {
     margin-bottom: 6px;
 }
-#layerSelector > fieldset {
-    padding: 0px;
-}
 @media all and (min-width: 640px) {
     #layerSelector { 
         display: flex;
@@ -12,8 +9,6 @@
         justify-content: space-between;
     }
     fieldset {
-        padding: 0px;
-        margin: 0px;
         flex-grow: 1;
     }
 }
@@ -90,11 +85,13 @@ img.data-type, img.alignment, img.vertical-peers {
 }
 #controls {
     font-style: italic;
+    display: flex;
+    flex-direction: column;
 }
 @media all and (min-width: 640px) {
     #controls { 
-        display: flex;
         flex-direction: row;
+        align-items: flex-end;
     }
     #controls .label-spacer {
         flex-grow: 1;
@@ -123,4 +120,11 @@ td.layer-id {
 }
 .no-display {
     display: none;
+}
+#controls .control-link {
+    font-style: normal;
+    font-size: 0.85em;
+}
+#controls #about-link {
+    font-style: normal;
 }

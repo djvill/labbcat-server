@@ -25,7 +25,6 @@ fieldset > div > input {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    min-width: 140px;
     max-width: 280px;
 }
 .range input {

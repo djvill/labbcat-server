@@ -6,6 +6,7 @@
 #attributes {
     width: 100%;
     text-align: left;
+    min-width: 70vw;
 }
 .tab-labels label {
     cursor: context-menu;
@@ -115,6 +116,14 @@ details[open] > div {
         display: flex;
         flex-direction: column;
         justify-content: center;
+    }
+    #attributes {
+        min-width: 60vw;
+    }
+}
+@media all and (min-width: 1300px) {
+    #attributes {
+        min-width: 50vw;
     }
 }
 .search-button {

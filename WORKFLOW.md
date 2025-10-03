@@ -67,7 +67,7 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 
 - Small, atomic, and targeted (like in upstream remote).
 - Commit messages start with one of the following:
-  - app/library name (e.g., [`transcripts`])
+  - app/library name (e.g., [`transcripts`], [`layer-checkboxes`])
   - `Development`
   - `Deployment`
   - `Meta` (i.e., documentation)
@@ -79,7 +79,7 @@ Considering all of this, I've settled on a particular workflow for branches, dev
   - A **general** feature branch (for features to be suggested to `upstream/main`), or
   - An **exclusive** production branch like `exclusive-apls` (for features specific to a single corpus, e.g. deployment paths, APLS-specific wording)
   - A **limited** feature branch (in between the previous two; features not to be suggested to `upstream/main` but that may be useful for multiple corpora)
-- Narrow feature branches get merged to whichever exclusive production branches are desired
+- Limited feature branches get merged to whichever exclusive production branches are desired
 - General feature branches and `exclusive-apls` get merged to `apls-dev`
   - Feature doesn't need to be "complete" before merging
 - For testing purposes, `apls-dev` gets deployed to the APLS-Dev corpus.
@@ -91,13 +91,18 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 So the process is like:
 
 1. If a feat branch: `git switch -c <feat-branch> upstream` if it doesn't exist, `git switch <feat-branch>` if it does. Or `git switch exclusive-apls`
-1. Create commit(s)
+1. Modify code
+1. If a feat branch: `git stash apply stash^{/deploy-to-dev}`
+1. Assuming you're in `user-interface/src/main/angular/`, [`deploy-view.sh`]
+1. Assess and optionally commit
+1. Once done with development, `git restore angular.json ; rm deploy-view.sh`
+
+When ready to merge to `apls-dev`:
+
 1. `git switch apls-dev`
 1. `git merge <feat-branch>`
    - Possible future tweak: Use GitHub pull requests instead of merging locally, to keep track of what's been merged when (especially given the multiple production branches)
 1. [`deploy-user-interface.sh`](deploy-user-interface.sh)
-1. Assess
-   1. If I need to throw something out, while in `apls-dev` use `git rebase` to drop commit(s)
 
 
 ### Syncing with `upstream/main`
@@ -133,7 +138,7 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 1. Patch:
    1. `git switch apls`
    1. `git merge apls-dev`
-   1. `git stash apply N` -- to point `deploy-user-interface.sh` and `deploy-view.sh` to the right targets[^stash-1]
+   1. `git stash apply stash^{/deploy-to-apls}` -- to point `deploy-user-interface.sh` and `deploy-view.sh` to the right targets[^stash-1]
    1. Run [`deploy-user-interface.sh`](deploy-user-interface.sh)
 1. `git push origin apls`
 1. Repeat the "Patch" step for all other production corpora
@@ -147,7 +152,7 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 1. Update:
    1. `git switch apls`
    1. `git merge apls-dev`
-   1. `git stash apply N` -- to point `deploy-user-interface.sh` and `deploy-view.sh` to the right targets[^stash-1]
+   1. `git stash apply stash^{/deploy-to-apls}` -- to point `deploy-user-interface.sh` and `deploy-view.sh` to the right targets[^stash-1]
    1. Run [`deploy-user-interface.sh`](deploy-user-interface.sh)
    1. Increment [APLS version]
 1. `git push origin apls`
@@ -173,7 +178,7 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 [legacy code]: https://sourceforge.net/projects/labbcat/
 [`nzilbb/ag`]: https://github.com/nzilbb/ag
 [`transcripts`]: user-interface/src/main/angular/projects/labbcat-view/src/app/transcripts
-[`lib-layer-checkboxes`]: user-interface/src/main/angular/projects/labbcat-common/src/lib/layer-checkboxes
+[`layer-checkboxes`]: user-interface/src/main/angular/projects/labbcat-common/src/lib/layer-checkboxes
 [apls documentation]: https://djvill.github.io/APLS
 [`deploy-view.sh`]: user-interface/src/main/angular/deploy-view.sh
 [`deploy-user-interface.sh`]: deploy-user-interface.sh

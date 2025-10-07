@@ -37,9 +37,9 @@ export class TranscriptsComponent implements OnInit {
     defaultParticipantFilter = "";
     // hints for 'system layers'
     transcriptLayerHint = "Transcript file name";
-    corpusLayerHint = "Corpus";
-    //TODO episodeLayerHint = "Series of transcripts";
-    transcriptTypeLayerHint = "Transcript type";
+    corpusLayerHint = "Collection of transcripts from a single research project";
+    //TODO episodeLayerHint = "Series of transcripts from a single sociolinguistic interview";
+    transcriptTypeLayerHint = "Sociolinguistic interview section";
     // track how many queries we're up to, to avoid old long queries updating the UI when
     // new short queries already have.
     querySerial = 0; 

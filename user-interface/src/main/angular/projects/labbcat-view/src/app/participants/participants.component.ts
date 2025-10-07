@@ -34,9 +34,9 @@ export class ParticipantsComponent implements OnInit {
     transcriptDescription = ""; // Human readable description of transcript query
     defaultTranscriptFilter = "";
     // hints for 'system layers'
-    participantLayerHint = "Participant";
-    corpusLayerHint = "Corpus";
-    episodeLayerHint = "Series of transcripts";
+    participantLayerHint = "APLS speaker code";
+    corpusLayerHint = "Collection of transcripts from a single research project";
+    episodeLayerHint = "Series of transcripts from a single sociolinguistic interview";
     transcriptCountHint = "Number of transcripts the participant appears in";
     // track how many queries we're up to, to avoid old long queries updating the UI when
     // new short queries already have.

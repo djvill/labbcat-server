@@ -47,8 +47,6 @@
                        class="include-count"
                        title-i18n title="How many linked annotations to include">
               </span>
-              <img *ngIf="includeAlignment" class="alignment"
-                   src="{{imagesLocation+'/alignment-0'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]">
             <td class="layer-id"
                 (click)="handleCheckbox(layer.id);">{{displayAttributePrefixes ? layer.id : ParticipantLayerLabel(layer.id)}}</td>
             <td class="layer-count" *ngIf="displayCounts">
@@ -98,8 +96,6 @@
                        class="include-count"
                        title-i18n title="How many linked annotations to include">
               </span>
-              <img *ngIf="includeAlignment" class="alignment"
-                   src="{{imagesLocation+'/alignment-0'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'}}" alt="[🏷]">
             </td>
             <td class="layer-id"
                 (click)="handleCheckbox(layer.id);">{{displayAttributePrefixes ? layer.id : TranscriptLayerLabel(layer.id)}}</td>

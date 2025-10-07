@@ -45,19 +45,19 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 | `upstream` | <https://github.com/nzilbb/labbcat-server> |
 
 
-### (Local) branches
+### Branches
 
-|                            | Purpose                   | Speed   | Start-point  | Merges                                      | Pushed |
-|----------------------------|---------------------------|---------|--------------|---------------------------------------------|--------|
-| `upstream`                 | Tracking `upstream/main`  | N/A[^u] | N/A          | `upstream/main`                             | Yes    |
-| `new-corpus`               | Production                | Slow    | `upstream`   | `<feat-branch>`                             | Yes    |
-| `apls`                     | Production                | Medium  | `upstream`   | `apls-dev`                                  | Yes    |
-| `apls-dev`                 | Development               | Fastish | `upstream`   | `exclusive-apls`, `<feat-branch>`           | Yes    |
-| `<addl-labbcat>`[^al]      | Production                | Fastish | `new-corpus` | `exclusive-<addl-labbcat>`, `<feat-branch>` | No     |
-| `exclusive-apls`           | Development               | Fast    | `upstream`   | `<limited-feat-branch>`                     | Yes    |
-| `exclusive-<addl-labbcat>` | Development               | Fast    | `upstream`   | `<limited-feat-branch>`                     | Yes    |
-| `<feat-branch>`            | Development, contribution | Fast    | `apls-dev`   | N/A                                         | Yes    |
-| `<limited-feat-branch>`    | Development               | Fast    | `apls-dev`   | N/A                                         | Yes    |
+|                            | Purpose                   | Speed   | Start-point  | Merges                                      |
+|----------------------------|---------------------------|---------|--------------|---------------------------------------------|
+| `upstream`                 | Tracking `upstream/main`  | N/A[^u] | N/A          | `upstream/main`                             |
+| `new-corpus`               | Production                | Slow    | `upstream`   | `<feat-branch>`                             |
+| `apls`                     | Production                | Medium  | `upstream`   | `apls-dev`                                  |
+| `apls-dev`                 | Development               | Fastish | `upstream`   | `exclusive-apls`, `<feat-branch>`           |
+| `<addl-labbcat>`[^al]      | Production                | Fastish | `new-corpus` | `exclusive-<addl-labbcat>`, `<feat-branch>` |
+| `exclusive-apls`           | Development               | Fast    | `upstream`   | `<limited-feat-branch>`                     |
+| `exclusive-<addl-labbcat>` | Development               | Fast    | `upstream`   | `<limited-feat-branch>`                     |
+| `<feat-branch>`            | Development, contribution | Fast    | `apls-dev`   | N/A                                         |
+| `<limited-feat-branch>`    | Development               | Fast    | `apls-dev`   | N/A                                         |
 
 [^u]:  Depends on how quickly Robert modifies `upstream/main`
 [^al]: One branch per actually-deployed LaBB-CAT instance, named after its root directory on the server

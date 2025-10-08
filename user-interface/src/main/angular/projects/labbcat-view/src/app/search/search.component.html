@@ -253,7 +253,7 @@
               <input type="checkbox" [(ngModel)]="firstMatchOnly" id="firstMatchOnly" >
               <span i18n>Only one match per transcript.</span></label>
           </div>
-          <div class="item">
+          <div *ngIf="this.overlapOption" class="item">
             <label i18n-title title="Exclude simultaneous speech">
               <input type="checkbox"[(ngModel)]="excludeSimultaneousSpeech">
               <span i18n="... [n]% overlap">Exclude utterances with more than</span></label>    

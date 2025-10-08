@@ -31,6 +31,7 @@ export class SearchComponent implements OnInit {
     mainParticipantOnly: boolean;
     onlyAligned: boolean;
     firstMatchOnly: boolean;
+    overlapOption = false;
     excludeSimultaneousSpeech: boolean;
     overlapThreshold: number;
     suppressResults: boolean;

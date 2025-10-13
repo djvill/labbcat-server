@@ -47,6 +47,7 @@ export class TranscriptComponent implements OnInit {
     defaultLayerIds = ["noise","comment","word"];
     layerSelectionEnabled = false;
     selectedLayerIds : string[];
+    disabledLayerIds : string[];
     interpretedRaw: { [key: string] : boolean };
 
     temporalBlocks : { consecutive : boolean, utterances : Annotation[] }[];
@@ -89,6 +90,7 @@ export class TranscriptComponent implements OnInit {
     ) {
         this.imagesLocation = this.environment.imagesLocation;
         this.selectedLayerIds = [];
+        this.disabledLayerIds = [];
         this.interpretedRaw = {};
         this.layerStyles = {};
         this.categoryLabels = [];
@@ -496,6 +498,7 @@ export class TranscriptComponent implements OnInit {
                             } else {
                                 this.schema.layers[l].description
                                     += ' (0 annotations)'; // TODO i18n
+                                this.disabledLayerIds.push(l);
                             }
                         });
                 } // next temporal layer

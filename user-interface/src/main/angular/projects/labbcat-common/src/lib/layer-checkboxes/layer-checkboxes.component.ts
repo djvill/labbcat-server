@@ -77,6 +77,8 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() excludeOptionsForLayerId: string[];
     /** Input list of IDs of selected (ticked) layers */
     @Input() selected: string[];
+    /** Input list of IDs of preselected (ticked) layers for which we don't want to display their project */
+    @Input() preselected: string[];
     /** Output list of IDs of selected (ticked) layers */
     @Output() selectedChange = new EventEmitter<string[]>();
     /** Input list of layers with interpreted (true) or raw (false) labels */
@@ -170,7 +172,7 @@ export class LayerCheckboxesComponent implements OnInit {
             let layer = this.schema.layers[l] as Layer;
             if (this.selected.includes(layer.id)) {
                 layer._selected = true;
-                if (layer.category) {
+                if (layer.category && !this.preselected.includes(layer.id)) {
                     this.categorySelections[layer.category] = true;
                 }
             }

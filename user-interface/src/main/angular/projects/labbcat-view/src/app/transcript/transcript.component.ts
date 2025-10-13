@@ -44,7 +44,7 @@ export class TranscriptComponent implements OnInit {
     displayLayerIds: boolean;
     displayAttributePrefixes: boolean;
 
-    defaultLayerIds = ["noise","comment"];
+    defaultLayerIds = ["noise","comment","word"];
     layerSelectionEnabled = false;
     selectedLayerIds : string[];
     interpretedRaw: { [key: string] : boolean };

@@ -54,7 +54,7 @@
             </td>
             <td class="interpretation">
               <lib-small-button
-                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id)"
+                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id) && layer._selected && !this.disabled.includes(layer.id)"
                 i18n-title title="Toggle between displaying IPA vs. DISC symbols"
                 img="interpreted.svg" icon="🏷"
                 [disabled]="this.disabled.includes(layer.id)"
@@ -104,7 +104,7 @@
             </td>
             <td class="interpretation">
               <lib-small-button
-                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id)"
+                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id) && layer._selected && !this.disabled.includes(layer.id)"
                 i18n-title title="Toggle between displaying IPA vs. DISC symbols"
                 img="interpreted.svg" icon="🏷"
                 [disabled]="this.disabled.includes(layer.id)"
@@ -175,7 +175,7 @@ s                   i18n-title="Layer vertical-peers descriptions"
             </td>
             <td class="interpretation">
               <lib-small-button
-                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id)"
+                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id) && layer._selected && !this.disabled.includes(layer.id)"
                 i18n-title title="Toggle between displaying IPA vs. DISC symbols"
                 img="interpreted.svg" icon="🏷"
                 [disabled]="this.disabled.includes(layer.id)"
@@ -269,7 +269,7 @@ s                   i18n-title="Layer vertical-peers descriptions"
             </td>
             <td class="interpretation">
               <lib-small-button
-                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id)"
+                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id) && layer._selected && !this.disabled.includes(layer.id)"
                 i18n-title title="Toggle between displaying IPA vs. DISC symbols"
                 img="interpreted.svg" icon="🏷"
                 [disabled]="this.disabled.includes(layer.id)"
@@ -366,7 +366,7 @@ s                   i18n-title="Layer vertical-peers descriptions"
             </td>
             <td class="interpretation">
               <lib-small-button
-                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id)"
+                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id) && layer._selected && !this.disabled.includes(layer.id)"
                 i18n-title title="Toggle between displaying IPA vs. DISC symbols"
                 img="interpreted.svg" icon="🏷"
                 [disabled]="this.disabled.includes(layer.id)"
@@ -458,7 +458,7 @@ s                   i18n-title="Layer vertical-peers descriptions"
             </td>
             <td class="interpretation">
               <lib-small-button
-                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id)"
+                *ngIf="displayIcons && interpretedRaw.hasOwnProperty(layer.id) && layer._selected && !this.disabled.includes(layer.id)"
                 i18n-title title="Toggle between displaying IPA vs. DISC symbols"
                 img="interpreted.svg" icon="🏷"
                 [disabled]="this.disabled.includes(layer.id)"

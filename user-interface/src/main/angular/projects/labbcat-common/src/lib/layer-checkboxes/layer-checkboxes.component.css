@@ -77,7 +77,6 @@ img.data-type, img.alignment, img.vertical-peers {
     content: ')';
 }
 .interpreted-selector {
-    margin-left: 10px;
     height: 15px;
 }
 .deselected {

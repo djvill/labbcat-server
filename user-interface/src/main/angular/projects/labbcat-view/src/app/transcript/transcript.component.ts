@@ -47,7 +47,7 @@ export class TranscriptComponent implements OnInit {
     defaultLayerIds = ["noise","comment","word"];
     layerSelectionEnabled = false;
     selectedLayerIds : string[];
-    disabledLayerIds : string[];
+    disabledLayerIds = ["word"];
     interpretedRaw: { [key: string] : boolean };
 
     temporalBlocks : { consecutive : boolean, utterances : Annotation[] }[];
@@ -90,7 +90,6 @@ export class TranscriptComponent implements OnInit {
     ) {
         this.imagesLocation = this.environment.imagesLocation;
         this.selectedLayerIds = [];
-        this.disabledLayerIds = [];
         this.interpretedRaw = {};
         this.layerStyles = {};
         this.categoryLabels = [];

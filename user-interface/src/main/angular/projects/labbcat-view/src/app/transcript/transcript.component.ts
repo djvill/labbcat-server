@@ -481,7 +481,6 @@ export class TranscriptComponent implements OnInit {
                     if (layer.id == this.schema.episodeLayerId) continue;
                     if (layer.id == this.schema.participantLayerId) continue;
                     // a temporal layer
-                    this.layerStyles[l] = { color: "silver" };
                     this.labbcatService.labbcat.countAnnotations(
                         this.transcript.id, l, (count, errors, messages) => {
                             this.layerCounts[l] = count;
@@ -493,11 +492,11 @@ export class TranscriptComponent implements OnInit {
                                     this.schema.layers[l].description
                                         += ` (${count} annotations)`; // TODO i18n
                                 }
-                                this.layerStyles[l] = {};
                             } else {
                                 this.schema.layers[l].description
                                     += ' (0 annotations)'; // TODO i18n
                                 this.disabledLayerIds.push(l);
+                                this.layerStyles[l] = { color: "silver" };
                             }
                         });
                 } // next temporal layer

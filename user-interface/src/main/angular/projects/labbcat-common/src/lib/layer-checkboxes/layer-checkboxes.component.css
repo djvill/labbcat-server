@@ -23,6 +23,9 @@
     animation-name: fade-in;
     animation-duration: 750ms;
 }
+.checkbox, .layer-icons, .interpretation {
+    width: 0rem;
+}
 .include-count {
     width: 4ch;
 }
@@ -64,14 +67,14 @@
 }
 .share-end:checked + label .locked { display: inherit; }
 .share-end:checked + label .unlocked { display: none; }
-
 img.data-type, img.alignment, img.vertical-peers {
     height: 1rem;
     margin-right: 0.2rem;
     cursor: help;
 }
 .layer-count span:before {
-    content: ' (';
+    margin-left: 0.2rem;
+    content: '(';
 }
 .layer-count span:after {
     content: ')';

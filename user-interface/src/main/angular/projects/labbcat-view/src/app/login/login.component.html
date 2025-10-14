@@ -1,6 +1,6 @@
 <h1 i18n="Page title">Login</h1>
+<h2>APLS: the Archive of Pittsburgh Language and Speech</h2>
 <div id="login-form">
-  <p *ngIf="error" class="error" i18n>Login error</p>
   <div class="list">
     <div class="item">
       <label for="username" i18n>Username</label>
@@ -32,4 +32,26 @@
         [disabled]="!username || !password"
         (press)="login()"></lib-button>
     </div>
+</div>
+<div id="links">
+  <ul>
+    <li class="item link">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdFclWfbWZ-aM-h3Givrr4mH9T4MjyWaeQ-TpTMriC5mOcoqw/viewform?usp=sf_link" target="_blank">
+        <img src="./user-interface/en/assets/fa-user-plus.svg">
+        <span class="dash-label" i18n>Sign up</span>
+      </a>
+    </li>
+    <li class="item link">
+      <a href="https://djvill.github.io/APLS/" target="_blank">
+        <img src="./user-interface/en/assets/fa-book.svg">
+        <span class="dash-label" i18n>Documentation</span>
+      </a>
+    </li>
+    <li *ngIf="error" class="item link">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSdW9U912VhiZN2sjFk6jQFulhY82YNdqkQQRKVJT2LvAFvqnw/viewform?usp=sf_link" target="_blank">
+        <img src="./user-interface/en/assets/fa-unlock.svg">
+        <span class="dash-label" i18n>Forgot username/password?</span>
+      </a>
+    </li>
+  </ul>
 </div>

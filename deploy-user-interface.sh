@@ -11,7 +11,7 @@ then
     rm -rf "$LOCAL_LABBCAT/user-interface/*"
     cp -r user-interface/target/labbcat-view/browser/* "$LOCAL_LABBCAT/user-interface/"
     for svg in "$LOCAL_LABBCAT"/user-interface/*/*/*svg ; do
-	if [[ "$svg" == *help.svg ]] ; then
+	if [[ "$svg" == *help.svg || "$svg" == *fa-*.svg ]] ; then
             sed -i 's/#859044/#003594/g' "$svg";
 	else
             sed -i 's/#859044/#FFB81C/g' "$svg";

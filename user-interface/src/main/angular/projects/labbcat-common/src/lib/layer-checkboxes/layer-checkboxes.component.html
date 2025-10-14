@@ -42,7 +42,9 @@
               <span class="layer-options"
                     *ngIf="layer._selected && !this.excludeOptionsForLayerId.includes(layer.id)">
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="1" step="1" value="1"
+                       type="number" min="0" step="1" value="1"
+                       (click)="blankZeroIncludeCount($event.target)"
+                       i18n-placeholder placeholder="all"
                        name="include_count_{{layer.id}}"
                        class="include-count"
                        title-i18n title="How many linked annotations to include">
@@ -92,7 +94,10 @@
                 (click)="handleCheckbox(layer.id)">
               <span class="layer-options" *ngIf="layer._selected && !this.excludeOptionsForLayerId.includes(layer.id)">
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="1" step="1" value="1" name="include_count_{{layer.id}}"
+                       type="number" min="0" step="1" value="1"
+                       (click)="blankZeroIncludeCount($event.target)"
+                       i18n-placeholder placeholder="all"
+                       name="include_count_{{layer.id}}"
                        class="include-count"
                        title-i18n title="How many linked annotations to include">
               </span>
@@ -141,7 +146,10 @@
             <td class="layer-options">
               <span class="layer-options" *ngIf="layer._selected && !this.excludeOptionsForLayerId.includes(layer.id)">
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="1" step="1" value="1" name="include_count_{{layer.id}}"
+                       type="number" min="0" step="1" value="1"
+                       (click)="blankZeroIncludeCount($event.target)"
+                       i18n-placeholder placeholder="all"
+                       name="include_count_{{layer.id}}"
                        class="include-count"
                        title-i18n title="How many linked annotations to include">
                 <select name="relationship_{{layer.id}}" *ngIf="includeRelationship == true">
@@ -227,7 +235,10 @@ s                   i18n-title="Layer vertical-peers descriptions"
                   </label>
                 </ng-container>
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="1" step="1" value="1" name="include_count_{{layer.id}}"
+                       type="number" min="0" step="1" value="1"
+                       (click)="blankZeroIncludeCount($event.target)"
+                       i18n-placeholder placeholder="all"
+                       name="include_count_{{layer.id}}"
                        class="include-count"
                        title-i18n title="How many linked annotations to include">
                 <ng-container *ngIf="IsAnchorable(layer)">
@@ -322,7 +333,10 @@ s                   i18n-title="Layer vertical-peers descriptions"
                   </label>
                 </ng-container>
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="1" step="1" value="1" name="include_count_{{layer.id}}"
+                       type="number" min="0" step="1" value="1"
+                       (click)="blankZeroIncludeCount($event.target)"
+                       i18n-placeholder placeholder="all"
+                       name="include_count_{{layer.id}}"
                        class="include-count"
                        title-i18n title="How many linked annotations to include">
                 <ng-container *ngIf="IsAnchorable(layer)">
@@ -421,7 +435,10 @@ s                   i18n-title="Layer vertical-peers descriptions"
                   </label>
                 </ng-container>
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="1" step="1" value="1" name="include_count_{{layer.id}}"
+                       type="number" min="0" step="1" value="1"
+                       (click)="blankZeroIncludeCount($event.target)"
+                       i18n-placeholder placeholder="all"
+                       name="include_count_{{layer.id}}"
                        class="include-count"
                        title-i18n title="How many linked annotations to include">
                 <ng-container *ngIf="IsAnchorable(layer)">

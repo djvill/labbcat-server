@@ -13,6 +13,7 @@ export class PasswordComponent {
 
     changed = false;
     processing = false;
+    error = false;
 
     constructor(
         private labbcatService: LabbcatService,
@@ -35,9 +36,11 @@ export class PasswordComponent {
                     if (messages) messages.forEach(m => this.messageService.info(m));
                     if (errors) {
                         errors.forEach(m => this.messageService.error(m));
+                        this.error = true;
                     } else {
                         this.currentPassword = this.newPassword = this.repeatPassword = "";
                         this.changed = false;
+                        this.error = false;
                     }
                 });
         }

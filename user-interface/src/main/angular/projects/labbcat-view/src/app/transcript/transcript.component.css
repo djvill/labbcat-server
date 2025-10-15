@@ -27,7 +27,7 @@ lib-wait {
 #transcript {
     max-width: 1000px;
     margin: auto;
-    margin-top: 50px; /* Don't have media cover up tabs */
+    margin-top: 55px; /* Don't have media cover up tabs */
 }
 .main-participant {
     font-weight: bold;
@@ -48,7 +48,7 @@ lib-wait {
 }
 .playing {
     animation-name: fade-background-in;
-    animation-duration: 2s;
+    animation-duration: 0.5s;
     background-color: lightgray;
 }
 @keyframes fade-background-out {
@@ -57,7 +57,7 @@ lib-wait {
 }
 .played {
     animation-name: fade-background-out;
-    animation-duration: 2s;
+    animation-duration: 0.5s;
     background-color: transparent;
 }
 .layer-word {
@@ -67,6 +67,7 @@ lib-wait {
 #word-menu {
     position: absolute;
     z-index: 10;
+    background-color: #AAAAAA;
 }
 #word-menu .header {
     height: 18px;

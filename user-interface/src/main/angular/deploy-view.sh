@@ -29,6 +29,13 @@ if (
   cd dist/labbcat-view/browser
   cp -t "$LL_UI" index.html *js *css
   cp media/* "$LL_UI/media"
+  for svg in "$LL_UI"/media/*svg ; do
+    if [[ "$svg" == "$LL_UI"/media/sine*.svg ]] ; then
+      sed -i 's/#96a339/#003594/g' "$svg";
+    else
+      sed -i 's/#859044/#FFB81C/g' "$svg";
+    fi
+  done
   echo Built at $(date)
 fi
 

@@ -158,14 +158,14 @@
                    [checked]="precheckedCsvOptions.includes('labbcat_version')">
             <span i18n="csv options">LaBB-CAT version</span>
           </label>
-          <label i18n-title title="Version of the corpus data - always exported">
+          <label i18n-title title="APLS version - always exported">
             <input type="checkbox" name="csv_option"
                    value="data_version"
                    [checked]="precheckedCsvOptions.includes('data_version')"
                    [disabled]="precheckedCsvOptions.includes('data_version')">
             <input type="hidden" name="csv_option" value="data_version"
                    *ngIf="precheckedCsvOptions.includes('data_version')">
-            <span i18n="csv options">Data version</span>
+            <span i18n="csv options">APLS version</span>
           </label>
           <label i18n-title title="Identifier for this search - always exported">
             <input type="checkbox" name="csv_option"
@@ -182,18 +182,6 @@
                    value="result_number"
                    [checked]="precheckedCsvOptions.includes('result_number')">
             <span i18n="csv options">Result number</span>
-          </label>
-          <label i18n-title title="Start time of the transcript relative to the beginning of the whole episode">
-            <input type="checkbox" name="csv_option"
-                   value="series_offset"
-                   [checked]="precheckedCsvOptions.includes('series_offset')">
-            <span i18n="csv options">Episode offset</span>
-          </label>
-          <label i18n-title title="End time of the transcript relative to the beginning of the whole episode">
-            <input type="checkbox" name="csv_option"
-                   value="series_length"
-                   [checked]="precheckedCsvOptions.includes('series_length')">
-            <span i18n="csv options">Episode length</span>
           </label>
           <label i18n-title title="Start time of the utterance relative to the beginning of the transcript">
             <input type="checkbox" name="csv_option"

@@ -22,3 +22,11 @@ details > .advanced > ul {
 details > .advanced li ul {
     padding-inline-start: 40px;
 }
+.header {
+    padding-top: 10px;
+    font-weight: 700;
+}
+#targetColumn label {
+    display: inline-block;
+    min-width: 150px;
+}

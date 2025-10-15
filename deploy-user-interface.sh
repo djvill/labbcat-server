@@ -13,6 +13,8 @@ then
     for svg in "$LOCAL_LABBCAT"/user-interface/*/*/*svg ; do
 	if [[ "$svg" == *help.svg || "$svg" == *fa-*.svg ]] ; then
             sed -i 's/#859044/#003594/g' "$svg";
+	elif [[ "$svg" == *sine-*.svg ]] ; then
+            sed -i 's/#96a339/#003594/g' "$svg";
 	else
             sed -i 's/#859044/#FFB81C/g' "$svg";
         fi

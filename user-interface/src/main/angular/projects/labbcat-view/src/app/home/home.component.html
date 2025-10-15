@@ -21,6 +21,12 @@
 
 <div id="dashboard">
   <div id="link">
+    <div class="item link" id="apls-101" title="APLS 101">
+      <a href="https://djvill.github.io/APLS/doc/apls-101-getting-started" target="_blank">
+        <img src="{{baseUrl}}images/dashboard/howto.svg" />
+        <span class="dash-label">APLS 101</span>
+      </a>
+    </div>
     <ng-container *ngFor="let item of link">
       <div class="item {{item.type}}"
            id="item_{{item.item_id}}"

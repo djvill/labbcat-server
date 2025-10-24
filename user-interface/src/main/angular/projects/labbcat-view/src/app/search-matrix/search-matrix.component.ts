@@ -21,7 +21,7 @@ export class SearchMatrixComponent implements OnInit, OnChanges {
     imagesLocation : string;
     
     controlsLinks = {
-        layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of search docpage about layer picker
+        layerIcons: 'https://djvill.github.io/APLS/doc/search-other-layers#layer-picker-icons', 
         about: {
             text: 'About layers',
             href: 'https://djvill.github.io/APLS/doc/layers-and-attributes'

@@ -149,13 +149,27 @@ export class TranscriptComponent implements OnInit {
                         this.defaultLayerIds = sessionLayerIds as string[];
                     }
                 }
-                if (!this.defaultLayerIds) this.defaultLayerIds = [];
                 if (searchedLayerIds && searchedLayerIds.length > 0) {
+                    if (!this.defaultLayerIds) this.defaultLayerIds = [];
                     for (let l of searchedLayerIds) {
                         if (!this.defaultLayerIds.includes(l)) {
                             this.defaultLayerIds.push(l);
                         }
                     }
+                }
+                if (!this.defaultLayerIds) {
+                    this.labbcatService.labbcat.getSystemAttribute(
+                        "defaultLayers", (attribute, errors, messages) => {
+                            if (attribute.value) {
+                                this.defaultLayerIds = attribute.value.split(",")
+                                    .filter(l=>l); // no blanks
+                            } else {
+                                this.defaultLayerIds = ["noise", "comment"];
+                            }
+                            resolve();
+                        });
+                } else {
+                    resolve();
                 }
             }); // loadThread ... then
         }); // Promise
@@ -491,6 +505,10 @@ export class TranscriptComponent implements OnInit {
                                 } else {
                                     this.schema.layers[l].description
                                         += ` (${count} annotations)`; // TODO i18n
+                                }
+                                if (!this.selectedLayerIds.includes(l)) { // not ticked
+                                    // clear style, so the name is black instead of grey
+                                    this.layerStyles[l] = {};
                                 }
                             } else {
                                 this.schema.layers[l].description

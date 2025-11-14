@@ -175,6 +175,19 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 [^stash-2]: These changes are **not** committed to `<feat-branch>`, so the `<feat-branch>` commit history doesn't include changes that shouldn't go in the pull request.
 
 
+## Useful Git idioms
+
+| Idiom | Purpose |
+|-------|---------|
+| `git diff --name-status --diff-filter=U | while read a b ; do notepad++ $b ; done`[^id-1] | When there's a merge conflict, open up each file in Notepad++ for conflict resolution. |
+| `git log --oneline --no-merges branch1 ^branch2` | View commits on `branch1` that aren't on `branch2` (ignoring merge commits) |
+| `git branch -a --contains SHA` | View all branches that contain `SHA` |
+| `git branch --(no-)merged` | View all branches that are(n't) merged with the current branch |
+| `git push origin branch1 branch2` | Push multiple branches to `origin` |
+
+[^id-1]: Only works in root directory.
+
+
 [labb-cat]: https://nzilbb.github.io/labbcat-doc
 [apls]: https://apls.pitt.edu
 [legacy code]: https://sourceforge.net/projects/labbcat/

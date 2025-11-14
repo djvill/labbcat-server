@@ -1,4 +1,4 @@
-<div class="valid-label-helper" [class.hierarchical]="categories">
+<div class="valid-label-helper" [class.hierarchical]="categories" (click)="dontHide($event)">
   <ng-container *ngIf="!categories"><!-- non-hierarchical picker -->
     <span *ngFor="let label of Object.keys(layer.validLabels)">
       <a href="#" class="valid-label" title="{{layer.validLabels[label]}}" (click)="select($event, label)">{{label}}</a>

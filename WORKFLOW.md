@@ -92,8 +92,9 @@ So the process is like:
 
 1. If a feat branch: `git switch -c <feat-branch> upstream` if it doesn't exist, `git switch <feat-branch>` if it does. Or `git switch exclusive-apls`
 1. Modify code
-1. If a feat branch: `git stash apply stash^{/deploy-to-dev}`
-1. Assuming you're in `user-interface/src/main/angular/`, [`deploy-view.sh`]
+1. `cd user-interface/src/main/angular/`
+1. If a feat branch: `git restore -s apls-dev angular.json deploy-view.sh`
+1. Run [`deploy-view.sh`]
 1. Assess and optionally commit
 1. Once done with development, `git restore angular.json ; rm deploy-view.sh`
 
@@ -138,12 +139,12 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 1. Patch:
    1. `git switch apls`
    1. `git merge apls-dev`
-   1. `git stash apply stash^{/deploy-to-apls}` -- to point `deploy-user-interface.sh` and `deploy-view.sh` to the right targets[^stash-1]
-   1. Run [`deploy-user-interface.sh`](deploy-user-interface.sh)
+   1. `sed -i 's/apls-dev/labbcat/' deploy-user-interface.sh`[^stash-1]
+   1. Run [`deploy-user-interface.sh`]
 1. `git push origin apls`
 1. Repeat the "Patch" step for all other production corpora
 
-[^stash-1]: These changes are stashed rather than committed to `apls` so the `apls` commit history doesn't differ from `apls-dev`.
+[^stash-1]: These changes **not** committed to `apls`, so the `apls` commit history doesn't diverge from `apls-dev`.
 
 
 #### Package releases
@@ -152,8 +153,8 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 1. Update:
    1. `git switch apls`
    1. `git merge apls-dev`
-   1. `git stash apply stash^{/deploy-to-apls}` -- to point `deploy-user-interface.sh` and `deploy-view.sh` to the right targets[^stash-1]
-   1. Run [`deploy-user-interface.sh`](deploy-user-interface.sh)
+   1. `sed -i 's/apls-dev/labbcat/' deploy-user-interface.sh`[^stash-1]
+   1. Run [`deploy-user-interface.sh`]
    1. Increment [APLS version]
 1. `git push origin apls`
 1. Repeat the "Update" step for all other production corpora
@@ -165,12 +166,13 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
   
 1. Ensure `upstream` and `<feat-branch>` are synced with upstream
 1. `git switch <feat-branch>`
-1. `git stash apply N` -- to add `deploy-view.sh` and modify `angular.json`[^stash-2]
-1. Run [`deploy-view.sh`](user-interface/src/main/angular/deploy-view.sh)
+1. `cd user-interface/src/main/angular/`
+1. `git restore -s apls-dev angular.json deploy-view.sh`[^stash-2]
+1. Run [`deploy-view.sh`]
 1. `git push -u origin <feat-branch>`
 1. At <https://github.com/nzilbb/labbcat-server>, create a PR (with `origin/<feat-branch>` as source) for the suggested change.
 
-[^stash-2]: These changes are stashed rather than committed to `<feat-branch>` so the `<feat-branch>` commit history doesn't include changes that shouldn't go in the pull request.
+[^stash-2]: These changes are **not** committed to `<feat-branch>`, so the `<feat-branch>` commit history doesn't include changes that shouldn't go in the pull request.
 
 
 [labb-cat]: https://nzilbb.github.io/labbcat-doc

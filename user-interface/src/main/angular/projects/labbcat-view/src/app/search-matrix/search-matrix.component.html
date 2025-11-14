@@ -93,8 +93,8 @@
                     id="regexp-{{c}}-{{layerId}}-{{m}}"></lib-input-regexp>
                   <lib-input-regexp
                     *ngIf="!isCaseSensitive(match)"
-                    i18n-placeholder placeholder="Regular expression (A=a)"
-                    i18n-title title="Regular expression (case sensitive)"
+                    i18n-placeholder placeholder="Regular expression"
+                    i18n-title title="Regular expression"
                     type="text"
                     [(value)]="match.pattern"
                     autofocus="true"
@@ -138,8 +138,8 @@
                     id="regexp-{{c}}-{{layerId}}-{{m}}"></lib-input-regexp>
                   <lib-input-regexp
                     *ngIf="!isCaseSensitive(match)"
-                    i18n-placeholder placeholder="Regular expression (A=a)"
-                    i18n-title title="Regular expression (case insensitive)"
+                    i18n-placeholder placeholder="Regular expression"
+                    i18n-title title="Regular expression"
                     type="text" className="string"
                     [(value)]="match.pattern"
                     autofocus="true"

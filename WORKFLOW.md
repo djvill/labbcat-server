@@ -54,7 +54,7 @@ Considering all of this, I've settled on a particular workflow for branches, dev
 | `apls`                     | Production                | Medium  | `upstream`   | `apls-dev`                                  |
 | `apls-dev`                 | Development               | Fastish | `upstream`   | `exclusive-apls`, `<feat-branch>`           |
 | `<addl-labbcat>`[^al]      | Production                | Fastish | `new-corpus` | `exclusive-<addl-labbcat>`, `<feat-branch>` |
-| `exclusive-apls`           | Development               | Fast    | `upstream`   | `<limited-feat-branch>`                     |
+| `exclusive-apls`           | Development               | Fast    | `upstream`   | `<limited-feat-branch>`, `apls-dev`         |
 | `exclusive-<addl-labbcat>` | Development               | Fast    | `upstream`   | `<limited-feat-branch>`                     |
 | `<feat-branch>`            | Development, contribution | Fast    | `apls-dev`   | N/A                                         |
 | `<limited-feat-branch>`    | Development               | Fast    | `apls-dev`   | N/A                                         |

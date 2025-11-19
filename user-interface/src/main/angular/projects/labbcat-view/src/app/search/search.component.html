@@ -244,9 +244,9 @@
           </div>
           <div class="item">
             <label i18n-title
-                   title="Return words that have been reliably word-aligned - e.g. by HTK or manually">
+                   title="Return tokens that have been reliably time-aligned - e.g. by HTK or manually">
               <input type="checkbox" [(ngModel)]="onlyAligned" id="onlyAligned">
-              <span i18n>Only match words that are aligned.</span></label>
+              <span i18n>Only match tokens that have <span class="layer-id">segment</span> alignments.</span></label>
           </div>
           <div class="item">
             <label i18n-title title="Return only the first match in each transcript">

@@ -80,3 +80,9 @@ label > span {
         flex-direction: column;
     }
 }
+.disabled {
+    color: silver;
+}
+label > :first-child {
+    margin-left: 3px;
+}

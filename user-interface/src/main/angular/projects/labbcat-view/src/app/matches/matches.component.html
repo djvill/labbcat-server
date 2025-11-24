@@ -1,10 +1,11 @@
 <h1 id="title">{{name}}</h1>
 
-<p>{{status}}
+<p>{{task && task.csv ? status.replace('Found', 'Uploaded') : status}}
+  <span *ngIf="task && task.csv">from {{task.csv}}</span>
   <span
     *ngIf="taskDuration"
     i18n-title title="Time that it took LaBB-CAT to find these results"
-    i18n> in {{taskDuration}} milliseconds</span>
+    i18n="in (duration) milliseconds"> in {{taskDuration}} milliseconds</span>
   <span
     *ngIf="totalUtteranceDuration"
     i18n-title title="Total duration (minutes:seconds) of all utterances with at least one result"
@@ -25,10 +26,16 @@
   <input #todo type="hidden" name="todo" value="">
   <div id="check-all-top">
     
-    <label i18n-title title="Select all results including those not shown here">
-      <input type="checkbox" [(checked)]="selectAll" (change)="all()"
-             [disabled]="task.csv">
+    <label *ngIf="!task.csv"
+      i18n-title title="Select all results, including those not shown here">
+      <input type="checkbox" [(checked)]="selectAll" (change)="all()">
       <span i18n="select all results">Select all results</span>
+      ({{matchCount}})
+    </label>
+    <label *ngIf="task.csv"
+      i18n-title title="It's not possible to select individual results for re-uploaded matches">
+      <input type="checkbox" checked disabled>
+      <span i18n="select all results">All results selected</span>
       ({{matchCount}})
     </label>
     
@@ -58,10 +65,19 @@
       <div class="match-number">
         {{matches.indexOf(match) + 1}}.
       </div>
-      <div class="match-id">
+      <div *ngIf="!task.csv" class="match-id">
         <lib-grouped-checkbox
           group="match"
           i18n-title title="To select individual results, untick 'select all N results'"
+          name="utterance"
+          value="{{match.MatchId}}"
+          [checked]="match._selected" (checkedChange)="match._selected = !match._selected"
+          [disabled]="selectAll"></lib-grouped-checkbox>
+      </div>
+      <div *ngIf="task.csv" class="match-id">
+        <lib-grouped-checkbox
+          group="match"
+          i18n-title title="It's not possible to select individual results for re-uploaded matches"
           name="utterance"
           value="{{match.MatchId}}"
           [checked]="match._selected" (checkedChange)="match._selected = !match._selected"
@@ -98,10 +114,12 @@
       </lib-button>
     </div>
   <div id="check-all-bottom">
-    <label i18n-title title="Select all results including those not shown here">
+    <label *ngIf="!task.csv"
+      i18n-title title="Select all results including those not shown here">
       <input type="checkbox" [(checked)]="selectAll" (change)="all()"             
              [disabled]="task.csv">
-      <span i18n="select all results">Select all results</span>
+      <span i18n="select all results"
+        [class.disabled]="task.csv">Select all results</span>
       ({{matchCount}})
     </label>
   </div>
@@ -279,12 +297,14 @@
       </select>
     </label>
     <div i18n-title title="Prefix each exported file name with the match number"><label>
-        <span i18n>Prefix names</span>
         <input name="prefix" type="checkbox" [checked]="prefixNames" (change)="togglePrefixNames()">
+        <span i18n>Add prefixes to file names</span>
     </label></div>
-    <div i18n-title title="Tag target annotation in each file"><label>
-      <span i18n>Tag targets</span>
-      <input name="tag" type="checkbox" checked>
+    <div i18n-title title="Include a TextGrid tier that tags target annotation(s) in each file"><label>
+      <input name="tag" type="checkbox"
+        [checked]="mimeType == 'text/praat-textgrid'"
+        [disabled]="mimeType != 'text/praat-textgrid'">
+      <span i18n [class.disabled]="mimeType != 'text/praat-textgrid'">Include "target" tier</span>
     </label></div>
     <fieldset>
     <legend i18n>Layers to export</legend>
@@ -311,8 +331,8 @@
   </div>
   <div id="audio-options" class="{{showAudioOptions?'short-unhidden-panel':'short-hidden-panel'}}">
     <div i18n-title title="Prefix each exported file name with the match number"><label>
-        <span i18n>Prefix names</span>
         <input name="prefix" type="checkbox" [checked]="prefixNames" (change)="togglePrefixNames()">
+        <span i18n>Add prefixes to file names</span>
     </label></div>
     <div *ngIf="task.csvColumns" id="audio-columns">
       <div class="header">Columns</div>
@@ -330,16 +350,27 @@
       </label></div>
     </div>
   </div>
-  <div id="dictionary" class="controls">
+  <div *ngIf="!task.csv" id="dictionary" class="controls">
     <lib-button (press)="dictionary();"
-                [disabled]="task.csv"                
                 img="book.svg" icon="📕"
                 i18n-label label="Dictionary Export"></lib-button>
     <lib-button (press)="dictionaryOptions();"
-                [disabled]="task.csv"                
                 img="down-triangle.png"
                 [icon]="showDictionaryOptions ? '▲' : '▼'"
                 [imgStyle]="showDictionaryOptions ? 'transform: rotate(180deg); transition: transform 0.25s linear;' : 'transition: transform 0.25s linear;'"
+                i18n-title title="Dictionary options"
+                ></lib-button>
+  </div>
+  <div *ngIf="task.csv" id="dictionary" class="controls">
+    <lib-button (press)="dictionary();"
+                [disabled]="true"
+                img="book.svg" icon="📕"
+                i18n-label label="Dictionary Export"
+                i18n-title title="Dictionary Export (not possible with re-uploaded matches)"></lib-button>
+    <lib-button (press)="dictionaryOptions();"
+                [disabled]="true"
+                img="down-triangle.png"
+                icon="▼"
                 i18n-title title="Dictionary options"
                 ></lib-button>
   </div>

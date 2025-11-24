@@ -345,14 +345,14 @@
       <!-- export tab -->
       <div *ngIf="currentCategory == 'Export'" id="export">
         <ul>
-          <li *ngIf="originalFile"><span i18n="export original transcript">Original transcript:</span>
+          <li><span i18n="export original transcript">Original transcript:</span>
             <ul>
               <li id="original-file-link"
                   i18n-title title="Original transcript file"
                   [ngClass]="{'divergent': transcript.first('divergent')}"
                   [attr.title]="transcript.first('divergent')?'The text of this transcript may have changed since the original file was uploaded':null"><!-- TODO i18n -->
                   
-                <a href="{{originalFile}}"
+                <a href="{{baseUrl}}api/files?id={{transcript.id | urlEncode}}"
                    class="lnk"
                    (click)="divergentCheck();"
                    download="{{transcript.id}}">

@@ -179,9 +179,9 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 
 | Idiom | Purpose |
 |-------|---------|
-| `git diff --name-status --diff-filter=U | while read a b ; do notepad++ $b ; done`[^id-1] | When there's a merge conflict, open up each file in Notepad++ for conflict resolution. |
+| `git diff --name-status --diff-filter=U \| while read a b ; do notepad++ $b ; done`[^id-1] | When there's a merge conflict, open up each file in Notepad++ for conflict resolution. |
 | `git log --oneline --no-merges branch1 ^branch2` | View commits on `branch1` that aren't on `branch2` (ignoring merge commits) |
-| `git branch -a --contains SHA` | View all branches that contain `SHA` |
+| `git branch -a --contains SHA` | View all branches that contain commit `SHA` |
 | `git branch --(no-)merged` | View all branches that are(n't) merged with the current branch |
 | `git push origin branch1 branch2` | Push multiple branches to `origin` |
 

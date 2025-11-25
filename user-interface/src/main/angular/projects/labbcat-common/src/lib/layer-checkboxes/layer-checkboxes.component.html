@@ -154,24 +154,30 @@
                 </select>
               </span>
             </td>
-            <td *ngIf="displayIcons && (includeDataType || includeAlignment || includeVerticalPeers)" class="layer-icons">
-              <img *ngIf="includeDataType" class="data-type"
-                   [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : 'file')+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
-                   i18n-title="Layer data types"
-                   [title]="'Data type: ' + (['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='number' ? 'Numeric' : layer.type)"
+            <td *ngIf="displayIcons && includeDataType"
+                class="data-type"
+                i18n-title="Layer data types"
+                [title]="'Data type: ' + (['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='number' ? 'Numeric' : 'file')">
+              <img [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : '?'"
                    (click)="handleCheckbox(layer.id)">
-              <img *ngIf="includeAlignment" class="alignment"
-                   [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
-                   i18n-title="Layer alignment descriptions"
-                   [title]="'Alignment: ' + (['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval')"
+            </td>
+            <td *ngIf="displayIcons && includeAlignment"
+                class="alignment"
+                i18n-title="Layer alignment descriptions"
+                [title]="'Alignment: ' + (['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval')">
+              <img [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' "
                    (click)="handleCheckbox(layer.id)">
-              <img *ngIf="includeVerticalPeers" class="vertical-peers"
-                   [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
-                   [alt]="layer.peersOverlap ? '[|=]' : ''"
-s                   i18n-title="Layer vertical-peers descriptions"
-                   [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')"
+            </td>
+            <td *ngIf="displayIcons && includeVerticalPeers"
+                class="vertical-peers"
+                i18n-title="Layer vertical peer descriptions"
+                [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')">
+              <img *ngIf="layer.peersOverlap"
+                   [src]="imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" 
+                   alt="[|=]"
+                   i18n-title title="Allows vertical peers: True"
                    (click)="handleCheckbox(layer.id)">
             </td>
             <td class="layer-id"
@@ -250,24 +256,30 @@ s                   i18n-title="Layer vertical-peers descriptions"
                 </ng-container>
               </span>
             </td>
-            <td *ngIf="displayIcons && (includeDataType || includeAlignment || includeVerticalPeers)" class="layer-icons">
-              <img *ngIf="includeDataType" class="data-type"
-                   [title]="'Data type: ' + (['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='number' ? 'Numeric' : 'file')"
-                   [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
-                   i18n-title="Layer data types"
+            <td *ngIf="displayIcons && includeDataType"
+                class="data-type"
+                i18n-title="Layer data types"
+                [title]="'Data type: ' + (['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='number' ? 'Numeric' : 'file')">
+              <img [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : '?'"
                    (click)="handleCheckbox(layer.id)">
-              <img *ngIf="includeAlignment" class="alignment"
-                   [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
-                   i18n-title="Layer alignment descriptions"
-                   [title]="'Alignment: ' + (['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval')"
+            </td>
+            <td *ngIf="displayIcons && includeAlignment"
+                class="alignment"
+                i18n-title="Layer alignment descriptions"
+                [title]="'Alignment: ' + (['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval')">
+              <img [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' "
                    (click)="handleCheckbox(layer.id)">
-              <img *ngIf="includeVerticalPeers" class="vertical-peers"
-                   [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
-                   [alt]="layer.peersOverlap ? '[|=]' : ''"
-                   i18n-title="Layer vertical-peers descriptions"
-                   [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')"
+            </td>
+            <td *ngIf="displayIcons && includeVerticalPeers"
+                class="vertical-peers"
+                i18n-title="Layer vertical peer descriptions"
+                [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')">
+              <img *ngIf="layer.peersOverlap"
+                   [src]="imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" 
+                   alt="[|=]"
+                   i18n-title title="Allows vertical peers: True"
                    (click)="handleCheckbox(layer.id)">
             </td>
             <td class="layer-id"
@@ -345,28 +357,34 @@ s                   i18n-title="Layer vertical-peers descriptions"
                 </ng-container>
               </span>
             </td>
-            <td *ngIf="displayIcons && (includeDataType || includeAlignment || includeVerticalPeers)" class="layer-icons">
+            <td *ngIf="displayIcons && includeDataType"
+                class="data-type"
+                i18n-title="Layer data types"
+                [title]="'Data type: ' + (['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='number' ? 'Numeric' : 'file')">
               <!-- TODO 
                    Potentially replace layer.subtype=='X' with layer_manager_id=='StanfordParser'
                    Currently, layer.subtype can only be set to X by modifying the MySQL table
                 -->
-              <img *ngIf="includeDataType" class="data-type"
-                   [title]="'Data type: ' + (['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='number' ? 'Numeric' : 'file')"
-                   [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
-                   i18n-title="Layer data types"
+              <img [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : '?'"
                    (click)="handleCheckbox(layer.id)">
-              <img *ngIf="includeAlignment" class="alignment"
-                   [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
-                   i18n-title="Layer alignment descriptions"
-                   [title]="'Alignment: ' + (['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval')"
+            </td>
+            <td *ngIf="displayIcons && includeAlignment"
+                class="alignment"
+                i18n-title="Layer alignment descriptions"
+                [title]="'Alignment: ' + (['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval')">
+              <img [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' "
                    (click)="handleCheckbox(layer.id)">
-              <img *ngIf="includeVerticalPeers" class="vertical-peers"
-                   [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
-                   [alt]="layer.peersOverlap ? '[|=]' : ''"
-                   i18n-title="Layer vertical-peers descriptions"
-                   [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')"
+            </td>
+            <td *ngIf="displayIcons && includeVerticalPeers"
+                class="vertical-peers"
+                i18n-title="Layer vertical peer descriptions"
+                [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')">
+              <img *ngIf="layer.peersOverlap"
+                   [src]="imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" 
+                   alt="[|=]"
+                   i18n-title title="Allows vertical peers: True"
                    (click)="handleCheckbox(layer.id)">
             </td>
             <td class="layer-id"
@@ -444,24 +462,30 @@ s                   i18n-title="Layer vertical-peers descriptions"
                 </ng-container>
               </span>
             </td>
-            <td *ngIf="displayIcons && (includeDataType || includeAlignment || includeVerticalPeers)" class="layer-icons">
-              <img *ngIf="includeDataType" class="data-type"
-                   [title]="'Data type: ' + (['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='number' ? 'Numeric' : 'file')"
-                   [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
-                   i18n-title="Layer data types"
+            <td *ngIf="displayIcons && includeDataType"
+                class="data-type"
+                i18n-title="Layer data types"
+                [title]="'Data type: ' + (['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='number' ? 'Numeric' : 'file')">
+              <img [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : '?'"
                    (click)="handleCheckbox(layer.id)">
-              <img *ngIf="includeAlignment" class="alignment"
-                   [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
-                   i18n-title="Layer alignment descriptions"
-                   [title]="'Alignment: ' + (['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval')"
+            </td>
+            <td *ngIf="displayIcons && includeAlignment"
+                class="alignment"
+                i18n-title="Layer alignment descriptions"
+                [title]="'Alignment: ' + (['turn','word','segment'].includes(layer.id) && spoofAlignment ? 'Complete interval' : layer.alignment==2? 'Sub-interval' :layer.alignment==1? 'Timepoint' : 'Complete interval')">
+              <img [src]="imagesLocation+'/alignment-'+(['turn','word','segment'].includes(layer.id) && spoofAlignment ? 0 : layer.alignment)+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','word','segment'].includes(layer.id) && spoofAlignment ? '[🏷]' : layer.alignment==2? '[↔]' :layer.alignment==1? '[📌]' : '[🏷]' "
                    (click)="handleCheckbox(layer.id)">
-              <img *ngIf="includeVerticalPeers" class="vertical-peers"
-                   [src]="layer.peersOverlap ? imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg' : undefined" 
-                   [alt]="layer.peersOverlap ? '[|=]' : ''"
-                   i18n-title="Layer vertical-peers descriptions"
-                   [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')"
+            </td>
+            <td *ngIf="displayIcons && includeVerticalPeers"
+                class="vertical-peers"
+                i18n-title="Layer vertical peer descriptions"
+                [title]="'Allows vertical peers: ' + (layer.peersOverlap ? 'True' : 'False')">
+              <img *ngIf="layer.peersOverlap"
+                   [src]="imagesLocation + '/vertical-peers'+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'" 
+                   alt="[|=]"
+                   i18n-title title="Allows vertical peers: True"
                    (click)="handleCheckbox(layer.id)">
             </td>
             <td class="layer-id"

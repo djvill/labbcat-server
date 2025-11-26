@@ -23,7 +23,7 @@
             i18n="layer type header">Participant</legend>
     <table><tbody>
         <ng-container *ngFor="let layer of participantAttributes">
-          <tr *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
+          <tr *ngIf="!layer.category || categorySelections[layer.category] || layer._selected"
               [title]="layer.hint"
               class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
               [style]="styles[layer.id]">
@@ -76,7 +76,7 @@
             i18n="layer type header">Transcript</legend>
     <table><tbody>
         <ng-container *ngFor="let layer of transcriptAttributes">
-          <tr *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
+          <tr *ngIf="!layer.category || categorySelections[layer.category] || layer._selected"
               [title]="layer.hint"
               class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
               [style]="styles[layer.id]">
@@ -129,7 +129,7 @@
             i18n="layer type header">Span</legend>
     <table><tbody>
         <ng-container *ngFor="let layer of spanLayers">
-          <tr *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
+          <tr *ngIf="!layer.category || categorySelections[layer.category] || layer._selected"
               [title]="layer.description"
               class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
               [style]="styles[layer.id]">
@@ -211,7 +211,7 @@
             i18n="layer type header">Phrase</legend>
     <table><tbody>
         <ng-container *ngFor="let layer of phraseLayers">
-          <tr *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
+          <tr *ngIf="!layer.category || categorySelections[layer.category] || layer._selected"
               [title]="layer.description"
               class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
               [style]="styles[layer.id]">
@@ -316,7 +316,7 @@
             i18n="layer type header">Word</legend>
     <table><tbody>
         <ng-container *ngFor="let layer of wordLayers">
-          <tr *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
+          <tr *ngIf="!layer.category || categorySelections[layer.category] || layer._selected"
               [title]="layer.description"
               class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
               [style]="styles[layer.id]">
@@ -435,7 +435,7 @@
             i18n="layer type header" >Segment</legend>
     <table><tbody>
         <ng-container *ngFor="let layer of segmentLayers">
-          <tr *ngIf="!category || !layer.category || categorySelections[layer.category] || layer._selected"
+          <tr *ngIf="!layer.category || categorySelections[layer.category] || layer._selected"
               [title]="layer.description"
               class="layer-{{layer.id}}{{this.disabled.includes(layer.id) ? ' disabled-layer' : ''}}"
               [ngStyle]="styles[layer.id]">
@@ -544,7 +544,7 @@
     </tbody></table>
   </fieldset>
 </div>
-<fieldset *ngIf="!hideControls && (participant || transcript || includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}' || (annotationCounts | json) != '{}' || controlsLinks['about'])" id="controls">
+<fieldset *ngIf="!hideControls && (participant || transcript || hiddenCategory || includeDataType || includeAlignment || includeVerticalPeers || (interpretedRaw | json) != '{}' || (annotationCounts | json) != '{}' || controlsLinks['about'])" id="controls">
   <div *ngIf="participant || transcript" class="label-spacer">
     <label
       i18n-title title="Show full names for participant/transcript attributes">
@@ -556,6 +556,22 @@
     </label>
     <span *ngIf="controlsLinks['attributePrefixes']"
       class="control-link"> (<a [href]="controlsLinks['attributePrefixes']" target="_blank" i18n>about</a>)
+    </span>
+  </div>
+  <div
+    *ngIf="hiddenCategory"
+    class="label-spacer">
+    <label
+      i18n-title="Show checkboxes for layers in the (hidden) project"
+      title="Show checkboxes for layers in the '{{hiddenCategory}}' project">
+      <input
+        type="checkbox"
+        [checked]="displayHiddenLayers"
+        (change)="toggleHiddenLayers()">
+      <span i18n> Show hidden layers</span>
+    </label>
+    <span *ngIf="controlsLinks['hiddenLayers']"
+      class="control-link"> (<a [href]="controlsLinks['hiddenLayers']" target="_blank" i18n>about</a>)
     </span>
   </div>
   <div

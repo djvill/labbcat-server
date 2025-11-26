@@ -52,6 +52,7 @@ export class TranscriptsComponent implements OnInit {
     mimeType = "text/praat-textgrid";
 
     controlsLinks = {
+        hiddenLayers: 'https://djvill.github.io/APLS/doc/layer-typology#project', //TODO update to section of browsing transcripts docpage about layer picker
         layerIcons: 'https://djvill.github.io/APLS/doc/browse-transcripts#layer-picker-icons',
         about: {
             text: 'About layers and attributes',

@@ -31,6 +31,10 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() includeDataType: boolean;
     /** Display layer counts */
     @Input() displayCounts: boolean;
+    /** Display layers in hiddenCategory (if not using a category selector) */
+    @Input() displayHiddenLayers: boolean;
+    /** Layer category to be hidden if displayHiddenLayers is false */
+    @Input() hiddenCategory: string;
     /** Show the alignment of each layer */
     @Input() includeAlignment: boolean;
     /** Show alignment as 0 for turn/word/segment */
@@ -133,6 +137,7 @@ export class LayerCheckboxesComponent implements OnInit {
         if (!this.interpretedRaw) this.interpretedRaw = {};
         if (!this.verticalPeersUnderline) this.verticalPeersUnderline = {};
         if (!this.controlsLinks) this.controlsLinks = {};
+        if (!this.hiddenCategory) this.hiddenCategory = "";
     }
 
     loadSchema(): void {
@@ -158,21 +163,28 @@ export class LayerCheckboxesComponent implements OnInit {
         this.displayCounts = JSON.parse(sessionStorage.getItem("displayLayerCounts")) ??
             (typeof this.displayCounts == "string" ? this.displayCounts === "true" : this.displayCounts) ??
             true;
+        this.displayHiddenLayers = JSON.parse(sessionStorage.getItem("displayHiddenLayers")) ??
+            (typeof this.displayHiddenLayers == "string" ? this.displayHiddenLayers === "true" : this.displayHiddenLayers) ??
+            false;
         if (!this.selected) this.selected = [] as string[];
 
         // add category selectors in defined order
         for (let c in this.schema.categories) {
             if (c.startsWith("participant_")) { // participant attribute category
-                if (this.participant) this.categorySelections[c] = false;
+                if (this.participant) this.categorySelections[c] = !this.category;
             } else if (c.startsWith("transcript_")) {  // transcript attribute category
-                if (this.transcript) this.categorySelections[c] = false;
+                if (this.transcript) this.categorySelections[c] = !this.category;
             } else  { // temporal layer category/project
                 if (this.span || this.phrase || this.word) {
-                     this.categorySelections[c] = false;
+                    this.categorySelections[c] = !this.category;
                 }
             }
-
         } // next category
+        
+        // deselect hidden layers if applicable
+        if (!this.category && !this.displayHiddenLayers && this.hiddenCategory) {
+            this.categorySelections[this.hiddenCategory] = false;
+        }
         
         for (let l in this.schema.layers) {
             let layer = this.schema.layers[l] as Layer;
@@ -310,6 +322,11 @@ export class LayerCheckboxesComponent implements OnInit {
     toggleLayerCounts(): void {
         this.displayCounts = !this.displayCounts;
         sessionStorage.setItem("displayLayerCounts", JSON.stringify(this.displayCounts));
+    }
+    toggleHiddenLayers(): void {
+        this.displayHiddenLayers = !this.displayHiddenLayers;
+        sessionStorage.setItem("displayHiddenLayers", JSON.stringify(this.displayHiddenLayers));
+        this.categorySelections[this.hiddenCategory] = this.displayHiddenLayers;
     }
     blankZeroIncludeCount(input: HTMLInputElement): void {
         if (Number(input.value) <= 0) input.value = "";

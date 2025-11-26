@@ -80,6 +80,7 @@ export class MatchesComponent implements OnInit {
     phoneAlignmentLayerId: string;
     
     controlsLinksCSV = {
+        hiddenLayers: 'https://djvill.github.io/APLS/doc/layer-typology#project', //TODO update to section of exporting data docpage about layer picker
         layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of exporting data docpage about layer picker
         about: {
             text: 'About layers and attributes',
@@ -87,6 +88,7 @@ export class MatchesComponent implements OnInit {
         }
     };
     controlsLinksSerialization = {
+        hiddenLayers: 'https://djvill.github.io/APLS/doc/layer-typology#project', //TODO update to section of exporting data docpage about layer picker
         layerIcons: 'https://djvill.github.io/APLS/doc/layer-typology', //TODO update to section of exporting data docpage about layer picker
         about: {
             text: 'About layers',

@@ -283,6 +283,7 @@
           category="true"
           [styles]="layerStyles"
           [interpretedRaw]="interpretedRaw"
+          [verticalPeersUnderline]="verticalPeersUnderline"
           [selected]="selectedLayerIds"
           [preselected]="defaultLayerIds"
           [disabled]="disabledLayerIds"
@@ -689,15 +690,15 @@
               <ng-container *ngFor="let l of selectedLayerIds">
                 <span *ngIf="isWordLayer(transcript.schema.layers[l])"
                       class="layer layer-{{l}} alignment-{{transcript.schema.layers[l].alignment}}"
+                      [class.underline-vertical-peers]="verticalPeersUnderline[l]"
                       style="color: {{transcript.schema.layers[l].colour}};"
                       i18n-title="no annotation" title="{{l}}{{word.labels(l).length > 1 ? ' [' + word.labels(l).length + ']' : ''}}: {{(allowsVerticalPeers(transcript.schema.layers[l]) ? word.labels(l).toReversed().join(' ') : word.labels(l).join(' ')) || '(no annotation)'}}">
                   <span *ngFor="let annotation of word.all(l)"
                         id="{{annotation.id}}"
                         [class.highlight]="annotation.id == highlitId"
-                        class="annotation">
+                        class="annotation word-annotation">
                     <ng-container *ngIf="!annotation._editing">
                       {{renderLabel(annotation)}}</ng-container>
-                    <ng-container *ngIf="!(editableTagLayer(l) && annotation.ordinal == 1)">&nbsp;</ng-container>
                     <ng-container *ngIf="editableTagLayer(l) && annotation.ordinal == 1">
                       <input *ngIf="annotation._editing"
                              type="text"
@@ -738,7 +739,7 @@
                     [class.menu-word]="menuId == word.id"
                     (click)="menuId = menuId == word.id?null:word.id; $event.stopPropagation();"
                     [attr.title]="matchTokens[word.id]?'Result '+matchTokens[word.id]:null">
-                <span id="{{word.id}}" class="annotation">{{renderLabel(word)}}&nbsp;</span>
+                <span id="{{word.id}}" class="annotation word-annotation">{{renderLabel(word)}}</span>
               </span>
               <div *ngIf="menuId == word.id"
                    id="word-menu" class="menu">
@@ -823,6 +824,7 @@
               <ng-container *ngFor="let l of selectedLayerIds">
                 <span *ngIf="isSegmentLayer(transcript.schema.layers[l])"
                       class="layer layer-{{l}} segment"
+                      [class.underline-vertical-peers]="verticalPeersUnderline[l]"
                       style="color: {{transcript.schema.layers[l].colour}};"
                       i18n-title="no annotation" title="{{l}}: {{word.labels(l).join(' ') || '(no annotation)'}}">
                   <span *ngFor="let annotation of word.all(l)"

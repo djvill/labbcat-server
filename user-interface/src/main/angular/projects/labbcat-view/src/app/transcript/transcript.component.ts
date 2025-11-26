@@ -49,6 +49,7 @@ export class TranscriptComponent implements OnInit {
     selectedLayerIds : string[];
     disabledLayerIds = ["word"];
     interpretedRaw: { [key: string] : boolean };
+    verticalPeersUnderline: { [key: string] : boolean };
 
     temporalBlocks : { consecutive : boolean, utterances : Annotation[] }[];
     
@@ -91,6 +92,7 @@ export class TranscriptComponent implements OnInit {
         this.imagesLocation = this.environment.imagesLocation;
         this.selectedLayerIds = [];
         this.interpretedRaw = {};
+        this.verticalPeersUnderline = {};
         this.layerStyles = {};
         this.categoryLabels = [];
         this.layerCounts = {};
@@ -235,6 +237,10 @@ export class TranscriptComponent implements OnInit {
                                 break; // only need one
                             }
                         } // next label
+                    }
+                    // determine which layers have vertical peers underline selectors
+                    if (this.allowsVerticalPeers(layer) && (this.isWordLayer(layer) || this.isSegmentLayer(layer))) {
+                        this.verticalPeersUnderline[layer.id] = false; // no underline by default
                     }
                     // identify transcript attribute layers
                     if (layer.parentId == "transcript"

@@ -85,6 +85,10 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() interpretedRaw: { [key: string] : any };
     /** Output list of layers with interpreted (true) or raw (false) labels */
     @Output() interpretedRawChange = new EventEmitter<{ [key: string] : any }>();
+    /** Input list of layers with underlines to indicate vertical peers (true) or not (false) */
+    @Input() verticalPeersUnderline: { [key: string] : any };
+    /** Output list of layers with underlines to indicate vertical peers (true) or not (false) */
+    @Output() verticalPeersUnderlineChange = new EventEmitter<{ [key: string] : any }>();
     /** Links for controls bar - key is the control name (e.g. layerIcons), value is the URL.
         key = 'about' for the right-hand help, with value {text: (link text), href: (URL) }*/
     @Input() controlsLinks: { [key: string] : any };
@@ -127,6 +131,7 @@ export class LayerCheckboxesComponent implements OnInit {
         if (!this.preselected) this.preselected = [];
         if (!this.annotationCounts) this.annotationCounts = {};
         if (!this.interpretedRaw) this.interpretedRaw = {};
+        if (!this.verticalPeersUnderline) this.verticalPeersUnderline = {};
         if (!this.controlsLinks) this.controlsLinks = {};
     }
 
@@ -288,7 +293,12 @@ export class LayerCheckboxesComponent implements OnInit {
             this.interpretedRawChange.emit(this.interpretedRaw);
         }
     }
-    
+    handleVerticalPeersUnderline(layerId:string): void {
+        if (!this.disabled || !this.disabled.includes(layerId)) {
+            this.verticalPeersUnderline[layerId] = !this.verticalPeersUnderline[layerId];
+            this.verticalPeersUnderlineChange.emit(this.verticalPeersUnderline);
+        }
+    }
     toggleLayerIcons(): void {
         this.displayIcons = !this.displayIcons;
         sessionStorage.setItem("displayLayerIcons", JSON.stringify(this.displayIcons));

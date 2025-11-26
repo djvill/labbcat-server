@@ -413,9 +413,9 @@
                 (press)="handleInterpretedRaw(layer.id)"
                 ></lib-small-button>
             </td>            
-            <td class="underline-vertical-peers">
+            <td *ngIf="displayIcons" class="underline-vertical-peers">
               <lib-small-button
-                *ngIf="includeVerticalPeers && layer.peersOverlap"
+                *ngIf="includeVerticalPeers && layer.peersOverlap && layer._selected && !this.disabled.includes(layer.id)"
                 i18n-title title="Whether to underline annotations that have vertical peers"
                 img="vertical-peers-underline.svg" icon="_"
                 [disabled]="this.disabled.includes(layer.id)"
@@ -528,9 +528,9 @@
                 (press)="handleInterpretedRaw(layer.id)"
                 ></lib-small-button>
             </td>
-            <td class="underline-vertical-peers">
+            <td *ngIf="displayIcons" class="underline-vertical-peers">
               <lib-small-button
-                *ngIf="includeVerticalPeers && layer.peersOverlap"
+                *ngIf="includeVerticalPeers && layer.peersOverlap && layer._selected && !this.disabled.includes(layer.id)"
                 i18n-title title="Whether to underline annotations that have vertical peers"
                 img="vertical-peers-underline.svg" icon="_"
                 [disabled]="this.disabled.includes(layer.id)"

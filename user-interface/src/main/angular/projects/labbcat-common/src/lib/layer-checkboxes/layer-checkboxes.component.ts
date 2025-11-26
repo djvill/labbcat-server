@@ -118,7 +118,6 @@ export class LayerCheckboxesComponent implements OnInit {
         if (!this.disabled) this.disabled = [];
         if (!this.excludeOptionsForLayerId) this.excludeOptionsForLayerId = [];
         if (!this.annotationCounts) this.annotationCounts = {};
-        if (!this.interpretedRaw) this.interpretedRaw = {};
     }
 
     loadSchema(): void {
@@ -144,6 +143,9 @@ export class LayerCheckboxesComponent implements OnInit {
         this.displayCounts = JSON.parse(sessionStorage.getItem("displayLayerCounts")) ??
             (typeof this.displayCounts == "string" ? this.displayCounts === "true" : this.displayCounts) ??
             true;
+        this.interpretedRaw = JSON.parse(sessionStorage.getItem("interpretedLabels")) ??
+            this.interpretedRaw ??
+            {};
         if (!this.selected) this.selected = [] as string[];
 
         // add category selectors in defined order
@@ -275,6 +277,7 @@ export class LayerCheckboxesComponent implements OnInit {
         if (!this.disabled || !this.disabled.includes(layerId)) {
             this.interpretedRaw[layerId] = !this.interpretedRaw[layerId];
             this.interpretedRawChange.emit(this.interpretedRaw);
+            sessionStorage.setItem("interpretedLabels", JSON.stringify(this.interpretedRaw));
         }
     }
     

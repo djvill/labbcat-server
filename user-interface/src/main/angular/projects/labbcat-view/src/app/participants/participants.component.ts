@@ -94,17 +94,6 @@ export class ParticipantsComponent implements OnInit {
             this.filterValues[this.schema.corpusLayerId] = [];
             this.filterLayers.push(episodeLayer);
             this.filterValues[this.schema.episodeLayerId] = [];
-            // and transcript count - we use a dummy layer to fool the layer-filter
-            this.schema.layers["--transcript-count"] = {
-                id: "--transcript-count", description: "Transcript count", // TODO i18n
-                parentId: this.schema.participantLayerId,                    
-                alignment: 0,
-                peers: false, peersOverlap: false, parentIncludes: true, saturated: true,
-                type: "number", subtype: "integer",
-                hint: this.transcriptCountHint
-            }
-            this.filterLayers.push(this.schema.layers["--transcript-count"]);
-            this.filterValues["--transcript-count"] = [];
             // and by selected participant attributes
             for (let layerId in this.schema.layers) {
                 const layer = this.schema.layers[layerId] as Layer;
@@ -117,6 +106,17 @@ export class ParticipantsComponent implements OnInit {
                     }
                 }
             }
+            // and transcript count - we use a dummy layer to fool the layer-filter
+            this.schema.layers["--transcript-count"] = {
+                id: "--transcript-count", description: "Transcript count", // TODO i18n
+                parentId: this.schema.participantLayerId,                    
+                alignment: 0,
+                peers: false, peersOverlap: false, parentIncludes: true, saturated: true,
+                type: "number", subtype: "integer",
+                hint: this.transcriptCountHint
+            }
+            this.filterLayers.splice(-1, 0, this.schema.layers["--transcript-count"]);
+            this.filterValues["--transcript-count"] = [];
             // read default transcript filter
             this.labbcatService.labbcat.getSystemAttribute("defaultTranscriptFilter",
                 (attribute, errors, messages) => {

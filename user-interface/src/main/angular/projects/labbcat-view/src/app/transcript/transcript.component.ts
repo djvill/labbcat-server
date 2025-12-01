@@ -100,6 +100,10 @@ export class TranscriptComponent implements OnInit {
                 });
             });
             this.readSerializers();
+            console.log("ngOnInit() this.interpretedRaw", this.interpretedRaw);
+            this.interpretedRaw = JSON.parse(sessionStorage.getItem("interpretedLabels")) ??
+                this.interpretedRaw ??
+                {};
             this.readSchema().then(() => {
                 this.readTranscript().then(()=>{ // some have to wait until transcript is loaded
                     this.readAvailableMedia().then(()=>{
@@ -211,6 +215,11 @@ export class TranscriptComponent implements OnInit {
                 this.generableLayers = [];
                 this.attributes = [];
                 this.categoryLayers = {};
+                console.log("readSchema() 1 this.interpretedRaw", this.interpretedRaw);
+                /* this.interpretedRaw = JSON.parse(sessionStorage.getItem("interpretedLabels")) ??
+                    this.interpretedRaw ??
+                    {}; */
+                console.log("readSchema() 2 this.interpretedRaw", this.interpretedRaw);
                 for (let layerId in this.schema.layers) {
                     const layer = this.schema.layers[layerId] as Layer;
                     // detemine which layers can be regenerated
@@ -218,12 +227,13 @@ export class TranscriptComponent implements OnInit {
                         && /T/.test(layer.enabled)) {
                         this.generableLayers.push(layer);
                     }
-                    // determine which layers have interpreted/raw selectors
-                    if (layer.validLabelsDefinition && layer.validLabelsDefinition.length) {
+                    // determine which layers have interpreted/raw selectors (and don't have a stored interpretedRaw setting)
+                    if (layer.validLabelsDefinition && layer.validLabelsDefinition.length && !this.interpretedRaw.hasOwnProperty(layer.id)) {
                         // are there keys that are different from labels?
                         for (let definition of layer.validLabelsDefinition) {
                             if (definition.display && definition.display != definition.label) {
                                 this.interpretedRaw[layer.id] = true; // interpreted by default
+                                console.log("readSchema() 3 this.interpretedRaw", this.interpretedRaw);
                                 break; // only need one
                             }
                         } // next label
@@ -752,6 +762,7 @@ export class TranscriptComponent implements OnInit {
     }
     
     layersChanged(selectedLayerIds : string[]) : Promise<void> {
+        console.log("layersChanged() this.interpretedRaw", this.interpretedRaw);
         if (!selectedLayerIds) selectedLayerIds = [];
         const addedLayerIds = selectedLayerIds.filter((x)=>this.selectedLayerIds.indexOf(x) < 0);
         const loadingLayers = [] as Promise<string>[];

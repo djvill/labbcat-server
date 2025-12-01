@@ -146,6 +146,7 @@ export class LayerCheckboxesComponent implements OnInit {
         this.interpretedRaw = JSON.parse(sessionStorage.getItem("interpretedLabels")) ??
             this.interpretedRaw ??
             {};
+        console.log("processSchema() this.interpretedRaw", this.interpretedRaw);
         if (!this.selected) this.selected = [] as string[];
 
         // add category selectors in defined order
@@ -278,6 +279,7 @@ export class LayerCheckboxesComponent implements OnInit {
             this.interpretedRaw[layerId] = !this.interpretedRaw[layerId];
             this.interpretedRawChange.emit(this.interpretedRaw);
             sessionStorage.setItem("interpretedLabels", JSON.stringify(this.interpretedRaw));
+            console.log("handleInterpretedRaw() this.interpretedRaw", this.interpretedRaw);
         }
     }
     

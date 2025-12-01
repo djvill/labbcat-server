@@ -308,7 +308,7 @@ export class ParticipantsComponent implements OnInit {
                 this.query += "/"+this.esc(this.filterValues[this.schema.participantLayerId][0])
                     +"/.test(id)";
                 this.queryDescription += "ID matches "
-                    +this.filterValues[this.schema.participantLayerId][0];
+                    + (this.filterValues[this.schema.participantLayerId][0].length <= 50 ? this.filterValues[this.schema.participantLayerId][0] : this.filterValues[this.schema.participantLayerId][0].slice(0, 49) + "…");
                 
             } else if (layer.id == "--transcript-count"
                 && this.filterValues[layer.id].length > 0) {
@@ -473,8 +473,8 @@ export class ParticipantsComponent implements OnInit {
                 this.query += "/"+this.esc(this.filterValues[layer.id][0])+"/"
                     +".test(labels('" +this.esc(layer.id)+"'))";
                 this.queryDescription += layer.description
-                    +" matches " + this.filterValues[layer.id][0]
-                
+                    +" matches "
+                    + (this.filterValues[layer.id][0].length <= 50 ? this.filterValues[layer.id][0] : this.filterValues[layer.id][0].slice(0, 49) + "…");
             }
         } // next filter layer
 
@@ -725,11 +725,6 @@ export class ParticipantsComponent implements OnInit {
         if (!this.showAttributesSelection) { // show options
             this.showAttributesSelection = true;
         } else { // options selected, so go ahead and do it            
-            if (this.selectedIds.length == 0 && this.matchCount > 10) {
-                if (!confirm("This will export all "+this.matchCount+" matches.\nAre you sure?")) { // TODO i18n
-                    return;
-                }
-            }
             this.form.nativeElement.action = this.baseUrl + "api/participant/attributes";
             this.form.nativeElement.submit();
         }

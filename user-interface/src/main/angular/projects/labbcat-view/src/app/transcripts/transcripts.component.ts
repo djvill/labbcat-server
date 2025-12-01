@@ -38,7 +38,7 @@ export class TranscriptsComponent implements OnInit {
     // hints for 'system layers'
     transcriptLayerHint = "Transcript file name";
     corpusLayerHint = "Collection of transcripts from a single research project";
-    //TODO episodeLayerHint = "Series of transcripts from a single sociolinguistic interview";
+    episodeLayerHint = "Series of transcripts from a single sociolinguistic interview";
     transcriptTypeLayerHint = "Sociolinguistic interview section";
     // track how many queries we're up to, to avoid old long queries updating the UI when
     // new short queries already have.
@@ -103,18 +103,18 @@ export class TranscriptsComponent implements OnInit {
             // allow filtering by transcript ID, corpus, episode, and type
             let transcriptLayer = this.schema.root as Layer;
             let corpusLayer = this.schema.layers[this.schema.corpusLayerId] as Layer;
-            //TODO let episodeLayer = this.schema.layers[this.schema.episodeLayerId] as Layer;
+            let episodeLayer = this.schema.layers[this.schema.episodeLayerId] as Layer;
             let transcriptTypeLayer = this.schema.layers["transcript_type"] as Layer;
             transcriptLayer.hint = this.transcriptLayerHint;
             corpusLayer.hint = this.corpusLayerHint;
-            //TODO episodeLayer.hint = this.episodeLayerHint;
+            episodeLayer.hint = this.episodeLayerHint;
             transcriptTypeLayer.hint = this.transcriptTypeLayerHint;
             this.filterLayers.push(transcriptLayer);
             this.filterValues[this.schema.root.id] = [];
             this.filterLayers.push();
             this.filterValues[this.schema.corpusLayerId] = [];
-            //TODO this.filterLayers.push(episodeLayer);
-            //TODO this.filterValues[this.schema.episodeLayerId] = [];
+            this.filterLayers.push(episodeLayer);
+            this.filterValues[this.schema.episodeLayerId] = [];
             this.filterLayers.push(transcriptTypeLayer);
             this.filterValues["transcript_type"] = [];
             // and by selected transcript attributes
@@ -331,7 +331,8 @@ export class TranscriptsComponent implements OnInit {
                 }
                 
                 this.query += "/"+this.esc(this.filterValues[layer.id][0])+"/.test(id)";
-                this.queryDescription += "ID matches " +this.filterValues[layer.id][0];
+                this.queryDescription += "ID matches "
+                    + (this.filterValues[layer.id][0].length <= 50 ? this.filterValues[layer.id][0] : this.filterValues[layer.id][0].slice(0, 49) + "…");
                 
             } else if (layer.validLabels && Object.keys(layer.validLabels).length > 0
                 && this.filterValues[layer.id].length > 0) {
@@ -464,7 +465,8 @@ export class TranscriptsComponent implements OnInit {
                 this.query += "/"+this.esc(this.filterValues[layer.id][0])+"/"
                     +".test(labels('" +this.esc(layer.id)+"'))";
                 this.queryDescription += layer.description
-                    +" matches " + this.filterValues[layer.id][0]
+                    +" matches "
+                    + (this.filterValues[layer.id][0].length <= 50 ? this.filterValues[layer.id][0] : this.filterValues[layer.id][0].slice(0, 49) + "…");
                 
             }
         } // next filter layer
@@ -727,11 +729,6 @@ export class TranscriptsComponent implements OnInit {
             this.showSerializationOptions = this.showGenerateLayerSelection = false;
             this.serializeImg = "cog.svg";
         } else { // options selected, so go ahead and do it            
-            if (this.selectedIds.length == 0 && this.matchCount > 10) {
-                if (!confirm("This will export all "+this.matchCount+" matches.\nAre you sure?")) { // TODO i18n
-                    return;
-                }
-            }
             this.form.nativeElement.action = this.baseUrl + "api/attributes";
             this.form.nativeElement.submit();
         }

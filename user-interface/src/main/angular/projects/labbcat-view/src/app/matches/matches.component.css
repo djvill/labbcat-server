@@ -69,7 +69,6 @@ label > span {
     display: inline-block;
 }
 .header {
-    padding-top: 10px;
     font-weight: 700;
 }
 @media all and (min-width: 640px) {

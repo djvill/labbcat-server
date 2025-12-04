@@ -67,11 +67,11 @@ details[open] > div {
 .item > .viz {
     display: none;
 }
-#layers {
-    margin: auto;
-    width: fit-content;
-}
 @media all and (min-width: 640px) {
+    #layers {
+        margin: auto;
+        width: fit-content;
+    }
     .item > .viz {
         width: 33vw;
         display: inline-table;
@@ -99,7 +99,7 @@ details[open] > div {
     }
     .viz .interval {
         width: 40%;
-        background-color: rgba(150,163,57,0.2);
+        background-color: rgba(255,184,28,0.2);
     }
     .viz .after-context {
         width: 20%;
@@ -122,11 +122,11 @@ details[open] > div {
     }
     #start-time .interval {
         border-left: solid black 1px;
-        background: linear-gradient(to right, rgba(150,163,57,1), rgba(200,200,200,0.3));
+        background: linear-gradient(to right, rgba(255,184,28,1), rgba(200,200,200,0.3));
     }
     #end-time .interval {
         border-right: solid black 1px;
-        background: linear-gradient(to left, rgba(150,163,57,1), rgba(200,200,200,0.3));
+        background: linear-gradient(to left, rgba(255,184,28,1), rgba(200,200,200,0.3));
     }
     .viz .annotation {
         display: flex;
@@ -140,10 +140,16 @@ details[open] > div {
         border-right: 1px solid black;
     }
     .viz .annotation.included {
-        background: rgba(150,163,57,1);
+        background: rgba(255,184,28,1);
     }
     .viz .annotation .l, .viz .annotation .r {
         display: none;
+    }
+    .y-n {
+        color: red;
+    }
+    .included .y-n {
+        color: #005000;
     }
 }
 

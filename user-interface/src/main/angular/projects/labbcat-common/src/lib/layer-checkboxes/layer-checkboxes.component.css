@@ -125,9 +125,6 @@ fieldset {
 td.layer-count {
     text-align: right;
 }
-td.layer-id {
-    cursor: default;
-}
 @media all and (min-width: 640px) {
     .icon-hider { 
         display: flex;

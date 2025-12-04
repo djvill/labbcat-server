@@ -170,12 +170,6 @@
                    *ngIf="precheckedCsvOptions.includes('labbcat_title')">
             <span i18n="csv options">Database title</span>
           </label>
-          <label i18n-title title="This database's LaBB-CAT version">
-            <input type="checkbox" name="csv_option"
-                   value="labbcat_version"
-                   [checked]="precheckedCsvOptions.includes('labbcat_version')">
-            <span i18n="csv options">LaBB-CAT version</span>
-          </label>
           <label i18n-title title="APLS version - always exported">
             <input type="checkbox" name="csv_option"
                    value="data_version"

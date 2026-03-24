@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { HttpHeaders } from '@angular/common/http';
 
 import { Response } from 'labbcat-common';
 import { Match } from '../match';
@@ -67,6 +68,7 @@ export class MatchesComponent implements OnInit {
     // for csv extraction
     targetOffset = 0;
     offsetThreshold = "50"; // at least automatically aligned
+    csvFieldDelimiter: string;
 
     // for audio extraction
     startOffsetColumn: string;
@@ -100,6 +102,9 @@ export class MatchesComponent implements OnInit {
         this.readSerializers();
         this.readGenerableLayers();
         this.readEmuWebappSetting();
+        this.httpOptions = new HttpHeaders();
+        // TODO if Accept-Language header contains "en" or doesn't exist, use comma; otherwise, use tab
+        this.csvFieldDelimiter = ",";
     }
 
     readBaseUrl(): void {

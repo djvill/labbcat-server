@@ -148,6 +148,32 @@
           <option value="0" i18n="offsetThreshold option">(always) if manually, automatically, or default aligned</option>
         </select>
       </label></div>
+      <div class="item" id="csv-field-delimiter"
+        i18n-title title="What character should separate fields (columns) in the exported file?"><label>
+        <span i18n>CSV column separator:</span>
+        <span>
+          <label [class.selected]="csvFieldDelimiter == ','"
+                 (click)="csvFieldDelimiter = ','"
+                 i18n-title title="Separate columns with a comma"
+                 i18n="csvFieldDelimiter option">comma</label>
+          <label [class.selected]="csvFieldDelimiter == '\t'"
+                 (click)="csvFieldDelimiter = '\t'"
+                 i18n-title title="Separate columns with a tab character"
+                 i18n="csvFieldDelimiter option">tab</label>
+          <label [class.selected]="csvFieldDelimiter == ';'"
+                 (click)="csvFieldDelimiter = ';'"
+                 i18n-title title="Separate columns with a semicolon"
+                 i18n="csvFieldDelimiter option">semicolon</label>
+          <label [class.selected]="![',', '\t', ';'].includes(csvFieldDelimiter)"
+                 (click)="csvFieldDelimiter = null"
+                 i18n-title title="Specify a custom separator"
+                 i18n="csvFieldDelimiter option">other:</label>
+          <input *ngIf="[',', '\t', ';'].includes(csvFieldDelimiter)"
+                 type="text" disabled>
+          <input *ngIf="![',', '\t', ';'].includes(csvFieldDelimiter)"
+                 type="text" [(ngModel)]="csvFieldDelimiter">
+        </span>
+      </label></div>
     </div>
     <fieldset>
       <legend i18n>CSV columns</legend>

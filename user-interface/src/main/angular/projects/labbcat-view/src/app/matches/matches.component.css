@@ -45,6 +45,22 @@
 #csv-export-params span {
     min-width: 250px;
 }
+#csv-field-delimiter input {
+    width: 20px;
+}
+#csv-field-delimiter > label > span {
+    white-space: nowrap;
+}
+#csv-field-delimiter span > label {
+    color: silver;
+    margin-left: 5px;
+    margin-right: 5px;
+    border: 1px solid transparent;
+}
+#csv-field-delimiter span > label.selected {
+    border-color: var(--theme-text-color);
+    color: var(--theme-text-color);
+}
 .csv-checkboxes {
     display: flex;
     flex-direction: column;

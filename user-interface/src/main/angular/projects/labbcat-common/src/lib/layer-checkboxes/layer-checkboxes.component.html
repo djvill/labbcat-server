@@ -270,7 +270,7 @@
                 class="data-type"
                 i18n-title="Layer data types"
                 [title]="'Data type: ' + (['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='number' ? 'Numeric' : 'file')">
-              <img [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type)+(this.annotationCounts[layer.id] == 0 ? '-disabled' : '')+'.svg'"
+              <img [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type.replace('/','-'))+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : '?'"
                    (click)="handleCheckbox(layer.id)">
             </td>
@@ -379,7 +379,7 @@
                    Potentially replace layer.subtype=='X' with layer_manager_id=='StanfordParser'
                    Currently, layer.subtype can only be set to X by modifying the MySQL table
                 -->
-              <img [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type)+(this.annotationCounts[layer.id] == 0 ? '-disabled' : '')+'.svg'"
+              <img [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type.replace('/','-'))+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : '?'"
                    (click)="handleCheckbox(layer.id)">
             </td>
@@ -495,7 +495,7 @@
                 class="data-type"
                 i18n-title="Layer data types"
                 [title]="'Data type: ' + (['turn','utterance'].includes(layer.id) ? 'Timing-only' : layer.subtype=='X' ? 'Tree' : layer.type=='ipa' ? 'Phonological' : layer.type=='string' ? 'Text' : layer.type=='number' ? 'Numeric' : 'file')">
-              <img [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type)+(this.annotationCounts[layer.id] == 0 ? '-disabled' : '')+'.svg'"
+              <img [src]="imagesLocation+'/data-type-'+(['turn','utterance'].includes(layer.id) ? 'timing-only' : layer.subtype=='X' ? 'tree' : layer.type=='ipa' ? 'phonological' : layer.type=='string' ? 'text' : layer.type=='number' ? 'numeric' : layer.type.replace('/','-'))+(this.disabled.includes(layer.id) ? '-disabled' : '')+'.svg'"
                    [alt]="['turn','utterance'].includes(layer.id) ? '⌚' : layer.subtype=='X' ? '🌲' : layer.type=='ipa' ? '/ʒ/' : layer.type=='string' ? 'ab' : layer.type=='number' ? '12' : '?'"
                    (click)="handleCheckbox(layer.id)">
             </td>

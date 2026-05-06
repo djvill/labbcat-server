@@ -66,6 +66,7 @@ export class TranscriptComponent implements OnInit {
     
     availableMedia: MediaFile[];
     media : { [key: string] : { [key: string] : MediaFile[] } }; // type->trackSuffix->file
+    selectMedia = true;
     selectableMediaCount = 0;
     videoZoomed = false;
 
@@ -110,6 +111,9 @@ export class TranscriptComponent implements OnInit {
                 });
             });
             this.readSerializers();
+            this.selectMedia = JSON.parse(sessionStorage.getItem("selectMedia")) ??
+                (typeof this.selectMedia == "string" ? this.selectMedia === "true" : this.selectMedia) ??
+                true;
             this.readSchema().then(() => {
                 this.readTranscript().then(()=>{ // some have to wait until transcript is loaded
                     this.readAvailableMedia().then(()=>{
@@ -754,7 +758,7 @@ export class TranscriptComponent implements OnInit {
                             const mediaType = this.media[t];
                             for (let s in mediaType) {
                                 this.selectableMediaCount++;
-                                if (this.selectableMediaCount == 1) { // first media found
+                                if (this.selectableMediaCount == 1 && this.selectMedia) { // first media found
                                     // select it
                                     this.showMedia(mediaType[s][0]);
                                 }
@@ -1166,6 +1170,8 @@ export class TranscriptComponent implements OnInit {
         }
         // toggle rather than select, so that all media can be hidden
         file._selected = !originallySelected;
+        this.selectMedia = file._selected;
+        sessionStorage.setItem("selectMedia", JSON.stringify(file._selected));
         if (this.selectableMediaCount > 1 // if there's more than one selection available
             && file._selected) { // and we're ticking not unticking
             // for a short while, multiple visualizations can be selected

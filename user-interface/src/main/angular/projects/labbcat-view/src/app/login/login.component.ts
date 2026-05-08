@@ -13,6 +13,11 @@ export class LoginComponent implements OnInit {
     username: string;
     password: string;
     error = false;
+    
+    // optionally replace "User ID or pass phrase incorrect" errors when operating in a maintenance mode, where admins temporarily turn off user accounts to conserve server resources (e.g., while performing a demo)
+    // NOTE: This doesn't actually trigger maintenance mode. To do that, modify the MySQL miner_user table
+    demoMode = false;
+    demoMessage = "APLS is currently operating in 'demo mode'. We've temporarily disabled user logins to conserve server resources while we demonstrate APLS. We'll turn off 'demo mode' in less than an hour."
 
     constructor(
         private labbcatService: LabbcatService,
@@ -43,8 +48,12 @@ export class LoginComponent implements OnInit {
                 window.location.assign(url + (window.location.hash || ""));
             })
             .catch((errors)=>{
-                errors.forEach(m => this.messageService.error(m));
-                this.error = true;
+                if (this.demoMode && errors.length == 1 && errors[0] == "User ID or pass phrase incorrect") {
+                    this.messageService.info(this.demoMessage);
+                } else {
+                    errors.forEach(m => this.messageService.error(m));
+                    this.error = true;
+                }
             });
     }
 }

@@ -42,7 +42,7 @@
               <span class="layer-options"
                     *ngIf="layer._selected && !this.excludeOptionsForLayerId.includes(layer.id)">
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="0" step="1" value="1"
+                       type="number" min="0" step="1" value=""
                        (input)="blankZeroIncludeCount($event.target)"
                        i18n-placeholder placeholder="all"
                        name="include_count_{{layer.id}}"
@@ -95,7 +95,7 @@
                 (click)="handleCheckbox(layer.id)">
               <span class="layer-options" *ngIf="layer._selected && !this.excludeOptionsForLayerId.includes(layer.id)">
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="0" step="1" value="1"
+                       type="number" min="0" step="1" value=""
                        (input)="blankZeroIncludeCount($event.target)"
                        i18n-placeholder placeholder="all"
                        name="include_count_{{layer.id}}"
@@ -148,7 +148,7 @@
             <td class="layer-options">
               <span class="layer-options" *ngIf="layer._selected && !this.excludeOptionsForLayerId.includes(layer.id)">
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="0" step="1" value="1"
+                       type="number" min="0" step="1" value=""
                        (input)="blankZeroIncludeCount($event.target)"
                        i18n-placeholder placeholder="all"
                        name="include_count_{{layer.id}}"
@@ -244,7 +244,7 @@
                   </label>
                 </ng-container>
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="0" step="1" value="1"
+                       type="number" min="0" step="1" value=""
                        (input)="blankZeroIncludeCount($event.target)"
                        i18n-placeholder placeholder="all"
                        name="include_count_{{layer.id}}"
@@ -349,7 +349,7 @@
                   </label>
                 </ng-container>
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="0" step="1" value="1"
+                       type="number" min="0" step="1" value=""
                        (input)="blankZeroIncludeCount($event.target)"
                        i18n-placeholder placeholder="all"
                        name="include_count_{{layer.id}}"
@@ -469,7 +469,7 @@
                   </label>
                 </ng-container>
                 <input *ngIf="IsCountable(layer)"
-                       type="number" min="0" step="1" value="1"
+                       type="number" min="0" step="1" value=""
                        (input)="blankZeroIncludeCount($event.target)"
                        i18n-placeholder placeholder="all"
                        name="include_count_{{layer.id}}"

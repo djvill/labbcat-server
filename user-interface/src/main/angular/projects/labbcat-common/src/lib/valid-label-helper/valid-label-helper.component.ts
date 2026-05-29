@@ -38,6 +38,29 @@ export class ValidLabelHelperComponent implements OnInit {
                     this.categories[definition.category][definition.subcategory] = [];
                 }
                 this.categories[definition.category][definition.subcategory].push(definition);
+                // add duplicate DISC symbols
+                if (definition.selector == "a(ɹ)") {
+                    this.categories[definition.category][definition.subcategory].push({
+                        display: "ɔ",
+                        display_order: definition.display_order + 0.5,
+                        description: "NORTH/FORCE",
+                        selector: "ɔ(ɹ)",
+                        label: "$",
+                        category: "VOWEL",
+                        subcategory: "Monophthongs before /ɹ/"
+                    });
+                }
+                if (definition.selector == "ʊ(ɹ)") {
+                    this.categories[definition.category][definition.subcategory].push({
+                        display: "ɚ",
+                        display_order: definition.display_order + 0.5,
+                        description: "lettER",
+                        selector: "ɚ",
+                        label: "@",
+                        category: "VOWEL",
+                        subcategory: "Monophthongs before /ɹ/"
+                    });
+                }
                 if (!definition.display && !definition.selector) {
                     this.nbLabels.push(definition.label);
                 }

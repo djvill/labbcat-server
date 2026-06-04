@@ -163,6 +163,25 @@ export class TranscriptComponent implements OnInit {
                         }
                     }
                 }
+                // if the hash references an annotation, ensure that layer is loaded
+                if (window.location.hash) {
+                    const match = window.location.hash.match(/#e.?_([0-9]+)_([0-9]+)/);
+                    if (match && match[1]) { // it's an annotation UID
+                        const layer_id = match[1];
+                        // find layer name
+                        for (let layerId in this.schema.layers) {
+                            const layer = this.schema.layers[layerId] as Layer;
+                            if (layer.layer_id == layer_id) {
+                                if (!this.defaultLayerIds) this.defaultLayerIds = [];
+                                if (!this.defaultLayerIds.includes(layer.id)) {
+                                    this.defaultLayerIds.push(layer.id);
+                                }
+                                break;
+                            }
+                        } // next layer
+                    }                    
+                }
+                    
                 if (!this.defaultLayerIds) {
                     this.labbcatService.labbcat.getSystemAttribute(
                         "defaultLayers", (attribute, errors, messages) => {

@@ -104,6 +104,7 @@ export class PraatComponent implements OnInit {
     intensityPitchFloorOther = [ 30 ]; // male
     scriptIntensity = "To Intensity: intensityPitchFloor, 0, \"yes\"";
     
+    formantChanged = false;
     pitchChanged = false;
     intensityChanged = false;
     
@@ -358,14 +359,20 @@ export class PraatComponent implements OnInit {
     processingError = "";
     /** start processing */
     process(): void {
+        if (this.formantChanged && !this.extractF1 && !this.extractF2 && !this.extractF3) {
+            if (!confirm("You have changed formant settings but you haven't selected a formant measure to extract." // TODO i18n
+                         + "\nAre you sure you want to continue?")) {
+                return;
+            }
+        }
         if (this.pitchChanged && !this.extractMinimumPitch && !this.extractMeanPitch && !this.extractMaximumPitch) {
-            if (!confirm("You have changed pitch settings but you haven't selected a pitch measurement to extract." // TODO i18n
+            if (!confirm("You have changed pitch settings but you haven't selected a pitch measure to extract." // TODO i18n
                          + "\nAre you sure you want to continue?")) {
                 return;
             }
         }
         if (this.intensityChanged && !this.extractMaximumIntensity) {
-            if (!confirm("You have changed intensity settings but you haven't selected an intensity measurement to extract." // TODO i18n
+            if (!confirm("You have changed intensity settings but you haven't selected an intensity measure to extract." // TODO i18n
                          + "\nAre you sure you want to continue?")) {
                 return;
             }
@@ -425,7 +432,7 @@ export class PraatComponent implements OnInit {
                 extractMaximumPitch: this.extractMaximumPitch,
                 pitchFloorDefault: this.pitchFloorDefault,
                 pitchCeilingDefault: this.pitchCommand.includes('filtered')
-                    || (this.pitchCommand == "Custom" && this.scriptPitch.includes('filtered'))
+                    || (this.pitchCommand == "Custom" && (!this.scriptPitch || this.scriptPitch.includes('filtered')))
                     ? this.pitchTopDefault
                     : this.pitchCeilingDefault,
                 voicingThresholdDefault: this.voicingThresholdDefault,
@@ -436,13 +443,15 @@ export class PraatComponent implements OnInit {
                     :this.pitchFloorOther,
                 pitchCeilingOther: !this.pitchDifferentiateParticipants?[]
                     : this.pitchCommand.includes('filtered')
-                    || (this.pitchCommand == "Custom" && this.scriptPitch.includes('filtered'))
+                    || (this.pitchCommand == "Custom" && (!this.scriptPitch || this.scriptPitch.includes('filtered')))
                     ? this.pitchTopOther
                     : this.pitchCeilingOther,
                 voicingThresholdOther: !this.pitchDifferentiateParticipants?[]
                     :this.voicingThresholdOther,
                 scriptPitch: 'octaveCost = ' + this.octaveCost + '\n' + //shim
-                    (this.pitchCommand == 'Custom'
+                    (this.pitchCommand == 'Custom' && !this.scriptPitch
+                    ? 'To Pitch (filtered autocorrelation): 0, pitchFloor, pitchCeiling, 15, \"no\", 0.03, 0.09, voicingThreshold, octaveCost, 0.35, 0.14' //shim
+                    : this.pitchCommand == 'Custom' && this.scriptPitch
                     ? this.scriptPitch
                     : this.pitchCommand.includes('filtered')
                     ? this.pitchCommand + ': 0, pitchFloor, pitchCeiling, 15, \"no\", 0.03, 0.09, voicingThreshold, octaveCost, 0.35, 0.14'

@@ -22,6 +22,9 @@
     background: #F9F9F9;
     border-radius: 5px;
 }
+.column.last {
+    flex-shrink: 1.5;
+}
 .column .layers {
     display: flex;
     flex-direction: column;
@@ -174,4 +177,15 @@ lib-button.small img {
         margin: 0 -30% -10%;
         padding: 0 30% 10%;
     }
+}
+
+.read-only {
+    cursor: not-allowed;
+}
+input.read-only::placeholder {
+    opacity: 0;
+}
+/* Hide arrows */
+select.read-only {
+    appearance: unset;
 }

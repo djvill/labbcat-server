@@ -85,7 +85,8 @@ export class PraatComponent implements OnInit {
     pitchDifferentiationLayerId: string;
     pitchOtherPattern = [ "Male" ];
     pitchFloorDefault = 50; // female
-    pitchFloorOther = [ 30 ]; // male
+    // to avoid praat error “pitch floor” must not be less than 37.5 Hz.:
+    pitchFloorOther = [ 38 ]; // male
     pitchCeilingDefault = 500; // female
     pitchCeilingOther = [ 250 ]; // male
     pitchTopDefault = 800; // female
@@ -339,17 +340,19 @@ export class PraatComponent implements OnInit {
         if (this.pitchCommand.includes('filtered') || (this.pitchCommand == "Custom" && this.scriptPitch.includes('filtered'))) {
             this.pitchFloorDefault = 50;
             this.voicingThresholdDefault = 0.45;
-            if (this.pitchDifferentiateParticipants && this.pitchOtherPattern.includes("Male")) {
-                this.pitchFloorOther[this.pitchOtherPattern.indexOf("Male")] = 30;
-                this.voicingThresholdOther[this.pitchOtherPattern.indexOf("Male")] = 0.45;
+            if (this.pitchDifferentiateParticipants && this.pitchOtherPattern.includes("M")) {
+                // to avoid praat error “pitch floor” must not be less than 37.5 Hz.:
+                this.pitchFloorOther[this.pitchOtherPattern.indexOf("M")] = 38;
+                this.voicingThresholdOther[this.pitchOtherPattern.indexOf("M")] = 0.45;
             }
             this.octaveCost = 0.055;
         } else if (this.pitchCommand.includes('raw')) {
             this.pitchFloorDefault = 60;
             this.voicingThresholdDefault = 0.5;
-            if (this.pitchDifferentiateParticipants && this.pitchOtherPattern.includes("Male")) {
-                this.pitchFloorOther[this.pitchOtherPattern.indexOf("Male")] = 30;
-                this.voicingThresholdOther[this.pitchOtherPattern.indexOf("Male")] = 0.4;
+            if (this.pitchDifferentiateParticipants && this.pitchOtherPattern.includes("M")) {
+                // to avoid praat error “pitch floor” must not be less than 37.5 Hz.:
+                this.pitchFloorOther[this.pitchOtherPattern.indexOf("M")] = 38;
+                this.voicingThresholdOther[this.pitchOtherPattern.indexOf("M")] = 0.4;
             }
             this.octaveCost = 0.01;
         }

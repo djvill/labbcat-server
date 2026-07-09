@@ -429,10 +429,12 @@ export class SearchComponent implements OnInit {
         historyItem.matchOptions = {
             mainParticipantOnly: this.mainParticipantOnly,
             onlyAligned: this.onlyAligned,
-            firstMatchOnly: this.firstMatchOnly,
-            excludeSimultaneousSpeech: this.excludeSimultaneousSpeech,
-            overlapThreshold: this.overlapThreshold
+            firstMatchOnly: this.firstMatchOnly
         };
+        if (this.overlapOption) {
+            historyItem.matchOptions['excludeSimultaneousSpeech'] = this.excludeSimultaneousSpeech;
+            historyItem.matchOptions['overlapThreshold'] = this.overlapThreshold;
+        }
         return historyItem;
     }
 

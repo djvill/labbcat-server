@@ -20,7 +20,7 @@ export interface SearchHistoryItem {
         mainParticipantOnly: boolean,
         onlyAligned: boolean,
         firstMatchOnly: boolean,
-        excludeSimultaneousSpeech: boolean,
-        overlapThreshold: number
+        excludeSimultaneousSpeech?: boolean,
+        overlapThreshold?: number
     };
 }

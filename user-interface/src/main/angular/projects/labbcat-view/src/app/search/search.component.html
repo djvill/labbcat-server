@@ -365,7 +365,7 @@
                              title="Return words that have been reliably word-aligned - e.g. by HTK or manually">
                         <input type="checkbox" disabled
                           [checked]="historyItem.matchOptions.onlyAligned">
-                        <span i18n>Only match words that are aligned.</span></label>
+                        <span i18n>Only match tokens that have <span class="layer-id">segment</span> alignments.</span></label>
                     </div>
                     <div class="item">
                       <label i18n-title title="Return only the first match in each transcript">
@@ -373,7 +373,7 @@
                           [checked]="historyItem.matchOptions.firstMatchOnly">
                         <span i18n>Only one match per transcript.</span></label>
                     </div>
-                    <div class="item">
+                    <div *ngIf="this.overlapOption" class="item">
                       <label i18n-title title="Exclude simultaneous speech">
                         <input type="checkbox" disabled
                           [checked]="historyItem.matchOptions.excludeSimultaneousSpeech">

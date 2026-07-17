@@ -6475,7 +6475,8 @@ public class SqlGraphStore implements GraphStore {
           // timers.end("update ordinals");
         } // not a new graph
 
-        if (wordChanges || utteranceChanges) {
+        if (!updatingFragment // (not for every utterance during forced alignment)
+            && (wordChanges || utteranceChanges)) {
           // timers.start("word utterances");
           // (re-)link words to utterances for fast search result collation
           PreparedStatement sqlFindWordUtterance = connection.prepareStatement(
@@ -9453,8 +9454,7 @@ public class SqlGraphStore implements GraphStore {
                          .replace("+", "%20"));
               url.append("/doc/");
               url.append(f.getName());
-              mediaFile.setUrl(URLEncoder.encode(url.toString(), "UTF-8")
-                               .replace("+", "%20"));
+              mediaFile.setUrl(url.toString());
             }
             files.add(mediaFile);
           }

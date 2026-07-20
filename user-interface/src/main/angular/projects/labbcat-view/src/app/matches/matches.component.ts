@@ -44,6 +44,8 @@ export class MatchesComponent implements OnInit {
     precheckedCsvOptions = [
         "labbcat_title", "data_version", "collection_name", "result_number",
         "line_time", "line_end_time", "match", "word_url", "result_text"];
+    resultText = this.precheckedCsvOptions.includes("result_text");
+    displayExportNames: boolean;
     selectedLayers: string[];
     showEmuOptions = false;
     emuLayers = [ "word", "segment" ];
@@ -118,6 +120,7 @@ export class MatchesComponent implements OnInit {
         this.readSerializers();
         this.readGenerableLayers();
         this.readEmuWebappSetting();
+        this.displayExportNames = JSON.parse(sessionStorage.getItem("displayCSVExportNames")) ?? false;
     }
 
     readBaseUrl(): void {
@@ -343,6 +346,10 @@ export class MatchesComponent implements OnInit {
         this.todo.nativeElement.value = "csv";
         this.form.nativeElement.action = this.baseUrl + "api/results";
         this.form.nativeElement.submit();
+    }
+    toggleExportNames(): void {
+        this.displayExportNames = !this.displayExportNames;
+        sessionStorage.setItem("displayCSVExportNames", JSON.stringify(this.displayExportNames));
     }
 
     serializationOptions(): void {

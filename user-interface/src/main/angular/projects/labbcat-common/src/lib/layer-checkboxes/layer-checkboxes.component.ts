@@ -16,6 +16,8 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() schema: any;
     /** name attribute for checkboxes */
     @Input() name: string;
+    /** Display "participant"/"transcript" as they're exported to CSV ("Speaker"/"Transcript") */
+    @Input() displayCsvNames: boolean;
     /** Allow an annotation count to be specified when a layer is selected */
     @Input() includeCounts: boolean;
     /** Allow start/end anchoring to be specified when a layer is selected */
@@ -251,9 +253,15 @@ export class LayerCheckboxesComponent implements OnInit {
     }
 
     ParticipantLayerLabel(id): string {
+        if (id == this.schema.participantLayerId && this.displayCsvNames) {
+            return "Speaker"; // TODO i18n
+        }
         return id.replace(/^participant_/,"");
     }
     TranscriptLayerLabel(id): string {
+        if (id == this.schema.root.id && this.displayCsvNames) {
+            return "Transcript"; // TODO i18n
+        }
         return id.replace(/^transcript_/,"");
     }
     IsAnchorable(layer: Layer): boolean {

@@ -267,14 +267,10 @@ public class Praat extends APIRequestHandler {
       File uploadedCsvFile = files.elementAt(0);
           
       ProcessWithPraat task = new ProcessWithPraat();
+      final SqlGraphStoreAdministration store = getStore();
       task.setStoreCache(new StoreCache() {
           public SqlGraphStore get() {
-            try {
-              return getStore();
-            } catch(Exception exception) {
-              context.servletLog("Praat.StoreCache: " + exception);
-              return null;
-            }
+            return store;
           }
           public void accept(SqlGraphStore store) {
             cacheStore((SqlGraphStoreAdministration)store);

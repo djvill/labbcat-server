@@ -124,7 +124,7 @@ public class SqlGraphStoreAdministration
    * @param files Root directory for file structure.
    * @param connectString The database connection string.
    * @param databaseUser The database username.
-   * @param password The databa password.
+   * @param password The database password.
    * @param storeUser ID of the user
    * @throws SQLException If an error occurs during connection or loading of configuraion.
    * @throws PermissionException If the store user doesn't have administrator privileges

@@ -13,6 +13,9 @@ import { TranscriptAttributesComponent } from './transcript-attributes/transcrip
 import { TranscriptMediaComponent } from './transcript-media/transcript-media.component';
 import { TranscriptUploadComponent } from './transcript-upload/transcript-upload.component';
 import { EpisodeDocumentsComponent } from './episode-documents/episode-documents.component';
+import { MenuUploadComponent } from './menu-upload/menu-upload.component';
+import { ParticipantAttributesUploadComponent } from './participant-attributes-upload/participant-attributes-upload.component';
+import { TranscriptAttributesUploadComponent } from './transcript-attributes-upload/transcript-attributes-upload.component';
 
 @NgModule({
     declarations: [
@@ -22,7 +25,9 @@ import { EpisodeDocumentsComponent } from './episode-documents/episode-documents
         TranscriptAttributesComponent,
         TranscriptMediaComponent,
         TranscriptUploadComponent,
-        EpisodeDocumentsComponent
+        EpisodeDocumentsComponent,
+        ParticipantAttributesUploadComponent,
+        TranscriptAttributesUploadComponent
     ],
     imports: [
         BrowserModule,
@@ -39,6 +44,13 @@ import { EpisodeDocumentsComponent } from './episode-documents/episode-documents
             { path: 'edit/transcript/upload', component: TranscriptUploadComponent,
               canDeactivate: [PendingChangesGuard]},
             { path: 'edit/episode/documents', component: EpisodeDocumentsComponent,
+              canDeactivate: [PendingChangesGuard]},
+            { path: 'edit/upload', component: MenuUploadComponent},
+            { path: 'edit/participant/attributes/upload',
+              component: ParticipantAttributesUploadComponent,
+              canDeactivate: [PendingChangesGuard]},
+            { path: 'edit/transcript/attributes/upload',
+              component: TranscriptAttributesUploadComponent,
               canDeactivate: [PendingChangesGuard]},
         ]), // TODO add { path: '**', component: PageNotFoundComponent }
         FormsModule,

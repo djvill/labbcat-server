@@ -901,7 +901,9 @@ public class SqlGraphStoreAdministration
           } 
           if (layer.getValidLabels().keySet().size() > 0) {
             subtype = "select";
-          } 
+          } else if ("T".equals(subtype)) {
+            subtype = "string";
+          }
           sql.setString(3, subtype);
           sql.setString(4, Optional.ofNullable((String)layer.get("style")).orElse(""));
           sql.setString(5, Optional.ofNullable((String)layer.get("hint")).orElse(""));

@@ -20,7 +20,7 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-package nzilbb.labbcat.server.api.edit.participants.attributes;
+package nzilbb.labbcat.server.api.edit.transcripts.attributes;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,35 +72,30 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
 /**
- * <tt>/api/edit/participants/attributes/upload</tt>
- * : Handler for receiving and processing participant attribute values in a CSV file.
- * <h3 id="POST"> <tt>/api/edit/participants/attributes/upload</tt> </h3>
- * <p> <b> POST </b> uploads a CSV file and imports the specified participant attributes. 
+ * <tt>/api/edit/transcripts/attributes/upload</tt>
+ * : Handler for receiving and processing transcript attribute values in a CSV file.
+ * <h3 id="POST"> <tt>/api/edit/transcripts/attributes/upload</tt> </h3>
+ * <p> <b> POST </b> uploads a CSV file and imports the specified transcript attributes. 
  * <p> The multipart-encoded parameters are:
  *  <dl>
  *   <dt> csv </dt>
  *       <dd> CSV file containing the attribute values to import. </dd>
  *   <dt> idColumn </dt>
-o *       <dd> The (zero based) index of the column that identifies the participant;
- *            if the participant exists, its attribute values will be updated,
- *            otherwise, and new participant will be created with the specified
- *            attribute values. If set to -1, all participant are new, and created
- *            with automatically generated IDs, formatted using the
- *            <q>participantNameFormat</q> system attribute.</dd>
+o *       <dd> The (zero based) index of the column that identifies the transcript;
+ *            if the transcript exists, its attribute values will be updated,
+ *            otherwise, the row is ignored.</dd>
  *   <dt> columnLayer </dt>
  *       <dd> Multiple values, where the index of the value corresponds to the
  *            (zero based) CSV column index, and the value is blank to ignore
- *            the column, the layer ID of the participant attribute to update,
- *            or <q>_password</q> if the columns contains the participants' passwords
- *            (for logging in to do elicitation tasks).</dd>
+ *            the column, the layer ID of the transcript attribute to update.</dd>
  *  </dl>
  * <p><b>Output</b>: A JSON-encoded response containing a <q>model</q> with the following
  * attributes:
  *  <dl>
  *   <dt> updated </dt>
- *       <dd> the number of existing participants that were updated. </dd> 
- *   <dt> created </dt>
- *       <dd> the number of new participants that were created. </dd> 
+ *       <dd> the number of existing transcript that were updated. </dd> 
+ *   <dt> missing </dt>
+ *       <dd> the number of transcript that were not found. </dd> 
  *  </dl>
  * @author Robert Fromont robert@fromont.net.nz
  */
@@ -156,16 +151,15 @@ public class Upload extends APIRequestHandler {
         } catch(NumberFormatException exception) {
           httpStatus.accept(SC_BAD_REQUEST);
           return failureResult(
-            "Participant column \"{0}\" is not an integer", idColumnString);
+            "Transcript column \"{0}\" is not an integer", idColumnString);
         }
         // some things for generating new participant names if required
         MessageFormat speakerIdFormat = null;
         if (idColumn < 0) {
-          speakerIdFormat = new MessageFormat(
-            store.getSystemAttribute("participantNameFormat"));
+          httpStatus.accept(SC_BAD_REQUEST);
+          return failureResult(
+            "Transcript column \"{0}\" must be a positive integer", idColumn); // TODO i18n
         }
-        MessageFormat participantIdFormat = new MessageFormat("m_-2_{0}");
-        String temporaryNamePrefix = "Upload-"+new java.util.Date()+"-row-";
         
         String[] columnLayer = requestParameters.getStrings("columnLayer");
         if (columnLayer == null || columnLayer.length == 0) {
@@ -175,7 +169,7 @@ public class Upload extends APIRequestHandler {
         
         // counts
         int updated = 0;
-        int created = 0;
+        int missing = 0;
         Vector<String> messages = new Vector<String>();
 
         // open CSV file
@@ -195,24 +189,22 @@ public class Upload extends APIRequestHandler {
           String[] fields = new String[headers.size()];
           for (int c = 0; c < headers.size(); c++) fields[c] = headers.get(c);
           
-          // check all layers exist and are participant attributes
+          // check all layers exist and are transcript attributes
           Layer[] fieldLayer = new Layer[columnLayer.length];
           for (int c = 0; c < columnLayer.length; c++) {
             if (columnLayer[c].length() > 0) {
-              if (!columnLayer[c].equals("_password")) {
-                fieldLayer[c] = schema.getLayer(columnLayer[c]);
-                if (fieldLayer[c] == null) {
-                  httpStatus.accept(SC_BAD_REQUEST);
-                  return failureResult("Invalid layer ID: {0}", columnLayer[c]);
-                }
-                if (!fieldLayer[c].getId().startsWith("participant_")
-                    || !fieldLayer[c].getParentId().equals(schema.getParticipantLayerId())
-                    || fieldLayer[c].getAlignment() != 0
-                    || !"speaker".equals(fieldLayer[c].get("class_id"))) {
-                  httpStatus.accept(SC_BAD_REQUEST);
-                  return failureResult("Not a participant attribute: {0}", columnLayer[c]); // TODO i18n
-                }
-              } // not _password
+              fieldLayer[c] = schema.getLayer(columnLayer[c]);
+              if (fieldLayer[c] == null) {
+                httpStatus.accept(SC_BAD_REQUEST);
+                return failureResult("Invalid layer ID: {0}", columnLayer[c]);
+              }
+              if (!fieldLayer[c].getId().startsWith("transcript_")
+                  || !fieldLayer[c].getParentId().equals(schema.getRoot().getId())
+                  || fieldLayer[c].getAlignment() != 0
+                  || !"transcript".equals(fieldLayer[c].get("class_id"))) {
+                httpStatus.accept(SC_BAD_REQUEST);
+                return failureResult("Not a transcript attribute: {0}", columnLayer[c]); // TODO i18n
+              }
             } else {
               messages.add(localize("Ignoring column: {0}", fields[c])); // TODO i18n
             }
@@ -228,149 +220,113 @@ public class Upload extends APIRequestHandler {
           while (records.hasNext()) {	       
             CSVRecord record = records.next();
             row++;
-            Annotation participant = null;
-            ChangeTracker tracker = new ChangeTracker();
-            if (speakerIdFormat != null) { // creating speaker IDs
-              
-              // create the participant record first
-              participant = new Annotation​(
-                null, temporaryNamePrefix+row, schema.getParticipantLayerId());
-              participant.create();
-              // don't setTracker, because that uses the ID and we don't have one
-              if (!store.saveParticipant(participant)) {
-                httpStatus.accept(SC_INTERNAL_SERVER_ERROR);
-                return failureResult("Could not create new participant records."); // TODO i18n
-              }
-              created++;
-
-              // generate name from speaker_number
-              Object[] speakerNumber = participantIdFormat.parse(participant.getId());
-              participant.setLabel(speakerIdFormat.format(speakerNumber));
-
-            } else { // use ID column
-              String id = record.get(idColumn);
-              if (id == null || id.length() == 0) {
-                messages.add(localize("Row {0} was ignored: no ID specified.")); // TODO i18n
-                continue;
-              }
-              // find the speaker
-              participant = store.getParticipant(id, attributeLayerIds);
-              
-              if (participant == null) { // they're not there
-                // so create them
-                participant = new Annotation​(null, id, schema.getParticipantLayerId());
-                participant.create();
-                // don't setTracker, because that uses the ID and we don't have one
-                created++;
-              } else {
-                updated++;
-                participant.setTracker(tracker);
-              }
+            String id = record.get(idColumn);
+            if (id == null || id.length() == 0) {
+              messages.add(localize("Row {0} was ignored: no ID specified.")); // TODO i18n
+              continue;
             }
-            // ensure changes are tracked for the participant and all children
-            for (SortedSet<Annotation> layers : participant.getAnnotations().values()) {
-              for (Annotation child : layers) {
-                child.setTracker(tracker);
-              } // next child
-            } // next child layer
+            try { // find the transcript            
+              Graph transcript = store.getTranscript(id, attributeLayerIds);
+              
+              updated++;
+              transcript.setTracker(new ChangeTracker());
             
-            // now process the columns...
-
-            // there may be multiple columns mapped to the same peer-allowing layer
-            // for these, we keep track of all the values we've added
-            HashMap<String,HashSet<String>> layerToValues
-              = new HashMap<String,HashSet<String>>();
-
-            // for each column
-            for (int c = 0; c < columnLayer.length; c++) {
-              String value = record.get(c);
-              String layerId = columnLayer[c];
-              Layer layer = "_password".equals(layerId)?new Layer("_password", "Password")
-                :fieldLayer[c];
-              if (layer != null) { // layer mapping specified
-                value = standardizeLabel(value, layer);
-                if (!layer.getPeers()) { // single value
-                  Annotation annotation = participant.first(layer.getId());
-                  if (annotation != null) { // existing value
-                    annotation.setTracker(tracker);
-                    if (value == null || value.length() == 0) { // delete value
-                      annotation.destroy();
-                    } else { // update
-                      annotation.setLabel(value);
-                    }
-                  } else { // insert
-                    // can't use createTag, because it requires there's no graph
-                    Annotation tag = new Annotation(null, value, layer.getId());
-                    tag.create(); // don't setTracker, that uses the ID which is not set
-                    participant.addAnnotation(tag);
-                  }
-                } else { // possibly multiple values
-                  // if multiple columns map to this same layer, there may already be values
-                  if (!layerToValues.containsKey(layerId)) {
-                    layerToValues.put(layerId, new HashSet<String>()); 
-                  }
-                  HashSet<String> newValues = layerToValues.get(layerId);
-                  // possibly multiple values delimited by newline
-                  String[] multipleValues = value.split("\n");
-                  if (multipleValues.length > 0) { // multiple values
-                    for (String v : multipleValues) {
-                      v = v.trim();
-                      if (v.length() > 0 // if the value is not blank
-                          // (unless blank is explicitly valid)
-                          || layer.getValidLabels().containsKey("")) {
-                        newValues.add(v);
-                      }
-                    } // next value
-                  }
-                  // defer merging values until after we're done with all columns...
+              // now process the columns...
+              
+              // there may be multiple columns mapped to the same peer-allowing layer
+              // for these, we keep track of all the values we've added
+              HashMap<String,HashSet<String>> layerToValues
+                = new HashMap<String,HashSet<String>>();
+              
+              // for each column
+              for (int c = 0; c < columnLayer.length; c++) {
+                String value = record.get(c);
+                String layerId = columnLayer[c];
+                Layer layer = fieldLayer[c];
+                if (layer != null) { // layer mapping specified
+                  value = standardizeLabel(value, layer);
+                  context.servletLog(transcript.getId() + " " + layer + " = " + value);
                   
-                } // possibly multiple values      
-              } // layer mapping specified
-            } // next column
-
-            // merge accumulated values of multi-value attributes
-            for (String layerId : layerToValues.keySet()) {
-              HashSet<String> newValues = layerToValues.get(layerId);
+                  if (!layer.getPeers()) { // single value
+                    Annotation annotation = transcript.first(layer.getId());
+                    if (annotation != null) { // existing value
+                      if (value == null || value.length() == 0) { // delete value
+                        annotation.destroy();
+                        context.servletLog(transcript.getId() + " " + layer + " destroyed");
+                      } else { // update
+                        annotation.setLabel(value);
+                        context.servletLog(transcript.getId() + " " + layer + " set " + annotation.getChange());
+                      }
+                    } else { // insert
+                      transcript.createTag(transcript, layer.getId(), value);
+                      context.servletLog(transcript.getId() + " " + layer + " created");
+                    }
+                  } else { // possibly multiple values
+                    // if multiple columns map to this same layer, there may already be values
+                    if (!layerToValues.containsKey(layerId)) {
+                      layerToValues.put(layerId, new HashSet<String>()); 
+                    }
+                    HashSet<String> newValues = layerToValues.get(layerId);
+                    // possibly multiple values delimited by newline
+                    String[] multipleValues = value.split("\n");
+                    if (multipleValues.length > 0) { // multiple values
+                      for (String v : multipleValues) {
+                        v = v.trim();
+                        if (v.length() > 0 // if the value is not blank
+                            // (unless blank is explicitly valid)
+                            || layer.getValidLabels().containsKey("")) {
+                          newValues.add(v);
+                        }
+                      } // next value
+                    }
+                    // defer merging values until after we're done with all columns...
+                    
+                  } // possibly multiple values      
+                } // layer mapping specified
+              } // next column
               
-              HashMap<String,Annotation> currentAnnotations
-                = new HashMap<String,Annotation>();
-              for (Annotation annotation : participant.getAnnotations(layerId)) {
-                annotation.setTracker(tracker);
-                currentAnnotations.put(annotation.getLabel(), annotation);
-              } // next annotation
+              // merge accumulated values of multi-value attributes
+              for (String layerId : layerToValues.keySet()) {
+                HashSet<String> newValues = layerToValues.get(layerId);
+                
+                HashMap<String,Annotation> currentAnnotations
+                  = new HashMap<String,Annotation>();
+                for (Annotation annotation : transcript.getAnnotations(layerId)) {
+                  currentAnnotations.put(annotation.getLabel(), annotation);
+                } // next annotation
+                
+                // add values that aren't already present
+                HashSet<String> valuesToAdd = new HashSet<String>(newValues);
+                valuesToAdd.removeAll(currentAnnotations.keySet());
+                for (String l : valuesToAdd) {
+                  transcript.createTag(transcript, layerId, l);
+                } // next value
+                
+                // delete values are aren't specified
+                HashSet<String> valuesToRemove = new HashSet<String>(
+                  currentAnnotations.keySet());
+                valuesToRemove.removeAll(newValues);
+                for (String l : valuesToRemove) {
+                  currentAnnotations.get(l).destroy();
+                } // next value
+              } // next multi-value layer
               
-              // add values that aren't already present
-              HashSet<String> valuesToAdd = new HashSet<String>(newValues);
-              valuesToAdd.removeAll(currentAnnotations.keySet());
-              for (String l : valuesToAdd) {
-                // can't use createTag, because there's no graph
-                Annotation tag = new Annotation(null, l, layerId);
-                tag.create(); // don't setTracker, because there's no ID yet
-                participant.addAnnotation(tag);
-              } // next value
-              
-              // delete values are aren't specified
-              HashSet<String> valuesToRemove = new HashSet<String>(
-                currentAnnotations.keySet());
-              valuesToRemove.removeAll(newValues);
-              for (String l : valuesToRemove) {
-                currentAnnotations.get(l).destroy();
-              } // next value
-            } // next multi-value layer
-            
-            // save
-            store.saveParticipant(participant);
-            
+              // save
+              store.saveTranscript(transcript);
+            } catch (GraphNotFoundException notFound) {
+              messages.add(localize("Transcript not found: {0}", id));
+              missing++;
+            }
           } // next record
         } // close parser
         
         JsonObjectBuilder model = Json.createObjectBuilder()
           .add("updated", updated)
-          .add("created", created);
+          .add("missing", missing);
         messages.add(
           localize(
-            "Imported data for {0} {0,choice,1#participant|1<participants} ({1} new)", // TODO i18n
-            updated+created, created));
+            "Imported data for {0} {0,choice,1#transcript|1<transcripts} ({1} not found)", // TODO i18n
+            updated, missing));
         return successResult(model.build(), messages);
       } finally {
         cacheStore(store);

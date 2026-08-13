@@ -1,6 +1,6 @@
-<%@ page info="Upload CSV attributes for participants" isErrorPage="true"
+<%@ page info="Upload CSV attributes for transcripts" isErrorPage="true"
     contentType = "application/json;charset=UTF-8"
-    import = "nzilbb.labbcat.server.api.edit.participants.attributes.Upload" 
+    import = "nzilbb.labbcat.server.api.edit.transcripts.attributes.Upload" 
     import = "javax.json.Json" 
     import = "javax.json.JsonObject" 
     import = "javax.json.JsonWriter"

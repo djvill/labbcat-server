@@ -20,7 +20,7 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-package nzilbb.labbcat.server.api.edit.participants.attributes;
+package nzilbb.labbcat.server.api.edit.transcripts.attributes;
 	      
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -69,74 +69,49 @@ public class TestUpload
     }
   }
   
-  /** Test basic participant attributes upload from CSV. */
-  @Test public void uploadParticipantAttributes() throws Exception {
+  /** Test basic transcript attributes upload from CSV. */
+  @Test public void uploadTranscriptAttributes() throws Exception {
 
-    String existingParticipantId = "UnitTester";
-    String createdParticipantId1 = "UnitTester-created-1";
-    String createdParticipantId2 = "UnitTester-created-2";
-    
+    File transcript = new File(
+      getDir().getParentFile().getParentFile(), "nzilbb.labbcat.server.test.txt");
+    String[] ids = l.getCorpusIds();
+    assertTrue("There is at least one corpus", ids.length > 0);
+    String corpus = ids[0];
+    Layer typeLayer = l.getLayer("transcript_type");
+    assertTrue("There is at least one transcript type", typeLayer.getValidLabels().size() > 0);
+    String transcriptType = typeLayer.getValidLabels().keySet().iterator().next();
+
     try {
-      // create participant for testing
-      Annotation participant = new Annotation(null, existingParticipantId, "participant");
-      assertTrue("Test participant created", l.saveParticipant(participant));
-      participant = l.getParticipant(existingParticipantId, null);
-      assertNotNull("Participant exists", participant);
-      participant = l.getParticipant(createdParticipantId1, null);
-      assertNull("Participant1 to create doesn't exist", participant);
-      participant = l.getParticipant(createdParticipantId2, null);
-      assertNull("Participant2 to create doesn't exist", participant);
-
-      File csv = new File(getDir(), "participants.csv");
+      // create a transcript for testing
+      String threadId = l.newTranscript(
+        transcript, null, null, transcriptType, corpus, "test");
+      
+      String[] layerIds = { "transcript_version", "transcript_versionDate" };
+      Graph graph = l.getGraph(transcript.getName(), layerIds);
+      // exception thrown if it's not there
+      
+      File csv = new File(getDir(), "transcripts.csv");
       int idColumn = 0;
       String[] columnLayer = {
-        null, "participant_gender", "", "participant_notes", "_password" };
-      int[] counts = l.uploadParticipantAttributes(csv, idColumn, columnLayer);
+        null, "", "transcript_version", "transcript_versionDate" };
+      int[] counts = l.uploadTranscriptAttributes(csv, idColumn, columnLayer);
       assertEquals("Correct number of counts returned " + Arrays.asList(counts),
                    2, counts.length);
-      assertEquals("One participant updated", 1, counts[0]);
-      assertEquals("Two participant created", 2, counts[1]);
-      // csv includes four rows, one is ignored because no ID is specified
+      assertEquals("One transcript updated", 1, counts[0]);
+      assertEquals("One transcript missing", 1, counts[1]);      
       
-      String[] layerIds = { "participant_gender", "participant_notes", "_password" };
-      participant = l.getParticipant(existingParticipantId, layerIds);
-      assertNotNull("Participant still exists", participant);
-      assertNotNull("Gender exists", participant.first("participant_gender"));
-      assertEquals("Gender correct",
-                   "X", participant.first("participant_gender").getLabel());
-      assertNotNull("Notes exist", participant.first("participant_notes"));
-      assertEquals("Notes correct",
-                   "UnitTester notes", participant.first("participant_notes").getLabel());
-      assertNull("Password not returned", participant.first("_password"));
-
-      participant = l.getParticipant(createdParticipantId1, layerIds);
-      assertNotNull("Participant created", participant);
-      assertNotNull("Gender exists", participant.first("participant_gender"));
-      assertEquals("Gender correct",
-                   "Y", participant.first("participant_gender").getLabel());
-      assertNotNull("Notes exist", participant.first("participant_notes"));
-      assertEquals("Notes correct",
-                   "New one", participant.first("participant_notes").getLabel());
-      
-      participant = l.getParticipant(createdParticipantId2, layerIds);
-      assertNotNull("Participant created", participant);
-      assertNotNull("Gender exists", participant.first("participant_gender"));
-      assertEquals("Gender correct",
-                   "Z", participant.first("participant_gender").getLabel());
-      assertNotNull("Notes exist", participant.first("participant_notes"));
-      assertEquals("Notes correct",
-                   "New two", participant.first("participant_notes").getLabel());
+      graph = l.getTranscript(transcript.getName(), layerIds);
+      assertNotNull("Version exists", graph.first("transcript_version"));
+      assertEquals("Version correct",
+                   "CSV", graph.first("transcript_version").getLabel());
+      assertNotNull("Version date exists", graph.first("transcript_versionDate"));
+      assertEquals("Version date correct",
+                   "2026-08-13", graph.first("transcript_versionDate").getLabel());
       
     } finally {
       l.setVerbose(false);
       try {
-        l.deleteParticipant(existingParticipantId);
-      } catch(ResponseException exception) {}
-      try {
-        l.deleteParticipant(createdParticipantId1);
-      } catch(ResponseException exception) {}
-      try {
-        l.deleteParticipant(createdParticipantId2);
+        l.deleteTranscript(transcript.getName());
       } catch(ResponseException exception) {}
     }
   }
@@ -144,25 +119,25 @@ public class TestUpload
   /** Test parameter validation. */
   @Test public void invalidParameters() throws Exception {
 
-    File csv = new File(getDir(), "participants.csv");
+    File csv = new File(getDir(), "transcripts.csv");
     int idColumn = 0;
-    String[] columnLayer = { null, "participant_gender", "", "participant_notes" };
+    String[] columnLayer = { null, "", "transcript_version", "transcript_versionDate" };
     try {
-      l.uploadParticipantAttributes(null, idColumn, columnLayer);
+      l.uploadTranscriptAttributes(null, idColumn, columnLayer);
       fail("Should fail when no CSV is supplied");
     } catch(Exception exception) {
       System.out.println(exception.toString());
     }
     
     try {
-      l.uploadParticipantAttributes(csv, 100, columnLayer);
+      l.uploadTranscriptAttributes(csv, 100, columnLayer);
       fail("Should fail when invalid ID column is supplied");
     } catch(Exception exception) {
       System.out.println(exception.toString());
     }
     
     try {
-      l.uploadParticipantAttributes(csv, idColumn, null);
+      l.uploadTranscriptAttributes(csv, idColumn, null);
       fail("Should fail when no column-to-layer mapping is supplied");
     } catch(Exception exception) {
       System.out.println(exception.toString());
@@ -170,25 +145,25 @@ public class TestUpload
     
     try {
       String[] moreColumnsThanCsv = {
-        null, "participant_gender", "", "participant_notes", "", "participant_notes" };
-      l.uploadParticipantAttributes(csv, idColumn, moreColumnsThanCsv);
+        null, "", "transcript_version", "transcript_versionDate", "transcript_versionDate" };
+      l.uploadTranscriptAttributes(csv, idColumn, moreColumnsThanCsv);
       fail("Should fail when more column mappings than columns are supplied");
     } catch(Exception exception) {
       System.out.println(exception.toString());
     }
     
     try {
-      String[] invalidLayer = { null, "nonexistent", "", "participant_notes" };
-      l.uploadParticipantAttributes(csv, idColumn, invalidLayer);
+      String[] invalidLayer = { null, "", "transcript_nonexistent", "transcript_versionDate" };
+      l.uploadTranscriptAttributes(csv, idColumn, invalidLayer);
       fail("Should fail when nonexistent layer is specified");
     } catch(Exception exception) {
       System.out.println(exception.toString());
     }
     
     try {
-      String[] invalidLayer = { null, "corpus", "", "participant_notes" };
-      l.uploadParticipantAttributes(csv, idColumn, invalidLayer);
-      fail("Should fail when non-participant-attribute layer is specified");
+      String[] invalidLayer = { null, "corpus", "transcript_version", "transcript_versionDate" };
+      l.uploadTranscriptAttributes(csv, idColumn, invalidLayer);
+      fail("Should fail when non-transcript-attribute layer is specified");
     } catch(Exception exception) {
       System.out.println(exception.toString());
     }
@@ -197,36 +172,42 @@ public class TestUpload
   /** Test multi-value attribute correctly accumulate values across lines and fields. */
   @Test public void multivalueAttribute() throws Exception {
 
-    String participantId = "UnitTester";
-    String multiValueAttribute = "participant_test_multivalue";
-
-    try { // ensure participant doesn't exist, so we know it'll be created
-      l.deleteParticipant(participantId);
-    } catch(ResponseException exception) {}
+    String multiValueAttribute = "transcript_test_multivalue";
+    
+    File transcript = new File(
+      getDir().getParentFile().getParentFile(), "nzilbb.labbcat.server.test.txt");
+    String[] ids = l.getCorpusIds();
+    assertTrue("There is at least one corpus", ids.length > 0);
+    String corpus = ids[0];
+    Layer typeLayer = l.getLayer("transcript_type");
+    assertTrue("There is at least one transcript type", typeLayer.getValidLabels().size() > 0);
+    String transcriptType = typeLayer.getValidLabels().keySet().iterator().next();
     
     try {
-      // create a multi-value participant attribute for testing
+      // create a transcript for testing
+      String threadId = l.newTranscript(
+        transcript, null, null, transcriptType, corpus, "test");
+      // create a multi-value transcript attribute for testing
       Layer multi = new Layer(multiValueAttribute, "Unit test attribute")
-        .setParentId("participant")
+        .setParentId("transcript")
         .setPeers(true);
       l.newLayer(multi);
-
+      
       File csv = new File(getDir(), "multivalue.csv");
       int idColumn = 1;
       String[] columnLayer = {
         multiValueAttribute, // first field has multi-line value
         "", // (ID field is not the first column)
         multiValueAttribute }; // last field is mapped to the same layer as first
-      int[] counts = l.uploadParticipantAttributes(csv, idColumn, columnLayer);
+      int[] counts = l.uploadTranscriptAttributes(csv, idColumn, columnLayer);
       assertEquals("Correct number of counts returned " + Arrays.asList(counts),
                    2, counts.length);
-      assertEquals("No participant updated", 0, counts[0]);
-      assertEquals("One participants created", 1, counts[1]);
+      assertEquals("One transcript updated", 1, counts[0]);
+      assertEquals("No missing transcripts", 0, counts[1]);
       
       String[] layerIds = { multiValueAttribute };
-      Annotation participant = l.getParticipant(participantId, layerIds);
-      assertNotNull("Participant still exists", participant);
-      SortedSet<Annotation> attributes = participant.getAnnotations()
+      Graph graph = l.getTranscript(transcript.getName(), layerIds);
+      SortedSet<Annotation> attributes = graph.getAnnotations()
         .get(multiValueAttribute);
       assertEquals("Correct number of values: " + attributes,
                    4, attributes.size());
@@ -240,7 +221,7 @@ public class TestUpload
     } finally {
       l.setVerbose(false);
       try {
-        l.deleteParticipant(participantId);
+        l.deleteTranscript(transcript.getName());
       } catch(ResponseException exception) {}
       try {
         l.deleteLayer(multiValueAttribute);
@@ -277,6 +258,6 @@ public class TestUpload
   public void setDir(File fNewDir) { fDir = fNewDir; }
 
   public static void main(String args[]) {
-    org.junit.runner.JUnitCore.main("nzilbb.labbcat.server.api.edit.participant.attributes.TestUpload");
+    org.junit.runner.JUnitCore.main("nzilbb.labbcat.server.api.edit.transcript.attributes.TestUpload");
   }
 }

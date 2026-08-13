@@ -74,7 +74,7 @@ export class ParticipantsAttributesUploadComponent extends EditComponent impleme
         this.created = null;
         this.csv = files[0]
         if (!this.csv.name.endsWith(".csv") && !this.csv.name.endsWith(".tsv")) {
-            this.messageService.error("File must be a CSV file.")
+            this.messageService.error("File must be a CSV file.") // TODO i18n
             this.csv = null;
             return;
         }
@@ -87,7 +87,7 @@ export class ParticipantsAttributesUploadComponent extends EditComponent impleme
             // remove blank lines
             csvRecordsArray = csvRecordsArray.filter(l=>l.length>0);
             if (csvRecordsArray.length == 0) {
-                component.messageService.error("File is empty: " + component.csv.name);
+                component.messageService.error(`File is empty: ${component.csv.name}`); // TODO i18n
             } else {
                 this.rowCount = csvRecordsArray.length - 1; // (don't count header line)
                 
@@ -129,13 +129,13 @@ export class ParticipantsAttributesUploadComponent extends EditComponent impleme
                                 component.columnLayer[f] = layer.id;
                                 break;
                             }
-                        } // next partcipant attribute
+                        } // next participant attribute
                     } // not 'password'
                 }
             }
         };
         reader.onerror = function () {  
-            component.messageService.error("Error reading " + component.csv.name);
+            component.messageService.error(`Error reading ${component.csv.name}`);
         };
         reader.readAsText(this.csv);
     }
@@ -145,7 +145,7 @@ export class ParticipantsAttributesUploadComponent extends EditComponent impleme
         this.processUpload();
     }
 
-    /** Recursively function to first add new attributes, then upload the CSV file */
+    /** Recursive function to first add new attributes, then upload the CSV file */
     processUpload() {
         // check for layers to create
         const nextNewAttributeIndex = this.columnLayer.indexOf("_create");

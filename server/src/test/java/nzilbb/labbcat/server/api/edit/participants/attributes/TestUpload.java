@@ -89,7 +89,8 @@ public class TestUpload
 
       File csv = new File(getDir(), "participants.csv");
       int idColumn = 0;
-      String[] columnLayer = { null, "participant_gender", "", "participant_notes" };
+      String[] columnLayer = {
+        null, "participant_gender", "", "participant_notes", "_password" };
       int[] counts = l.uploadParticipantAttributes(csv, idColumn, columnLayer);
       assertEquals("Correct number of counts returned " + Arrays.asList(counts),
                    2, counts.length);
@@ -97,7 +98,7 @@ public class TestUpload
       assertEquals("Two participant created", 2, counts[1]);
       // csv includes four rows, one is ignored because no ID is specified
       
-      String[] layerIds = { "participant_gender", "participant_notes" };
+      String[] layerIds = { "participant_gender", "participant_notes", "_password" };
       participant = l.getParticipant(existingParticipantId, layerIds);
       assertNotNull("Participant still exists", participant);
       assertNotNull("Gender exists", participant.first("participant_gender"));
@@ -106,6 +107,7 @@ public class TestUpload
       assertNotNull("Notes exist", participant.first("participant_notes"));
       assertEquals("Notes correct",
                    "UnitTester notes", participant.first("participant_notes").getLabel());
+      assertNull("Password not returned", participant.first("_password"));
 
       participant = l.getParticipant(createdParticipantId1, layerIds);
       assertNotNull("Participant created", participant);

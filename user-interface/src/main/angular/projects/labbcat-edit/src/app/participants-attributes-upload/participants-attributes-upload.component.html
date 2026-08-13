@@ -4,8 +4,6 @@
   <label for="csv" i18n>Participant Data File</label>
   <input type="file" id="csv" (change)="selectFile($event.target.files)" autofocus>
   <span *ngIf="rowCount" id="rowCount" i18n>{{rowCount}} rows</span>
-  <span *ngIf="updated || created" id="result" class="message"
-        i18n="Upload result, do not translate {{updated}} and {{created}}">Participant processed : {{updated}} updated, {{created}} created. </span>
   <details *ngIf="!headers">
     <summary i18n>What should the file look like?</summary>
     <div class="advanced">
@@ -25,7 +23,7 @@
        i18n-title title="Which field identifies the ID/name of the participant">
     <label for="idColumn" i18n>Participant identity column</label>
     <span>
-      <select id="idColumn" [(ngModel)]="idColumn">
+      <select id="idColumn" [(ngModel)]="idColumn" [disabled]="processing">
         <option value="-1" i18n="Imported participants ID column option">Automatically Generated</option>
         <ng-container *ngFor="let field of headers; let f = index">
           <option value="{{f}}">{{field}}</option></ng-container>
@@ -39,7 +37,8 @@
     <span class="attribute">
       <select id="column-{{f}}"
               i18n-title title="Which attribute to import this column into"
-              [(ngModel)]="columnLayer[f]">
+              [(ngModel)]="columnLayer[f]"
+              [disabled]="processing">
         <option *ngIf="field == 'password' || field == 'Password'"
                 value="_password" i18n="CSV import column-to-attribute option">Use as password</option>
         <option value="" i18n="CSV import column-to-attribute option">ignore</option>
@@ -55,10 +54,12 @@
                class="attribute"
                i18n-title title="New attribute name"
                placeholder="{{field}}"
-               [(ngModel)]="newLayerName[f]">
+               [(ngModel)]="newLayerName[f]"
+               [disabled]="processing">
         <select class="category"
                 i18n-title title="New attribute category"
-                [(ngModel)]="newLayerCategory[f]">
+                [(ngModel)]="newLayerCategory[f]"
+                [disabled]="processing">
           <ng-container *ngFor="let category of categories">
             <option>{{category}}</option></ng-container>
         </select>
@@ -73,4 +74,11 @@
                 i18n-label label="Upload"
                 ></lib-button>
   </div>
+</div>
+<div id="#result">
+  <progress *ngIf="uploadPercentProgress > 0"
+            value="{{uploadPercentProgress}}" max="100"
+            title="{{uploadPercentProgress + '%'}}"></progress>
+  <p *ngIf="updated || created" id="result" class="message"
+     i18n="Upload result, do not translate {{updated}} and {{created}}">Participant processed : {{updated}} updated, {{created}} created. </p>
 </div>

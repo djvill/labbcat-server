@@ -26,6 +26,8 @@ export class ParticipantsAttributesUploadComponent extends EditComponent impleme
     newLayerName: string[]; // parallel to headers, specifies the attribute name to add
     newLayerCategory: string[]; // parallel to headers, the new attribute category
 
+    uploadPercentProgress: number;
+
     updated: number;
     created: number;
     
@@ -190,6 +192,7 @@ export class ParticipantsAttributesUploadComponent extends EditComponent impleme
             this.labbcatService.labbcat.uploadParticipantAttributes(
                 this.csv, this.idColumn, this.columnLayer, (counts, errors, messages)=>{
                     this.processing = false;
+                    this.uploadPercentProgress = null;
                     if (errors) {
                         errors.forEach(m => this.messageService.error(m));
                     } else {
@@ -199,6 +202,11 @@ export class ParticipantsAttributesUploadComponent extends EditComponent impleme
                         // show results
                         this.updated = counts.updated;
                         this.created = counts.created;
+                    }
+                }, (e)=> { // progress
+                    if (e.lengthComputable) {
+                        // upload goes up to 50% only
+	                this.uploadPercentProgress = Math.round(e.loaded * 100 / e.total);
                     }
                 });
         } // upload data

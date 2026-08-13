@@ -20,7 +20,7 @@
 //    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-package nzilbb.labbcat.server.api.edit.participant.attributes;
+package nzilbb.labbcat.server.api.edit.participants.attributes;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,9 +72,9 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
 /**
- * <tt>/api/edit/participant/attributes/upload</tt>
+ * <tt>/api/edit/participants/attributes/upload</tt>
  * : Handler for receiving and processing participant attribute values in a CSV file.
- * <h3 id="POST"> <tt>/api/edit/participant/attributes/upload</tt> </h3>
+ * <h3 id="POST"> <tt>/api/edit/participants/attributes/upload</tt> </h3>
  * <p> <b> POST </b> uploads a CSV file and imports the specified participant attributes. 
  * <p> The multipart-encoded parameters are:
  *  <dl>

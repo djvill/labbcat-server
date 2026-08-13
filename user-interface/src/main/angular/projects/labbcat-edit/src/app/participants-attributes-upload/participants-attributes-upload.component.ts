@@ -4,12 +4,12 @@ import { MessageService, LabbcatService, Layer, User } from 'labbcat-common';
 import { EditComponent } from '../edit-component';
 
 @Component({
-    selector: 'app-participant-attributes-upload',
+    selector: 'app-participants-attributes-upload',
     standalone: false,
-    templateUrl: './participant-attributes-upload.component.html',
-    styleUrl: './participant-attributes-upload.component.css'
+    templateUrl: './participants-attributes-upload.component.html',
+    styleUrl: './participants-attributes-upload.component.css'
 })
-export class ParticipantAttributesUploadComponent extends EditComponent implements OnInit {
+export class ParticipantsAttributesUploadComponent extends EditComponent implements OnInit {
     
     user: User;
     schema: any;

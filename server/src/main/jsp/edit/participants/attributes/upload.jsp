@@ -1,6 +1,6 @@
 <%@ page info="Upload transcript" isErrorPage="true"
     contentType = "application/json;charset=UTF-8"
-    import = "nzilbb.labbcat.server.api.edit.participant.attributes.Upload" 
+    import = "nzilbb.labbcat.server.api.edit.participants.attributes.Upload" 
     import = "javax.json.Json" 
     import = "javax.json.JsonObject" 
     import = "javax.json.JsonWriter"

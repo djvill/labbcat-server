@@ -14,8 +14,8 @@ import { TranscriptMediaComponent } from './transcript-media/transcript-media.co
 import { TranscriptUploadComponent } from './transcript-upload/transcript-upload.component';
 import { EpisodeDocumentsComponent } from './episode-documents/episode-documents.component';
 import { MenuUploadComponent } from './menu-upload/menu-upload.component';
-import { ParticipantAttributesUploadComponent } from './participant-attributes-upload/participant-attributes-upload.component';
-import { TranscriptAttributesUploadComponent } from './transcript-attributes-upload/transcript-attributes-upload.component';
+import { ParticipantsAttributesUploadComponent } from './participants-attributes-upload/participants-attributes-upload.component';
+import { TranscriptsAttributesUploadComponent } from './transcripts-attributes-upload/transcripts-attributes-upload.component';
 
 @NgModule({
     declarations: [
@@ -26,8 +26,8 @@ import { TranscriptAttributesUploadComponent } from './transcript-attributes-upl
         TranscriptMediaComponent,
         TranscriptUploadComponent,
         EpisodeDocumentsComponent,
-        ParticipantAttributesUploadComponent,
-        TranscriptAttributesUploadComponent
+        ParticipantsAttributesUploadComponent,
+        TranscriptsAttributesUploadComponent
     ],
     imports: [
         BrowserModule,
@@ -46,11 +46,11 @@ import { TranscriptAttributesUploadComponent } from './transcript-attributes-upl
             { path: 'edit/episode/documents', component: EpisodeDocumentsComponent,
               canDeactivate: [PendingChangesGuard]},
             { path: 'edit/upload', component: MenuUploadComponent},
-            { path: 'edit/participant/attributes/upload',
-              component: ParticipantAttributesUploadComponent,
+            { path: 'edit/participants/attributes/upload',
+              component: ParticipantsAttributesUploadComponent,
               canDeactivate: [PendingChangesGuard]},
-            { path: 'edit/transcript/attributes/upload',
-              component: TranscriptAttributesUploadComponent,
+            { path: 'edit/transcripts/attributes/upload',
+              component: TranscriptsAttributesUploadComponent,
               canDeactivate: [PendingChangesGuard]},
         ]), // TODO add { path: '**', component: PageNotFoundComponent }
         FormsModule,

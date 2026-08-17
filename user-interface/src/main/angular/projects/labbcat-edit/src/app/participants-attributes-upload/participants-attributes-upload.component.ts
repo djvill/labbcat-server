@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
 import { MessageService, LabbcatService, Layer, User } from 'labbcat-common';
-import { EditComponent } from '../edit-component';
 
 @Component({
     selector: 'app-participants-attributes-upload',
@@ -9,7 +8,7 @@ import { EditComponent } from '../edit-component';
     templateUrl: './participants-attributes-upload.component.html',
     styleUrl: './participants-attributes-upload.component.css'
 })
-export class ParticipantsAttributesUploadComponent extends EditComponent implements OnInit {
+export class ParticipantsAttributesUploadComponent implements OnInit {
     
     user: User;
     schema: any;
@@ -32,9 +31,8 @@ export class ParticipantsAttributesUploadComponent extends EditComponent impleme
     created: number;
     
     constructor(
-        labbcatService: LabbcatService,
-        messageService: MessageService) {
-        super(labbcatService, messageService);
+        private labbcatService: LabbcatService,
+        private messageService: MessageService) {
      }
     
     ngOnInit(): void {

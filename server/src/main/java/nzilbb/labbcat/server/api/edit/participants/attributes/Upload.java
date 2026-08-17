@@ -127,8 +127,8 @@ public class Upload extends APIRequestHandler {
     try {
       SqlGraphStoreAdministration store = getStore();
       Schema schema = store.getSchema();
+      File csvFile = requestParameters.getFile("csv");
       try {
-        File csvFile = requestParameters.getFile("csv");
         if (csvFile == null) {
           httpStatus.accept(SC_BAD_REQUEST);
           return failureResult("No file received.");
@@ -373,6 +373,7 @@ public class Upload extends APIRequestHandler {
             updated+created, created));
         return successResult(model.build(), messages);
       } finally {
+        if (csvFile != null) csvFile.delete();
         cacheStore(store);
       }
     } catch(Exception ex) {

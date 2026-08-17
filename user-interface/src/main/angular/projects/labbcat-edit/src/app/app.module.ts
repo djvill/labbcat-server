@@ -16,6 +16,7 @@ import { EpisodeDocumentsComponent } from './episode-documents/episode-documents
 import { MenuUploadComponent } from './menu-upload/menu-upload.component';
 import { ParticipantsAttributesUploadComponent } from './participants-attributes-upload/participants-attributes-upload.component';
 import { TranscriptsAttributesUploadComponent } from './transcripts-attributes-upload/transcripts-attributes-upload.component';
+import { AnnotationsUploadComponent } from './annotations-upload/annotations-upload.component';
 
 @NgModule({
     declarations: [
@@ -27,7 +28,8 @@ import { TranscriptsAttributesUploadComponent } from './transcripts-attributes-u
         TranscriptUploadComponent,
         EpisodeDocumentsComponent,
         ParticipantsAttributesUploadComponent,
-        TranscriptsAttributesUploadComponent
+        TranscriptsAttributesUploadComponent,
+        AnnotationsUploadComponent
     ],
     imports: [
         BrowserModule,
@@ -47,11 +49,11 @@ import { TranscriptsAttributesUploadComponent } from './transcripts-attributes-u
               canDeactivate: [PendingChangesGuard]},
             { path: 'edit/upload', component: MenuUploadComponent},
             { path: 'edit/participants/attributes/upload',
-              component: ParticipantsAttributesUploadComponent,
-              canDeactivate: [PendingChangesGuard]},
+              component: ParticipantsAttributesUploadComponent},
             { path: 'edit/transcripts/attributes/upload',
-              component: TranscriptsAttributesUploadComponent,
-              canDeactivate: [PendingChangesGuard]},
+              component: TranscriptsAttributesUploadComponent},
+            { path: 'edit/annotations/upload',
+              component: AnnotationsUploadComponent},
         ]), // TODO add { path: '**', component: PageNotFoundComponent }
         FormsModule,
         LabbcatCommonModule.forRoot(environment)

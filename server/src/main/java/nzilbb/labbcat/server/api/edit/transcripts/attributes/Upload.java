@@ -87,7 +87,7 @@ o *       <dd> The (zero based) index of the column that identifies the transcri
  *   <dt> columnLayer </dt>
  *       <dd> Multiple values, where the index of the value corresponds to the
  *            (zero based) CSV column index, and the value is blank to ignore
- *            the column, the layer ID of the transcript attribute to update.</dd>
+ *            the column, or the layer ID of the transcript attribute to update.</dd>
  *  </dl>
  * <p><b>Output</b>: A JSON-encoded response containing a <q>model</q> with the following
  * attributes:
@@ -122,8 +122,8 @@ public class Upload extends APIRequestHandler {
     try {
       SqlGraphStoreAdministration store = getStore();
       Schema schema = store.getSchema();
+      File csvFile = requestParameters.getFile("csv");
       try {
-        File csvFile = requestParameters.getFile("csv");
         if (csvFile == null) {
           httpStatus.accept(SC_BAD_REQUEST);
           return failureResult("No file received.");
@@ -245,21 +245,17 @@ public class Upload extends APIRequestHandler {
                 Layer layer = fieldLayer[c];
                 if (layer != null) { // layer mapping specified
                   value = standardizeLabel(value, layer);
-                  context.servletLog(transcript.getId() + " " + layer + " = " + value);
                   
                   if (!layer.getPeers()) { // single value
                     Annotation annotation = transcript.first(layer.getId());
                     if (annotation != null) { // existing value
                       if (value == null || value.length() == 0) { // delete value
                         annotation.destroy();
-                        context.servletLog(transcript.getId() + " " + layer + " destroyed");
                       } else { // update
                         annotation.setLabel(value);
-                        context.servletLog(transcript.getId() + " " + layer + " set " + annotation.getChange());
                       }
                     } else { // insert
                       transcript.createTag(transcript, layer.getId(), value);
-                      context.servletLog(transcript.getId() + " " + layer + " created");
                     }
                   } else { // possibly multiple values
                     // if multiple columns map to this same layer, there may already be values
@@ -329,6 +325,7 @@ public class Upload extends APIRequestHandler {
             updated, missing));
         return successResult(model.build(), messages);
       } finally {
+        if (csvFile != null) csvFile.delete();
         cacheStore(store);
       }
     } catch(Exception ex) {

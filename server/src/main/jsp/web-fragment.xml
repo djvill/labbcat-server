@@ -129,6 +129,12 @@
   <servlet><servlet-name>edit/transcripts/attributes/upload.jsp</servlet-name><jsp-file>/jsp/edit/transcripts/attributes/upload.jsp</jsp-file></servlet>
   <servlet-mapping><servlet-name>edit/transcripts/attributes/upload.jsp</servlet-name><url-pattern>/api/edit/transcripts/attributes/upload</url-pattern></servlet-mapping>
   
+  <servlet><servlet-name>edit/annotations/tokens.jsp</servlet-name><jsp-file>/jsp/edit/annotations/tokens.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>edit/annotations/tokens.jsp</servlet-name><url-pattern>/api/edit/annotations/tokens</url-pattern></servlet-mapping>
+  
+  <servlet><servlet-name>edit/annotations/intervals.jsp</servlet-name><jsp-file>/jsp/edit/annotations/intervals.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>edit/annotations/intervals.jsp</servlet-name><url-pattern>/api/edit/annotations/intervals</url-pattern></servlet-mapping>
+  
   <servlet><servlet-name>admin/store.jsp</servlet-name><jsp-file>/jsp/admin/store.jsp</jsp-file></servlet>
   <servlet-mapping><servlet-name>admin/store.jsp</servlet-name><url-pattern>/api/admin/store/*</url-pattern></servlet-mapping>
   <servlet-mapping><servlet-name>admin/store.jsp</servlet-name><url-pattern>/admin/store/*</url-pattern></servlet-mapping>

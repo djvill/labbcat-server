@@ -28,6 +28,7 @@ import static org.junit.Assert.*;
 import java.io.*;
 import java.net.*;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -43,6 +44,7 @@ import nzilbb.ag.PermissionException;
 import nzilbb.ag.StoreException;
 import nzilbb.ag.serialize.SerializationDescriptor;
 import nzilbb.labbcat.LabbcatAdmin;
+import nzilbb.labbcat.PatternBuilder;
 import nzilbb.labbcat.model.*;
 import nzilbb.labbcat.ResponseException;
 import nzilbb.labbcat.http.HttpRequestGet;
@@ -85,7 +87,70 @@ public class TestTokens {
     System.out.println(task.getLog());
     l.releaseTask(threadId);
   }
+
+  /** Ensure annotations are successfully created and deleted */
+  @Test public void creationDeletion() throws Exception {
+
+    // find a token to annotate
+    String[] participantIds = l.getParticipantIds();
+    String[] firstParticipant = { participantIds[0] };
+    Match[] matches = l.getMatches(
+      l.search(
+        new PatternBuilder().addMatchLayer("orthography", "the").build(),
+        firstParticipant, null, true, null, null, null), 0);    
+    Match token = matches[0];
+
+    // create a csv file for tagging it
+    File csv = new File(getDir(), "token.csv");
+    String label = new Date().toString(); // alwaya a different label
+    try(PrintWriter writer = new PrintWriter(csv)) {
+      writer.println("MatchId,Label");
+      writer.println(token.getMatchId()+","+label);
+    }
+
+    // upload CSV annotation
+    String threadId = l.uploadTokenAnnotations(csv, 0, new String[] {"","lexical" });
     
+    TaskStatus task = l.waitForTask(threadId, 30);
+    assertFalse("Upload task finished in a timely manner",
+                task.getRunning());
+    task = l.taskStatus(threadId, true, false);
+    System.out.println(task.getLog());
+    l.releaseTask(threadId);
+
+    // check the token has been tagged
+    MatchId match = new MatchId(token);
+    Annotation[] annotations = l.getMatchingAnnotations(
+      "layerId == 'lexical' && parent.id == '"+match.getTargetId()+"'");
+    assertEquals("There is a tag",
+                 1, annotations.length);
+    assertEquals("The label is correct.",
+                 label, annotations[0].getLabel());
+
+    // create CSV file for untagging it
+    try(PrintWriter writer = new PrintWriter(csv)) {
+      writer.println("MatchId,Label");
+      writer.println(token.getMatchId()+","); // blank label should delete tag
+    }
+
+    // upload new CSV
+    threadId = l.uploadTokenAnnotations(csv, 0, new String[] {"","lexical" });    
+    task = l.waitForTask(threadId, 30);
+    assertFalse("Upload task finished in a timely manner",
+                task.getRunning());
+    task = l.taskStatus(threadId, true, false);
+    System.out.println(task.getLog());
+    l.releaseTask(threadId);
+    
+    // check the token is no longer tagged
+    annotations = l.getMatchingAnnotations(
+      "layer.id == 'lexical' && parent.id == '"+match.getTargetId()+"'");
+    assertEquals("There is no tag " + Arrays.asList(annotations),
+                 0, annotations.length);
+
+  }
+    
+
   /** Test parameter validation. */
   @Test public void invalidParameters() throws Exception {
 

@@ -458,10 +458,10 @@ public class Tokens extends APIRequestHandler {
                         } // meta scope
                       } catch(Exception exception) {
                         setStatus(
-                          "Line "+ row + ": Error adding " + label + " for " + word
+                          "Line "+ row + ": Error adding " + label + " for " + identifier
                           + ": " + exception);
                         warnings.add(
-                          "Line "+ row + ": Error adding " + label + " for " + word
+                          "Line "+ row + ": Error adding " + label + " for " + identifier
                           + ": " + exception);
                       }
                     } // column has been mapped

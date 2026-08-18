@@ -336,7 +336,6 @@ public class Intervals extends APIRequestHandler {
                       if (graph != null && graph.getId() != null) {
                         // (not a dummy in place of one that wasn't found)
                         // save previous graph
-                        setStatus("Saving " + graph.getId());
                         store.saveTranscript(graph);
                       }
                       
@@ -373,26 +372,23 @@ public class Intervals extends APIRequestHandler {
                         startOffset, Constants.CONFIDENCE_MANUAL);
                       Anchor end = graph.getOrCreateAnchorAt(
                         endOffset, Constants.CONFIDENCE_MANUAL);
+                      recordCount++;
                       // for each column
                       for (int c = 0; c < columnLayer.length; c++) {
                         String label = record.get(c);
                         String layerId = columnLayer[c];
                         Layer layer = fieldLayer[c];
                         if (layer != null) { // column has been mapped
+                          // delete any old overlapping annotations here
+                          for (Annotation overlapping : graph.overlappingAnnotations(
+                                 start, end, layer.getId())) {
+                            overlapping.destroy();
+                          } // next overlapping annotation
                           if (label != null) {
                             label = label.trim();
                             if (label.length() > 0) {
-                              // delete any old overlapping annotations here
-                              for (Annotation overlapping : graph.overlappingAnnotations(
-                                     start, end, layer.getId())) {
-                                if (overlapping.getChange() == Change.Operation.NoChange) {
-                                  overlapping.destroy();
-                                }
-                              } // next overlapping annotation
                               Annotation annotation = graph.createAnnotation(
                                 start, end, layer.getId(), label, graph);
-                              setStatus("createAnnotation \"" + label +"\" " + start.getId() + "-" + end.getId() + " ("+layer+"): " + annotation);
-                              recordCount++;
                             } // non-empty label
                           } // non-null label
                         } // column mapped to layer
@@ -417,7 +413,6 @@ public class Intervals extends APIRequestHandler {
                 if (graph != null && graph.getId() != null) {
                   // (not a dummy in place of one that wasn't found))
                   // save last graph
-                  setStatus("Saving " + graph.getId());
                   store.saveTranscript(graph);
                 }
               } // close parser

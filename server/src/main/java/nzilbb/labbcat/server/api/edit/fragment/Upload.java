@@ -187,7 +187,7 @@ public class Upload extends APIRequestHandler {
         dir = Files.createTempDirectory(uploadsDir.toPath(), "_fragment_").toFile();
         dir.deleteOnExit();
         String id = dir.getName();
-        context.servletLog("POST id " + id); // TODO
+        // context.servletLog("POST id " + id); // TODO
         
         Vector<NamedStream> streams = new Vector<NamedStream>();
 
@@ -200,10 +200,10 @@ public class Upload extends APIRequestHandler {
           httpStatus.accept(SC_BAD_REQUEST);
           return failureResult("No file received.");
         }
-        context.servletLog("POST fragment " + uploadedFragment.getName()); // TODO
+        // context.servletLog("POST fragment " + uploadedFragment.getName()); // TODO
         FileNameInterpreter interpreter = new FileNameInterpreter(
           uploadedFragment.getName(), store);
-        context.servletLog("transcript " + interpreter.getTranscriptId() + " start " + interpreter.getStartTime() + " end " + interpreter.getEndTime()); // TODO
+        // context.servletLog("transcript " + interpreter.getTranscriptId() + " start " + interpreter.getStartTime() + " end " + interpreter.getEndTime()); // TODO
         if (interpreter.getEndTime() < 0) {
           uploadedFragment.delete();
           httpStatus.accept(SC_BAD_REQUEST);
@@ -214,7 +214,7 @@ public class Upload extends APIRequestHandler {
         File fragment = new File(dir, uploadedFragment.getName());
         IO.Rename(uploadedFragment, fragment);
         fragment.deleteOnExit();
-        context.servletLog("POST  now " + fragment.getPath() + " " + fragment.exists()); // TODO
+        // context.servletLog("POST  now " + fragment.getPath() + " " + fragment.exists()); // TODO
         streams.add(new NamedStream(fragment));
         
         // get the serializer using fragment name
@@ -252,7 +252,7 @@ public class Upload extends APIRequestHandler {
         } else {
           JsonArrayBuilder parameters = Json.createArrayBuilder();
           model.add("parameters", deserializerParameters.toJson());
-          context.servletLog("POST success " + localize("Uploaded: {0}", fragment.getName())); // TODO 
+          // context.servletLog("POST success " + localize("Uploaded: {0}", fragment.getName())); // TODO 
           return successResult(model.build(), "Uploaded: {0}", fragment.getName());
         }
       } finally {
@@ -322,7 +322,7 @@ public class Upload extends APIRequestHandler {
           if (fragment == null) fragment = t;
           streams.add(new NamedStream(t));
         }
-        context.servletLog("PUT fragment " + fragment); // TODO
+        // context.servletLog("PUT fragment " + fragment); // TODO
         if (fragment == null) {
           httpStatus.accept(SC_BAD_REQUEST);
           return failureResult("No fragments found for: {0}", id); // TODO i18n
@@ -397,7 +397,7 @@ public class Upload extends APIRequestHandler {
     FileNameInterpreter interpreter, GraphDeserializer deserializer,
     ParameterSet deserializerParameters, Consumer<Integer> httpStatus)
     throws Exception {
-    context.servletLog("finishUpload " + id + " - " + fragment.getName()); // TODO
+    // context.servletLog("finishUpload " + id + " - " + fragment.getName()); // TODO
 
     try {
       deserializer.setParameters(deserializerParameters);
@@ -419,7 +419,7 @@ public class Upload extends APIRequestHandler {
     JsonObjectBuilder model = Json.createObjectBuilder().add("id", id);
     
     Graph changed = graphs[0];
-    context.servletLog("changed " + changed); // TODO
+    // context.servletLog("changed " + changed); // TODO
     // check for orphans
     Vector<Annotation> orphans = new Vector<Annotation>();
     for (Annotation a : changed.getAnnotationsById().values()) {
@@ -464,7 +464,7 @@ public class Upload extends APIRequestHandler {
         interpreter.getStartTime(), interpreter.getEndTime(),
         // all layers:
         store.getLayerIds());
-      context.servletLog("original " + original.getGraph().getId());
+      // context.servletLog("original " + original.getGraph().getId());
       
       // merge the changes into the original
       Merger merger = new Merger(changed);
@@ -496,10 +496,10 @@ public class Upload extends APIRequestHandler {
       if (merger.getDebug()) messages.addAll(merger.getLog());	
       errors.addAll(merger.getErrors());
       List<Change> changes = original.getChanges();
-      context.servletLog("Changes:"); // TODO
-      for (Change c : changes) {
-        context.servletLog(c.getObject().toString() + " : " + c.toString()); // TODO
-      }
+      // context.servletLog("Changes:"); // TODO
+      // for (Change c : changes) {
+      //   context.servletLog(c.getObject().toString() + " : " + c.toString()); // TODO
+      // }
       // report changes
       TreeMap<String,Integer> layerToChangeCount = new TreeMap<String,Integer>();
       for (Annotation annotation : original.getAnnotationsById().values()) {

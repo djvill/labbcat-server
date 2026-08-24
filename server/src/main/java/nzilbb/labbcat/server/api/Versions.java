@@ -1,5 +1,5 @@
 //
-// Copyright 2025 New Zealand Institute of Language, Brain and Behaviour, 
+// Copyright 2025-2026 New Zealand Institute of Language, Brain and Behaviour, 
 // University of Canterbury
 // Written by Robert Fromont - robert.fromont@canterbury.ac.nz
 //
@@ -197,6 +197,13 @@ public class Versions extends APIRequestHandler {
           sql.close();
         }
         jsonOut.writeEnd(); // Layer Managers
+
+        String dataVersion = store.getSystemAttribute("dataVersion");
+        if (dataVersion != null && dataVersion.length() > 0) {
+          jsonOut.writeStartObject("Data");
+          jsonOut.write("dataVersion", dataVersion);
+          jsonOut.writeEnd(); // Data
+        }
         
         endSuccessResult(jsonOut, null);
       } finally {

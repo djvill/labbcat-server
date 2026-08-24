@@ -4,7 +4,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 
 import { Layer } from 'labbcat-common';
 import { User, Task } from 'labbcat-common';
-import { MessageService, LabbcatService } from 'labbcat-common';
+import { MessageService, LabbcatService, VersionInfo } from 'labbcat-common';
 
 import { Matrix } from '../matrix';
 import { MatrixLayerMatch } from '../matrix-layer-match';
@@ -41,6 +41,7 @@ export class SearchComponent implements OnInit {
     exportUrl: string;
     exportName: string;
     @ViewChild('exportAnchor', {static: false}) exportAnchor: ElementRef;
+    versions: VersionInfo;
     
     constructor(
         private labbcatService: LabbcatService,
@@ -64,6 +65,7 @@ export class SearchComponent implements OnInit {
         this.history = JSON.parse(sessionStorage.getItem("searchHistory")) ?? [];
         this.readUserInfo();
         this.setupTabs();
+        this.readVersions().then(() => {
         this.labbcatService.labbcat.getSchema((schema, errors, messages) => {
             this.schema = schema;
             
@@ -113,6 +115,15 @@ export class SearchComponent implements OnInit {
                 }
                 this.listParticipants();
                 this.listTranscripts();
+            });
+        });
+        });
+    }
+    readVersions(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.labbcatService.labbcat.versionInfo((versions, errors, messages) => {
+                this.versions = versions;
+                resolve();
             });
         });
     }
@@ -418,6 +429,10 @@ export class SearchComponent implements OnInit {
         let historyItem = {} as SearchHistoryItem;
         historyItem.task = {} as Task;
         this.updateTask(historyItem, this.threadId);
+        historyItem.metadata = {
+            labbcat_title: this.labbcatService.title,
+            labbcat_version: this.versions.System["LaBB-CAT"]
+        };
         historyItem.matrix = structuredClone(this.matrix);
         historyItem.filters = {
             participantDescription: this.participantDescription,

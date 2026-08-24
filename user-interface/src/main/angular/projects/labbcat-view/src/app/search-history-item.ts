@@ -5,6 +5,11 @@ import { Matrix } from './matrix';
 export interface SearchHistoryItem {
     task: Task;
     cancelled: boolean; // Task.status.includes("cancelled"), not exported
+    metadata: {
+        labbcat_title: string,
+        labbcat_version: string,
+        data_version?: string // currently only available via api/results
+    };
     matrix: Matrix;
 
     /** Participant/transcript filters (from Search) */

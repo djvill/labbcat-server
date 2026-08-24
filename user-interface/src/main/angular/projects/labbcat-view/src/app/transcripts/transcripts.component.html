@@ -252,8 +252,8 @@
     i18n-title title="Add or update a transcript"></lib-link>
   <lib-link
     *ngIf="user && user.roles.includes('edit') && !nextPage"
-    href="{{baseUrl}}edit/transcript/attributesBatch"
-    img="wrench.svg" icon="🔧"
+    href="{{baseUrl}}edit/transcripts/attributes/upload"
+    img="csv.svg" icon="c,s,v"
     i18n-label label="Upload Transcript Data"
     i18n-title title="Import participant data from a CSV file"></lib-link>
 </div>

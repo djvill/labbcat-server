@@ -58,6 +58,7 @@ import nzilbb.configure.Parameter;
 import nzilbb.configure.ParameterSet;
 import nzilbb.labbcat.server.api.APIRequestHandler;
 import nzilbb.labbcat.server.api.RequestParameters;
+import nzilbb.labbcat.server.api.RequiredRole;
 import nzilbb.labbcat.server.db.SqlGraphStoreAdministration;
 import nzilbb.util.IO;
 
@@ -173,6 +174,7 @@ import nzilbb.util.IO;
  * used by the POST request. 
  * @author Robert Fromont robert@fromont.net.nz
  */
+@RequiredRole("edit")
 public class Upload extends APIRequestHandler {
 
   File uploadsDir;
@@ -200,6 +202,10 @@ public class Upload extends APIRequestHandler {
     try {
       SqlGraphStoreAdministration store = getStore();
       try {
+        if (!hasAccess(store.getConnection())) {
+          httpStatus.accept(SC_FORBIDDEN);
+          return null;
+        }
         boolean merge = !Optional.ofNullable(requestParameters.getString("merge")).orElse("false")
           .equals("false");
         String dirPrefix = merge?"_merge_":"_new_";
@@ -364,6 +370,10 @@ public class Upload extends APIRequestHandler {
       // context.servletLog("PUT generateLayers " + generateLayers + " - " + requestParameters);
 
       try {
+        if (!hasAccess(store.getConnection())) {
+          httpStatus.accept(SC_FORBIDDEN);
+          return null;
+        }
         boolean merge = id.startsWith("_merge_");
         dir = new File(uploadsDir, id);
         if (!dir.exists()) {
@@ -885,6 +895,10 @@ public class Upload extends APIRequestHandler {
       SqlGraphStoreAdministration store = getStore();
       // context.servletLog("store " + store.getId());
       try {
+        if (!hasAccess(store.getConnection())) {
+          httpStatus.accept(SC_FORBIDDEN);
+          return null;
+        }
         dir = new File(uploadsDir, id);
         if (!dir.exists()) {
           httpStatus.accept(SC_BAD_REQUEST);

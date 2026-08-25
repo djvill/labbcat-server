@@ -65,6 +65,7 @@ import nzilbb.ag.util.ParticipantRenamer;
 import nzilbb.configure.Parameter;
 import nzilbb.configure.ParameterSet;
 import nzilbb.labbcat.server.api.APIRequestHandler;
+import nzilbb.labbcat.server.api.RequiredRole;
 import nzilbb.labbcat.server.api.RequestParameters;
 import nzilbb.labbcat.server.db.IdMatch;
 import nzilbb.labbcat.server.db.SqlGraphStoreAdministration;
@@ -102,6 +103,7 @@ import org.apache.commons.csv.CSVRecord;
  * processing the request.
  * @author Robert Fromont robert@fromont.net.nz
  */
+@RequiredRole("edit")
 public class Tokens extends APIRequestHandler {
   
   /**
@@ -124,6 +126,11 @@ public class Tokens extends APIRequestHandler {
     File dir = null;
     try {
       final SqlGraphStoreAdministration store = getStore();
+      if (!hasAccess(store.getConnection())) {
+        cacheStore(store);
+        httpStatus.accept(SC_FORBIDDEN);
+        return null;
+      }
       Schema schema = store.getSchema();
       File csvFile = requestParameters.getFile("csv");
       if (csvFile == null) {

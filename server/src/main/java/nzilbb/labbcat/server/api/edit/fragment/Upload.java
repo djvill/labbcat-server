@@ -185,7 +185,6 @@ public class Upload extends APIRequestHandler {
       SqlGraphStoreAdministration store = getStore();
       try {
         if (!hasAccess(store.getConnection())) {
-          context.servletLog("forbidden");
           httpStatus.accept(SC_FORBIDDEN);
           return null;
         }

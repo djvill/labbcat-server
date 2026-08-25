@@ -8,7 +8,7 @@ export interface SearchHistoryItem {
     metadata: {
         labbcat_title: string,
         labbcat_version: string,
-        data_version?: string // currently only available via api/results
+        data_version?: string
     };
     matrix: Matrix;
 

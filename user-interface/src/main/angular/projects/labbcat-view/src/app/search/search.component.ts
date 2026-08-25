@@ -433,6 +433,9 @@ export class SearchComponent implements OnInit {
             labbcat_title: this.labbcatService.title,
             labbcat_version: this.versions.System["LaBB-CAT"]
         };
+        if (this.versions.Data && this.versions.Data["dataVersion"]) {
+            historyItem.metadata.data_version = this.versions.Data["dataVersion"];
+        }
         historyItem.matrix = structuredClone(this.matrix);
         historyItem.filters = {
             participantDescription: this.participantDescription,

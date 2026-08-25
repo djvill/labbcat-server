@@ -7,6 +7,7 @@
     import = "nz.ac.canterbury.ling.Labbcat"
     import = "nz.ac.canterbury.ling.LayersDataGenerator"
 %><%@ include file="../../base.jsp" %><%{
+log("edit/fragment/upload " + request.getMethod());
       if ("POST".equals(request.getMethod())) { // POST uploads files
         // load multipart request parameters - the implementation depends on the servlet container:
         // Server info something like "Apache Tomcat/9.0.58 (Ubuntu)" or "Apache Tomcat/10.1.36"
@@ -49,6 +50,8 @@
         }
       } else if ("OPTIONS".equals(request.getMethod())) {
         response.addHeader("Allow", "OPTIONS, POST, PUT, DELETE");
+      } else if ("GET".equals(request.getMethod())) {
+        // SendPraat probes authentication requirements with GET
       } else {
         response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
       }

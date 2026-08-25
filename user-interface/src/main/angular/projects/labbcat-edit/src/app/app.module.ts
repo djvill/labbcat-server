@@ -18,6 +18,7 @@ import { MenuUploadComponent } from './menu-upload/menu-upload.component';
 import { ParticipantsAttributesUploadComponent } from './participants-attributes-upload/participants-attributes-upload.component';
 import { TranscriptsAttributesUploadComponent } from './transcripts-attributes-upload/transcripts-attributes-upload.component';
 import { AnnotationsUploadComponent } from './annotations-upload/annotations-upload.component';
+import { TranscriptsLayersRegenerateComponent } from './transcripts-layers-regenerate/transcripts-layers-regenerate.component';
 
 @NgModule({
     declarations: [
@@ -31,7 +32,8 @@ import { AnnotationsUploadComponent } from './annotations-upload/annotations-upl
         EpisodeDocumentsComponent,
         ParticipantsAttributesUploadComponent,
         TranscriptsAttributesUploadComponent,
-        AnnotationsUploadComponent
+        AnnotationsUploadComponent,
+        TranscriptsLayersRegenerateComponent
     ],
     imports: [
         BrowserModule,
@@ -58,6 +60,8 @@ import { AnnotationsUploadComponent } from './annotations-upload/annotations-upl
               component: TranscriptsAttributesUploadComponent},
             { path: 'edit/annotations/upload',
               component: AnnotationsUploadComponent},
+            { path: 'edit/transcripts/layers/regenerate',
+              component: TranscriptsLayersRegenerateComponent},
         ]), // TODO add { path: '**', component: PageNotFoundComponent }
         FormsModule,
         LabbcatCommonModule.forRoot(environment)

@@ -46,6 +46,7 @@ export class TranscriptsComponent implements OnInit {
     nextPage: string;
     searchJson: string;
     imagesLocation: string;
+    generateLayerId = "";
     
     serializers: SerializationDescriptor[];
     mimeTypeToSerializer = {};
@@ -670,13 +671,34 @@ export class TranscriptsComponent implements OnInit {
             this.showAttributesSelection = this.showSerializationOptions = false;
             this.serializeImg = "cog.svg";
         } else { // options selected, so go ahead and do it
-            if (this.selectedIds.length == 0 && this.matchCount > 1000) {
-                if (!confirm("This will export all "+this.matchCount+" matches.\nAre you sure?")) { // TODO i18n
-                    return;
-                }
+            if (this.selectedIds.length == 0) return; // must select transcripts explicitly
+            const fd = new FormData();
+            fd.append("layerId", this.generateLayerId);
+            for (let id of this.selectedIds) fd.append("id", id);
+            const regenerate = this.labbcatService.labbcat.createRequest(
+                "regenerate", null, (model, errors, messages) => {
+                    if (errors) errors.forEach(m => this.messageService.error(m));
+                    if (messages) messages.forEach(m => this.messageService.info(m));
+                    if (model && model.threadId) {
+                        if (messages) {
+                            window.setTimeout(()=>{ // give them a chance to see the messages
+                                this.router.navigate(
+                                    ["..","task"],
+                                    { queryParams: { threadId: model.threadId } });
+                            }, 5000);
+                        } else {
+                            this.router.navigate(
+                                ["..","task"],
+                                { queryParams: { threadId: model.threadId } });
+                        }
+                    }
+                },
+                this.baseUrl+"api/edit/transcripts/layers/regenerate", "POST");
+            try {
+                regenerate.send(fd);
+            } catch (x) {
+                this.messageService.error(x);
             }
-            this.form.nativeElement.action = this.baseUrl + "edit/layers/regenerate";
-            this.form.nativeElement.submit();
         }
     }
     collapseGenerate(): void {

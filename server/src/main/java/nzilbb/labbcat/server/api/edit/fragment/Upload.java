@@ -29,8 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Vector;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -41,6 +41,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import nzilbb.ag.*;
+import nzilbb.ag.ql.QL;
 import nzilbb.ag.serialize.GraphDeserializer;
 import nzilbb.ag.serialize.SerializationDescriptor;
 import nzilbb.ag.serialize.SerializationException;
@@ -56,11 +57,11 @@ import nzilbb.ag.util.DefaultOffsetGenerator;
 import nzilbb.ag.util.Merger;
 import nzilbb.ag.util.Normalizer;
 import nzilbb.ag.util.ParticipantRenamer;
-import nzilbb.ag.ql.QL;
 import nzilbb.configure.Parameter;
 import nzilbb.configure.ParameterSet;
 import nzilbb.labbcat.server.api.APIRequestHandler;
 import nzilbb.labbcat.server.api.RequestParameters;
+import nzilbb.labbcat.server.api.RequiredRole;
 import nzilbb.labbcat.server.db.SqlGraphStoreAdministration;
 import nzilbb.util.IO;
 
@@ -150,6 +151,7 @@ import nzilbb.util.IO;
  *  </dl>
  * @author Robert Fromont robert@fromont.net.nz
  */
+@RequiredRole("edit")
 public class Upload extends APIRequestHandler {
   
   File uploadsDir;
@@ -182,6 +184,11 @@ public class Upload extends APIRequestHandler {
     try {
       SqlGraphStoreAdministration store = getStore();
       try {
+        if (!hasAccess(store.getConnection())) {
+          context.servletLog("forbidden");
+          httpStatus.accept(SC_FORBIDDEN);
+          return null;
+        }
         
         // generate an ID/directory to save files
         dir = Files.createTempDirectory(uploadsDir.toPath(), "_fragment_").toFile();

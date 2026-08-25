@@ -149,13 +149,11 @@ export class SearchComponent implements OnInit {
             description: "Configure options for matching and displaying search results", // TODO i18n
             icon: "cog.svg"
         };
-        if (this.history.length) {
-            this.tabs["History"] = {
-                label: "History", // TODO i18n
-                description: "View history of searches on this browser tab", // TODO i18n
-                icon: "history.svg"
-            };
-        }
+        this.tabs["History"] = {
+            label: "History", // TODO i18n
+            description: "View history of searches on this browser tab", // TODO i18n
+            icon: "history.svg"
+        };
         this.tabLabels = Object.keys(this.tabs);
     }
     selectParticipants(): void {
@@ -398,14 +396,6 @@ export class SearchComponent implements OnInit {
                 if (messages) messages.forEach(m => this.messageService.info(m));
                 this.threadId = result.threadId;
                 this.history.push(this.historyItem());
-                if (!this.tabs["History"]) {
-                    this.tabs["History"] = {
-                        label: "History", // TODO i18n
-                        description: "View history of searches on this browser tab", // TODO i18n
-                        icon: "history.svg"
-                    };
-                    this.tabLabels.push("History");
-                }
         });
     }
 
@@ -512,17 +502,11 @@ export class SearchComponent implements OnInit {
     deleteHistoryItem(historyItem: SearchHistoryItem): void {
         this.history = this.history.filter(x => x.task.threadId !== historyItem.task.threadId);
         sessionStorage.setItem("searchHistory", JSON.stringify(this.history));
-        if (!this.history.length) {
-            delete this.tabs["History"];
-            this.tabLabels.pop();
-        }
     }
 
     deleteHistory(): void {
         this.history = this.history.filter(x => false);
         sessionStorage.removeItem("searchHistory");
-        delete this.tabs["History"];
-        this.tabLabels.pop();
     }
 
     transcriptQueryIncludingParticipantConditions(): string {

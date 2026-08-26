@@ -4,11 +4,11 @@ import { MessageService, LabbcatService, VersionInfo } from 'labbcat-common';
 import { Layer, Task } from 'labbcat-common';
 
 @Component({
-  selector: 'app-transcripts-layers-regenerate',
-  templateUrl: './transcripts-layers-regenerate.component.html',
-  styleUrl: './transcripts-layers-regenerate.component.css'
+  selector: 'app-participants-layers-regenerate',
+  templateUrl: './participants-layers-regenerate.component.html',
+  styleUrl: './participants-layers-regenerate.component.css'
 })
-export class TranscriptsLayersRegenerateComponent implements OnInit {
+export class ParticipantsLayersRegenerateComponent implements OnInit {
     schema: any;
     baseUrl: string;
     generableLayers: Layer[];
@@ -16,7 +16,7 @@ export class TranscriptsLayersRegenerateComponent implements OnInit {
     lineCount: number;
     preview: string;
     maybeCsv = false;
-    layerId = "";
+    layerId: string;
 
     threadId: string;
 
@@ -62,21 +62,21 @@ export class TranscriptsLayersRegenerateComponent implements OnInit {
         const component = this;
         reader.onload = () => {  
             const txtData = reader.result;  
-            let transcriptList = (<string>txtData).split(/\r\n|\n/);
+            let participantList = (<string>txtData).split(/\r\n|\n/);
             // remove blank lines
-            transcriptList = transcriptList.filter(l=>l.length>0);
-            if (transcriptList.length == 0) {
+            participantList = participantList.filter(l=>l.length>0);
+            if (participantList.length == 0) {
                 component.messageService.error("File is empty: " + component.idsFile.name);
             } else {
-                this.lineCount = transcriptList.length;
+                this.lineCount = participantList.length;
                     
                 // show preview of the file
-                this.preview = transcriptList.slice(0,this.previewLines).join("\n");
+                this.preview = participantList.slice(0,this.previewLines).join("\n");
 
                 // have they picked a CSV file with multiple columns?
-                this.maybeCsv = transcriptList[0].includes(",")
-                    || transcriptList[0].includes("\t")
-                    || transcriptList[0].includes(";");
+                this.maybeCsv = participantList[0].includes(",")
+                    || participantList[0].includes("\t")
+                    || participantList[0].includes(";");
             }
         };
         reader.onerror = function () {  
@@ -108,7 +108,7 @@ export class TranscriptsLayersRegenerateComponent implements OnInit {
                     this.processing = false;
                 }
             },
-            this.baseUrl+"api/edit/transcripts/layers/regenerate", "POST");
+            this.baseUrl+"api/edit/participants/layers/regenerate", "POST");
         try {
             regenerate.send(fd);
         } catch (x) {

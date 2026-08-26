@@ -13,8 +13,9 @@ export class TranscriptsLayersRegenerateComponent {
     baseUrl: string;
     generableLayers: Layer[];
     idsFile: File;
-    rowCount: number;
+    lineCount: number;
     preview: string;
+    maybeCsv = false;
     layerId = "";
 
     threadId: string;
@@ -42,6 +43,7 @@ export class TranscriptsLayersRegenerateComponent {
         });
     }
 
+    previewLines = 10;
     /** Called when a file file is selected; parses the file to determine CSV fields. */
     selectFile(files: File[]): void {
         if (files.length == 0) return;
@@ -64,10 +66,15 @@ export class TranscriptsLayersRegenerateComponent {
             if (transcriptList.length == 0) {
                 component.messageService.error("File is empty: " + component.idsFile.name);
             } else {
-                this.rowCount = transcriptList.length;
+                this.lineCount = transcriptList.length;
                     
                 // show preview of the file
-                this.preview = transcriptList.slice(0,10).join("\n");                
+                this.preview = transcriptList.slice(0,this.previewLines).join("\n");
+
+                // have they picked a CSV file with multiple columns?
+                this.maybeCsv = transcriptList[0].includes(",")
+                    || transcriptList[0].includes("\t")
+                    || transcriptList[0].includes(";");
             }
         };
         reader.onerror = function () {  

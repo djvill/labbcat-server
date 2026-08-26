@@ -25,9 +25,13 @@
       </div>
     </details>
   </div>
-  <fieldset *ngIf="preview" id="preview-view"><legend *ngIf="rowCount" id="rowCount" i18n>{{rowCount}} lines</legend>
-    <pre id="preview">{{preview}}</pre>...
+  <fieldset *ngIf="preview" id="preview-view"><legend *ngIf="lineCount" id="lineCount" i18n>{{lineCount}} lines</legend>
+    <pre id="preview">{{preview}}</pre><span *ngIf="previewLines < lineCount">&hellip;</span>
   </fieldset>
+  <div *ngIf="maybeCsv"
+       class="warning"
+       id="maybe-csv"
+       i18n>This file looks like it might be a CSV file with multiple columns. Please ensure that the file has only one transcript name on each line.</div>
   <div class="controls">
     <lib-button *ngIf="preview"
                 (press)="process()"

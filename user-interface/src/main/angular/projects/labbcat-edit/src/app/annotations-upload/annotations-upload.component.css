@@ -47,6 +47,10 @@ details[open] > summary > label {
 
 /* Layout on wider screens */
 @media all and (min-width: 640px) {
+    #form {
+        width: 60vw;
+        margin: auto;
+    }
     .item {
         min-height: 25px;
         display: flex;

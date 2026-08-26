@@ -35,7 +35,8 @@ import { ParticipantsLayersRegenerateComponent } from './participants-layers-reg
         TranscriptsAttributesUploadComponent,
         AnnotationsUploadComponent,
         TranscriptsLayersRegenerateComponent,
-        ParticipantsLayersRegenerateComponent
+        ParticipantsLayersRegenerateComponent,
+        MenuUploadComponent
     ],
     imports: [
         BrowserModule,

@@ -101,11 +101,18 @@ public class Regenerate extends APIRequestHandler {
           return null;
         }
         String layerId = requestParameters.getString("layerId");
+        if (layerId == null) {
+          httpStatus.accept(SC_BAD_REQUEST);
+          return failureResult("No layer ID specified.");
+        }
         Layer layer = null;
         if (layerId != null && layerId.length() > 0) {
           layer = store.getLayer(layerId);
-          if (layer == null || !layer.containsKey("layer_manager_id")
-              || !layer.containsKey("layer_id")) {
+          if (layer == null
+              || layer.get("layer_manager_id") == null
+              || !layer.containsKey("enabled")
+              || !layer.get("enabled").toString().matches(".*T.*") // T: transcript upload
+              || layer.get("layer_id") == null) {
             httpStatus.accept(SC_BAD_REQUEST);
             return failureResult("Invalid layer ID: {0}", layerId);
           }

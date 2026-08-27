@@ -181,6 +181,9 @@
   <servlet-mapping><servlet-name>admin/annotator.jsp</servlet-name><url-pattern>/api/admin/annotator/*</url-pattern></servlet-mapping>
   <servlet-mapping><servlet-name>admin/annotator.jsp</servlet-name><url-pattern>/admin/annotator/*</url-pattern></servlet-mapping>
 
+  <servlet><servlet-name>admin/serialization.jsp</servlet-name><jsp-file>/jsp/admin/serialization.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>admin/serialization.jsp</servlet-name><url-pattern>/api/admin/serialization</url-pattern></servlet-mapping>
+  
   <!-- Also map ui requests to their static resources, which are packed into the .jar -->
   <!--servlet><servlet-name>ui.jsp</servlet-name><jsp-file>/jsp/ui.jsp</jsp-file></servlet>
   <servlet-mapping>

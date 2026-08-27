@@ -30,6 +30,7 @@ import { AdminLayerLabelsComponent } from './admin-layer-labels/admin-layer-labe
 import { AdminAttributesComponent } from './admin-attributes/admin-attributes.component';
 import { AdminCategoriesComponent } from './admin-categories/admin-categories.component';
 import { AdminAgreementComponent } from './admin-agreement/admin-agreement.component';
+import { AdminFormattersComponent } from './admin-formatters/admin-formatters.component';
 
 @NgModule({
     declarations: [
@@ -54,7 +55,8 @@ import { AdminAgreementComponent } from './admin-agreement/admin-agreement.compo
         AdminLayerLabelsComponent,
         AdminAttributesComponent,
         AdminCategoriesComponent,
-        AdminAgreementComponent
+        AdminAgreementComponent,
+        AdminFormattersComponent
     ],
     imports: [
         BrowserModule,
@@ -98,6 +100,8 @@ import { AdminAgreementComponent } from './admin-agreement/admin-agreement.compo
             { path: 'admin/attributes/:scope', component: AdminAttributesComponent},
             { path: 'admin/categories/:scope', component: AdminCategoriesComponent},
             { path: 'admin/agreement', component: AdminAgreementComponent,
+              canDeactivate: [PendingChangesGuard]},
+            { path: 'admin/formatters', component: AdminFormattersComponent,
               canDeactivate: [PendingChangesGuard]},
         ]), // TODO add { path: '**', component: PageNotFoundComponent }
         FormsModule,

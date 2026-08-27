@@ -44,7 +44,7 @@ export class TranscriptsLayersRegenerateComponent implements OnInit {
     }
 
     previewLines = 10;
-    /** Called when a file file is selected; parses the file to determine CSV fields. */
+    /** Called when a file is selected; parses the file to determine CSV fields. */
     selectFile(files: File[]): void {
         if (files.length == 0) return;
         this.threadId = this.preview = null;

@@ -237,6 +237,7 @@ public class SqlGraphStoreAdministration
       sqlRegister.setString(3, descriptor.getVersion());
       sqlRegister.setString(4, descriptor.getName());
       sqlRegister.setString(5, IO.JarFileOfClass(serializer.getClass()).getName());
+      System.err.println("registerSerializer: "+IO.JarFileOfClass(serializer.getClass()).getPath());
       sqlRegister.executeUpdate();
       sqlRegister.close();
 	 

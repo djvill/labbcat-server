@@ -1,4 +1,5 @@
 <%@ page info="Serialization installation" isErrorPage="true"
+    contentType = "application/json;charset=UTF-8"
     import = "nzilbb.labbcat.server.api.admin.Serialization" 
     import = "nzilbb.labbcat.server.api.RequestParameters" 
     import = "java.io.File" 
@@ -34,8 +35,6 @@
         (status)->response.setStatus(status),
         getAnnotatorDir());
       if (json != null) {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
         JsonWriter writer = Json.createWriter(response.getWriter());
         writer.writeObject(json);   
         writer.close();

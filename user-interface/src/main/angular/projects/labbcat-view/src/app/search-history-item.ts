@@ -10,6 +10,7 @@ export interface SearchHistoryItem {
         labbcat_version: string,
         data_version?: string
     };
+    sourceFile: string; // not exported
     matrix: Matrix;
 
     /** Participant/transcript filters (from Search) */

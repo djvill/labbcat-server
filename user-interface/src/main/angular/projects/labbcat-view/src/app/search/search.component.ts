@@ -30,6 +30,7 @@ export class SearchComponent implements OnInit {
     transcriptDescription: string;
     transcriptIds: string[];
     transcriptsFile: File;
+    historyFile: File;
     mainParticipantOnly: boolean;
     onlyAligned: boolean;
     firstMatchOnly: boolean;
@@ -41,6 +42,7 @@ export class SearchComponent implements OnInit {
     exportUrl: string;
     exportName: string;
     @ViewChild('exportAnchor', {static: false}) exportAnchor: ElementRef;
+    labbcatTitle: string;
     versions: VersionInfo;
     
     constructor(
@@ -66,6 +68,7 @@ export class SearchComponent implements OnInit {
         this.history = this.history.filter(x => x.task);
         this.readUserInfo();
         this.setupTabs();
+        this.labbcatTitle = this.labbcatService.title;
         this.readVersions().then(() => {
         this.labbcatService.labbcat.getSchema((schema, errors, messages) => {
             this.schema = schema;
@@ -402,6 +405,10 @@ export class SearchComponent implements OnInit {
 
     updateTask(historyItem: SearchHistoryItem, threadId: string): Promise<void> {
         return new Promise((resolve, reject) => {
+            if (historyItem.sourceFile) {
+                resolve();
+                return;
+            }
             this.labbcatService.labbcat.taskStatus(threadId, (task, errors, messages) => {
                 if (errors) errors.forEach(m => this.messageService.error(m));
                 if (messages) messages.forEach(m => this.messageService.info(m));
@@ -421,7 +428,7 @@ export class SearchComponent implements OnInit {
         historyItem.task = {} as Task;
         this.updateTask(historyItem, this.threadId);
         historyItem.metadata = {
-            labbcat_title: this.labbcatService.title,
+            labbcat_title: this.labbcatTitle,
             labbcat_version: this.versions.System["LaBB-CAT"]
         };
         if (this.versions.Data && this.versions.Data["dataVersion"]) {
@@ -445,18 +452,21 @@ export class SearchComponent implements OnInit {
     }
 
     /** Convenience functions for display */
+    anyImported(history: SearchHistoryItem[]): boolean {
+        return history.length && history.filter(x => x.sourceFile).length > 0;
+    }
     hasFilters(historyItem: SearchHistoryItem): boolean {
         return historyItem.matrix.participantQuery !== undefined ||
             historyItem.matrix.transcriptQuery !== undefined;
     }
     anyFilters(history: SearchHistoryItem[]): boolean {
-        return history.map(x => this.hasFilters(x)).reduce((x, y) => x || y);
+        return history.length && history.map(x => this.hasFilters(x)).reduce((x, y) => x || y);
     }
 
     replacer(key: string, value: string): any {
         if (["cancelled", "csv", "csvColumns", "percentComplete",
              "refreshSeconds", "resultTarget", "resultText", "resultUrl",
-             "resultsName", "running", "seriesId", "targetLayer",
+             "resultsName", "running", "seriesId", "sourceFile", "targetLayer",
              "totalUtteranceDuration", "who"].includes(key)) {
             return undefined;
         }
@@ -649,5 +659,92 @@ export class SearchComponent implements OnInit {
             component.messageService.error("Error reading " + component.transcriptsFile.name); // TODO i18n
         };
         reader.readAsText(this.transcriptsFile);
+    }
+
+    /** Called when a history JSON file is selected; parses the file to determine fields. */
+    selectHistoryFile(files: File[]): void {
+        if (files.length == 0) return;
+        this.historyFile = files[0]
+        if (!this.historyFile.name.endsWith(".json")) {
+            this.messageService.error("File must be a JSON search history file.")
+            this.historyFile = null;
+            return;
+        }
+
+        // read the file to determine fields
+        const reader = new FileReader();
+        const component = this;
+        reader.onload = () => {
+            let jsonData;
+            try {
+                jsonData = JSON.parse(<string>reader.result);
+            } catch(error) {
+                component.messageService.error(
+                    "Error parsing file: " + // TODO i18n
+                    component.historyFile.name + "\n" + error.message);
+                return;
+            }
+            // if a single item, put into array
+            if (!Array.isArray(jsonData)) {
+                jsonData = [jsonData]
+            }
+            // ensure it's an array of historyItems
+            const historyKeys = "filters matchOptions matrix metadata task"
+            if (jsonData.filter(x => Object.keys(x).sort().join(' ') != historyKeys).length) {
+                component.messageService.error(
+                    "File does not contain any valid history item(s): " + component.historyFile.name); // TODO i18n
+                return;
+            }
+            // add tracking fields
+            for (let item of jsonData) {
+                item.cancelled = false;
+                item.sourceFile = "Imported from " + this.historyFile.name; // TODO i18n
+            }
+            // handle empty participantQuery/transcriptQuery
+            for (let item of jsonData) {
+                if (item.matrix.hasOwnProperty("participantQuery") && item.matrix.participantQuery == "") {
+                    delete item.matrix.participantQuery;
+                }
+                if (item.matrix.hasOwnProperty("transcriptQuery") && item.matrix.transcriptQuery == "") {
+                    delete item.matrix.transcriptQuery;
+                }
+            }
+            // handle nonexistent layers
+            for (let item of jsonData) {
+                let threadId = item.task.threadId;
+                for (let [i, column] of item.matrix.columns.entries()) {
+                    for (let l in column.layers) {
+                        if (!Object.keys(this.schema.layers).includes(l)) {
+                            delete column.layers[l];
+                            component.messageService.info("Imported thread " + threadId + ": Removed nonexistent layer " + l + " from search matrix"); // TODO i18n
+                        }
+                    }
+                    if (!Object.keys(column.layers).length) {
+                        column.empty = true;
+                        component.messageService.info("Imported thread " + threadId + ": Removed column " + (i + 1) + " from search matrix because there were no existent layers"); // TODO i18n
+                    }
+                }
+                item.matrix.columns = item.matrix.columns.filter(x => !x.empty);
+                // TODO figure out how to make this appear below info messages
+                if (!item.matrix.columns.length) {
+                    item.empty = true;
+                    component.messageService.error("Failed to import thread " + threadId + " - no existent layers in search matrix"); // TODO i18n
+                }
+            }
+            jsonData = jsonData.filter(x => !x.empty);
+
+            // add to history
+            if (!jsonData.length) {
+                // TODO figure out how to make this appear below info messages
+                component.messageService.error("Failed to import search history - no threads with existent layers"); // TODO i18n
+            } else {
+                this.history = this.history.concat(jsonData);
+                sessionStorage.setItem("searchHistory", JSON.stringify(this.history));
+            }
+        };
+        reader.onerror = function () {
+            component.messageService.error("Error reading " + component.historyFile.name); // TODO i18n
+        };
+        reader.readAsText(this.historyFile);
     }
 }

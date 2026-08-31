@@ -281,20 +281,71 @@
           <tbody>
             <tr *ngFor="let historyItem of history" class="item">
               <td class="history-name">
-                <lib-task *ngIf="historyItem.task.threadId"
+                <lib-task *ngIf="!historyItem.sourceFile && historyItem.task.threadId"
                   [threadId]="historyItem.task.threadId"
                   [autoOpenResults]="false"
                   [singleSpan]="true"
                   ></lib-task>
+                <div *ngIf="historyItem.sourceFile" [title]="historyItem.sourceFile">
+                  <img [src]="imagesLocation + '/file-import.svg'"
+                    [alt]="historyItem.sourceFile">
+                  <span>{{historyItem.task.threadName}}</span>
+                </div>
+              </td>
+              <td *ngIf="anyImported(history)" class="history-metadata">
+                <details>
+                  <summary>
+                    <img *ngIf="labbcatTitle != historyItem.metadata.labbcat_title || versions.System['LaBB-CAT'] != historyItem.metadata.labbcat_version || versions.Data.dataVersion != historyItem.metadata.data_version"
+                            [src]="imagesLocation + '/triangle-exclamation.svg'"
+                            i18n-title title="One or more metadata fields does not match this corpus">
+                    <span i18n>Metadata</span>
+                  </summary>
+                  <div class="attribute-list">
+                    <div class="attribute">
+                      <label for="labbcat-title" i18n>LaBB-CAT title</label>
+                      <span id="labbcat-title" class="values">
+                        <img *ngIf="labbcatTitle != historyItem.metadata.labbcat_title"
+                          [src]="imagesLocation + '/triangle-exclamation.svg'"
+                          i18n-title title="Does not match this corpus"
+                          >{{historyItem.metadata.labbcat_title}}</span>
+                    </div>
+                    <div class="attribute">
+                      <label for="labbcat-version" i18n>LaBB-CAT version</label>
+                      <span id="labbcat-version" class="values">
+                        <img *ngIf="versions.System['LaBB-CAT'] != historyItem.metadata.labbcat_version"
+                          [src]="imagesLocation + '/triangle-exclamation.svg'"
+                          i18n-title title="Does not match this corpus"
+                          >{{historyItem.metadata.labbcat_version}}</span>
+                    </div>
+                    <div *ngIf="versions.Data.dataVersion || historyItem.metadata.data_version"
+                      class="attribute">
+                      <label for="data-version" i18n>Data version</label>
+                      <span *ngIf="historyItem.metadata.data_version"
+                        id="data-version" class="values">
+                        <img *ngIf="versions.Data.dataVersion != historyItem.metadata.data_version"
+                          [src]="imagesLocation + '/triangle-exclamation.svg'"
+                          i18n-title title="Does not match this corpus"
+                          >{{historyItem.metadata.data_version}}</span>
+                      <span *ngIf="!historyItem.metadata.data_version"
+                        id="data-version" class="values">
+                        <img *ngIf="versions.Data.dataVersion != historyItem.metadata.data_version"
+                          [src]="imagesLocation + '/triangle-exclamation.svg'"
+                          i18n-title title="Does not match this corpus"
+                          i18n>(None)</span>
+                    </div>
+                  </div>
+                </details>
               </td>
               <td class="history-status">
                 <span *ngIf="historyItem.task.running"
                   class="loading"
                   ><span>.</span><span>.</span><span>.</span></span>
-                <a *ngIf="historyItem.task.size"
+                <a *ngIf="historyItem.task.size && historyItem.task.resultUrl"
                   [href]="historyItem.task.resultUrl"
                   [target]="'task-' + historyItem.task.threadId"
                   >{{historyItem.task.size}}&nbsp;<span i18n>results</span></a>
+                <span *ngIf="historyItem.task.size && !historyItem.task.resultUrl"
+                  >{{historyItem.task.size}}&nbsp;<span i18n>results</span></span>
                 <span *ngIf="!historyItem.task.running && historyItem.task.hasOwnProperty('size') && historyItem.task.size == 0"
                   i18n>0&nbsp;results</span>
                 <span *ngIf="historyItem.cancelled"
@@ -404,11 +455,14 @@
               </td>
             </tr>
           </tbody>
-          <tfoot *ngIf="history.length > 1">
+          <tfoot>
             <tr>
-              <td [colSpan]="anyFilters(history) ? 5 : 4"></td>
+              <td [colSpan]="4 + (anyImported(history) ? 1 : 0) + (anyFilters(history) ? 1 : 0)" class="file-chooser">
+                <label for="import-history" i18n>Import history from file</label>
+                <input type="file" id="import-history" (change)="selectHistoryFile($event.target.files)" autofocus>
+              </td>
               <td class="history-buttons">
-                <div class="button-container">
+                <div *ngIf="history.length > 1" class="button-container">
                   <lib-button
                     (press)="exportHistory()"
                     img="code-file.svg" icon="<>"

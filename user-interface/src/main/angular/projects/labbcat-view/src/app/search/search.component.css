@@ -10,7 +10,7 @@
 .tab-labels label {
     cursor: context-menu;
 }
-.tab-labels label img {
+.tab-labels label img, .history-name img, .history-metadata img {
     width: 16px;
     height: 16px;
     vertical-align: middle;
@@ -143,6 +143,14 @@ td:has(~ td > details[open]), td:has(> details[open]) ~ td {
     }
     .error {
         font-size: unset;
+    }
+}
+.history-metadata {
+    .attribute-list {
+        min-width: 20em;
+    }
+    .values {
+        display: inline;
     }
 }
 .history-filters {

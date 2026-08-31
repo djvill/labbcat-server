@@ -1,5 +1,5 @@
 //
-// Copyright 2019-2025 New Zealand Institute of Language, Brain and Behaviour, 
+// Copyright 2026 New Zealand Institute of Language, Brain and Behaviour, 
 // University of Canterbury
 // Written by Robert Fromont - robert.fromont@canterbury.ac.nz
 //
@@ -33,7 +33,7 @@ import nzilbb.labbcat.server.api.RequestParameters;
 
 /**
  * <tt>/api/elicit/steps</tt> : Elicitation task definition.
- *  <p> Provides the definition of the given elicitation task
+ *  <p> Provides the definition of the given elicitation task.
  *   <p> Only the GET HTTP method is supported:
  *   <dl>
  *    <dt> GET </dt><dd>

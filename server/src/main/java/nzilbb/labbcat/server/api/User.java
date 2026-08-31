@@ -113,7 +113,9 @@ public class User extends APIRequestHandler {
       endSuccessResult(jsonOut, null);
     } catch(SQLException exception) {
       jsonOut.writeEnd(); // array
-      endFailureResult(jsonOut, exception.getMessage());
+      System.err.println("api.User SQL ERROR: " + exception);
+      exception.printStackTrace(System.err);
+      endFailureResult(jsonOut, "Unexpected error.");
     }
   }
 } // end of class User

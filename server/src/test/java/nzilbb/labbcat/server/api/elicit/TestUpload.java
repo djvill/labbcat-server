@@ -120,10 +120,194 @@ public class TestUpload {
                    200, response.getHttpStatus());
       assertEquals("Transcript is in the store",
                    1, l.countMatchingTranscriptIds("id = '"+transcript.getName()+"'"));
+      MediaFile[] media = l.getAvailableMedia(transcript.getName());
+      assertTrue("Media is in the store",
+                 media.length > 0);
+      media = l.getEpisodeDocuments(transcript.getName());
+      assertEquals("Doc is in the store "
+                   + Arrays.stream(media).map(f->f.getName()).collect(Collectors.toList()),
+                   1, media.length);
     } finally {
       l.setVerbose(false);
       try {
         // delete transcript/participant
+        for (MediaFile f : l.getEpisodeDocuments(transcript.getName())) { // docs
+          l.deleteMedia(transcript.getName(), f.getName());
+        }
+        l.deleteTranscript(transcript.getName());
+        l.deleteParticipant(participantId);
+        
+        // ensure the transcript/participant no longer exist
+        assertEquals("Transcript has been deleted from the store",
+                     0, l.countMatchingTranscriptIds("id = '"+transcript.getName()+"'"));
+        assertEquals("Participant has been deleted from the store",
+                     0, l.countMatchingParticipantIds("id = '"+participantId+"'"));
+      } catch (Exception x) {
+        System.err.println("Unexpectedly can't delete test transcript: " + x);
+      }
+    }    
+  }  
+  
+  /**
+   * Test /api/elicit/upload endpoint works with minimal parameters.
+   */
+  @Test public void minimalUpload()
+    throws Exception {
+
+    File files = new File(getDir().getParentFile(), "edit");
+    File transcript = new File(files, "nzilbb.labbcat.server.test.txt");
+    String participantId = "UnitTester";
+    assertTrue("Test transcript exists " + transcript.getPath(), transcript.exists());
+
+    try {
+      
+      // ensure transcript doesn't already exist
+      try {
+        l.deleteTranscript(transcript.getName());
+      } catch(ResponseException exception) {}
+      
+      // upload a file
+      HttpRequestPostMultipart request = l.postMultipart("api/elicit/upload")
+        // no transcript_type, corpus, episode, wav, nor doc
+        .setParameter("transcript", transcript); // parameter name correct
+      Response response = new Response(request.post(), false);
+      response.checkForErrors();
+      assertEquals("Correct status",
+                   200, response.getHttpStatus());
+      assertEquals("Transcript is in the store",
+                   1, l.countMatchingTranscriptIds("id = '"+transcript.getName()+"'"));
+      assertEquals("No media is in the store",
+                   0, l.getAvailableMedia(transcript.getName()).length);
+      assertEquals("No doc is in the store",
+                   0, l.getEpisodeDocuments(transcript.getName()).length);
+    } finally {
+      l.setVerbose(false);
+      try {
+        // delete transcript/participant
+        l.deleteTranscript(transcript.getName());
+        l.deleteParticipant(participantId);
+        
+        // ensure the transcript/participant no longer exist
+        assertEquals("Transcript has been deleted from the store",
+                     0, l.countMatchingTranscriptIds("id = '"+transcript.getName()+"'"));
+        assertEquals("Participant has been deleted from the store",
+                     0, l.countMatchingParticipantIds("id = '"+participantId+"'"));
+      } catch (Exception x) {
+        System.err.println("Unexpectedly can't delete test transcript: " + x);
+      }
+    }    
+  }  
+  
+  /**
+   * Test /api/elicit/upload endpoint validates parameters correctly.
+   */
+  @Test public void validation()
+    throws Exception {
+
+    File files = new File(getDir().getParentFile(), "edit");
+    File transcript = new File(files, "nzilbb.labbcat.server.test.txt");
+    String participantId = "UnitTester";
+    File wav = new File(files, "nzilbb.labbcat.server.test.wav");
+    File document = new File(files, "nzilbb.labbcat.server.test.doc");
+    File pdf = new File(files, "nzilbb.labbcat.server.test.pdf");
+    IO.Copy(document, pdf);
+    assertTrue("Test transcript exists " + transcript.getPath(), transcript.exists());
+    assertTrue("Test wav exists " + wav.getPath(), wav.exists());
+    assertTrue("Test pdf exists " + pdf.getPath(), pdf.exists());
+
+    try {
+      
+      String[] ids = l.getCorpusIds();
+      // for (String id : ids) System.out.println("corpus " + id);
+      assertTrue("There is at least one corpus", ids.length > 0);
+      String corpus = ids[0];
+      Layer typeLayer = l.getLayer("transcript_type");
+      assertTrue("There is at least one transcript type", typeLayer.getValidLabels().size() > 0);
+      String transcriptType = typeLayer.getValidLabels().keySet().iterator().next();
+      
+      // ensure transcript doesn't already exist
+      try {
+        l.deleteTranscript(transcript.getName());
+      } catch(ResponseException exception) {}
+      
+      // upload a file
+      HttpRequestPostMultipart request = l.postMultipart("api/elicit/upload")
+        .setParameter("transcript_type", transcriptType)
+        .setParameter("corpus", corpus)
+        .setParameter("episode", "TestUpload")
+        // no transcript
+        .setParameter("media", wav)
+        .setParameter("doc", pdf);
+      
+      try {
+        Response response = new Response(request.post(), false);
+        response.checkForErrors();
+        fail("Should fail when no transcript is specified.");
+      } catch(Exception exception) {
+        System.out.println(exception.getMessage());
+      }
+
+      // wrong file type for transcript
+      request = l.postMultipart("api/elicit/upload")
+        .setParameter("transcript_type", transcriptType)
+        .setParameter("corpus", corpus)
+        .setParameter("episode", "TestUpload")
+        // no incorrect type
+        .setParameter("transcript", document)
+        .setParameter("media", wav)
+        .setParameter("doc", pdf);
+      try {
+        Response response = new Response(request.post(), false);
+        response.checkForErrors();
+        fail("Should fail when incorrect transcript file type is specified.");
+      } catch(Exception exception) {
+        System.out.println(exception.getMessage());
+      }
+      
+      // wrong file type for media
+      File mp3 = new File(files, "nzilbb.labbcat.server.test.mp3");
+      IO.Copy(wav, mp3);
+      request = l.postMultipart("api/elicit/upload")
+        .setParameter("transcript_type", transcriptType)
+        .setParameter("corpus", corpus)
+        .setParameter("episode", "TestUpload")
+        // no incorrect type
+        .setParameter("transcript", transcript)
+        .setParameter("media", mp3)
+        .setParameter("doc", pdf);
+      try {
+        Response response = new Response(request.post(), false);
+        response.checkForErrors();
+        fail("Should fail when incorrect media file type is specified.");
+      } catch(Exception exception) {
+        System.out.println(exception.getMessage());
+      }
+      
+      // other file type pretending to be wav
+      File badWav = new File(files, "bad.wav");
+      IO.Copy(pdf, badWav);
+      request = l.postMultipart("api/elicit/upload")
+        .setParameter("transcript_type", transcriptType)
+        .setParameter("corpus", corpus)
+        .setParameter("episode", "TestUpload")
+        // no incorrect type
+        .setParameter("transcript", transcript)
+        .setParameter("media", badWav)
+        .setParameter("doc", pdf);
+      try {
+        Response response = new Response(request.post(), false);
+        response.checkForErrors();
+        fail("Should fail when non-media file type pretending to be wav is specified.");
+      } catch(Exception exception) {
+        System.out.println(exception.getMessage());
+      }
+    } finally {
+      l.setVerbose(false);
+      try {
+        // delete transcript/participant
+        for (MediaFile f : l.getEpisodeDocuments(transcript.getName())) { // docs
+          l.deleteMedia(transcript.getName(), f.getName());
+        }
         l.deleteTranscript(transcript.getName());
         l.deleteParticipant(participantId);
         

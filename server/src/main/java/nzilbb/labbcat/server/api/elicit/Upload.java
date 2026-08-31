@@ -23,6 +23,9 @@
 package nzilbb.labbcat.server.api.elicit;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -195,11 +198,11 @@ public class Upload extends APIRequestHandler {
           }
           streams.add(new NamedStream(transcript));
           if (wav != null) {
-            if (!wav.getName().toLowerCase().endsWith(".wav")) {
+            String wavError = validateWav(wav);
+            if (wavError != null) {
               httpStatus.accept(SC_UNSUPPORTED_MEDIA_TYPE);
-              return failureResult("Invalid type: {0}", wav.getName());
+              return failureResult(wavError);
             }
-            // TODO check it's really wav formatted
             streams.add(new NamedStream(wav));
           }
           if (doc != null) {
@@ -480,4 +483,65 @@ public class Upload extends APIRequestHandler {
       graph.commit();
     }
   }
+
+  /**
+   * Checks the given file actually appears to be a WAV file.
+   * @param wav The file to validate.
+   * @return An error if validation fails, null if the WAV file appears to be ok.
+   * @throws IOException If the file could not be read.
+   * @throws FileNotFoundException If the file doesn't exist.
+   */
+  public String validateWav(File wav) throws IOException, FileNotFoundException {
+    if (!wav.getName().toLowerCase().endsWith(".wav")) {
+      return localize("Invalid type: {0}", wav.getName());
+    }
+    // check it's really wav formatted
+    // WAV header is "RIFF"+${file.length()-4)+"WAVE"+"fmt "
+    FileInputStream in = new FileInputStream(wav);
+    byte[] chunk = new byte[4];
+    int read = in.read(chunk);
+    if (read != 4) {
+      System.err.println(
+        "ElicitSpeech.Upload: invalid WAV: could not read first 4 bytes");
+      return localize("Media not WAV: {0}", wav.getName()); // TODO i18n
+    }
+    if (!"RIFF".equals(new String(chunk))) {
+      System.err.println(
+        "ElicitSpeech.Upload: invalid WAV: First 4 bytes not RIFF: "
+        + new String(chunk));
+      return localize("Media not WAV: {0}", wav.getName()); // TODO i18n
+    }
+    read = in.read(chunk); // file size - 4
+    if (read != 4) {
+      System.err.println(
+        "ElicitSpeech.Upload: invalid WAV: could not read second 4 bytes");
+      return localize("Media not WAV: {0}", wav.getName()); // TODO i18n
+    }
+    read = in.read(chunk);
+    if (read != 4) {
+      System.err.println(
+        "ElicitSpeech.Upload: invalid WAV: could not read third 4 bytes");
+      return localize("Media not WAV: {0}", wav.getName()); // TODO i18n
+    }
+    if (!"WAVE".equals(new String(chunk))) {
+      System.err.println(
+        "ElicitSpeech.Upload: invalid WAV: Second 4 bytes not WAV: "
+        + new String(chunk));
+      return localize("Media not WAV: {0}", wav.getName()); // TODO i18n
+    }
+    read = in.read(chunk);
+    if (read != 4) {
+      System.err.println(
+        "ElicitSpeech.Upload: invalid WAV: could not read fourth 4 bytes");
+      return localize("Media not WAV: {0}", wav.getName()); // TODO i18n
+    }
+    if (!"fmt ".equals(new String(chunk))) {
+      System.err.println(
+        "ElicitSpeech.Upload: invalid WAV: First 4 bytes not \"fmt \": "
+        + new String(chunk));
+      return localize("Media not WAV: {0}", wav.getName()); // TODO i18n
+    }
+    return null;
+  } // end of validateWav()
+  
 } // end of class Upload

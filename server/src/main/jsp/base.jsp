@@ -297,6 +297,17 @@
    */
   public void ResponseAttachmentName(
     HttpServletRequest request, HttpServletResponse response, String fileName) {
+    ResponseAttachmentName(request, response, fileName, true);
+  }
+  /**
+   * Sets the Content-Disposition header of the given Response correctly for saving a file
+   * to the given name. 
+   * <p> This should handle special characters/spaces in the file name correctly.
+   * @param response The response to set the header of.
+   * @param fileName The file name to save the response body as.
+   */
+  public void ResponseAttachmentName(
+    HttpServletRequest request, HttpServletResponse response, String fileName, boolean flush) {
     if (fileName == null) return;
     fileName = IO.SafeFileNameUrl(fileName);
     String onlyASCIIFileName = IO.OnlyASCII(fileName)
@@ -352,7 +363,7 @@
           "Content-Disposition", "attachment; filename*="+fileName+"; filename="+onlyASCIIFileName);
       }
       // send headers immediately, so that the browser shows the 'save' prompt
-      response.getOutputStream().flush();
+      if (flush) response.getOutputStream().flush();
     }
     catch(IOException exception) {
       log("base.jsp:ResponseAttachmentName - " + exception);

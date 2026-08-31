@@ -76,7 +76,7 @@ export class TaskComponent implements OnInit, OnChanges, OnDestroy {
                 if (errors) errors.forEach(m => {
                     this.messageService.error(m)
                     if (this.purgeHistoryIfInvalid && m == "Invalid ID: " + this.threadId) {
-                        let history = JSON.parse(sessionStorage.getItem("searchHistory")).filter(x => x.task.threadId !== this.threadId)
+                        let history = JSON.parse(sessionStorage.getItem("searchHistory")).filter(x => x.task && x.task.threadId !== this.threadId);
                         sessionStorage.setItem("searchHistory", JSON.stringify(history));
                         this.messageService.info("Removed missing thread " + this.threadId + " from search history"); // TODO i18n
                     }
@@ -87,13 +87,13 @@ export class TaskComponent implements OnInit, OnChanges, OnDestroy {
                 this.task = task || this.task;
 
                 // if still running, results haven't been opened
-                if (this.task.running) this.resultsOpened = false;
+                if (this.task && this.task.running) this.resultsOpened = false;
 
-                if (!this.task.running) {
+                if (this.task && !this.task.running) {
                     this.finished.emit(this.task);
                 }
                 // if finished and there's a result URL, open the results
-                if (!this.task.running && this.task.resultUrl) {
+                if (this.task && !this.task.running && this.task.resultUrl) {
                     if (this.autoOpenResults) {
                         this.openResults();
                     }
@@ -106,10 +106,10 @@ export class TaskComponent implements OnInit, OnChanges, OnDestroy {
                 // set timeout for next check...
                 this.timeout = setTimeout(()=>{
                     // has the thread we're monitoring changed?
-                    if (task.threadId == this.threadId) { // the same thread
+                    if (task && task.threadId == this.threadId) { // the same thread
                         this.readTaskStatus();
                     }
-                }, this.task.refreshSeconds*1000 || 5000);
+                }, (this.task && this.task.refreshSeconds) ? this.task.refreshSeconds*1000 : 5000);
             });
         }
     }

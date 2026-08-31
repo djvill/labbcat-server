@@ -63,6 +63,7 @@ export class SearchComponent implements OnInit {
         this.participantIds = [];
         this.transcriptIds = [];
         this.history = JSON.parse(sessionStorage.getItem("searchHistory")) ?? [];
+        this.history = this.history.filter(x => x.task);
         this.readUserInfo();
         this.setupTabs();
         this.readVersions().then(() => {

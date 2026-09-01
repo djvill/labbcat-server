@@ -68,7 +68,7 @@ export class SearchComponent implements OnInit {
         this.history = this.history.filter(x => x.task);
         this.readUserInfo();
         this.setupTabs();
-        this.labbcatTitle = this.labbcatService.title;
+        this.readTitle();
         this.readVersions().then(() => {
         this.labbcatService.labbcat.getSchema((schema, errors, messages) => {
             this.schema = schema;
@@ -122,6 +122,15 @@ export class SearchComponent implements OnInit {
             });
         });
         });
+    }
+    readTitle(): void {
+        if (!this.labbcatTitle) {
+            setTimeout(()=>{ // wait for the corpus title to come in
+                if (!this.labbcatTitle) this.labbcatTitle = this.labbcatService.title;
+                // then try again
+                this.readTitle();
+            }, 100);
+        }
     }
     readVersions(): Promise<void> {
         return new Promise((resolve, reject) => {

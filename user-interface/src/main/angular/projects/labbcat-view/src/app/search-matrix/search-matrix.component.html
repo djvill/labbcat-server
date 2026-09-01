@@ -58,7 +58,7 @@
                     [class]="column.layers[layerId][m].target?'selected':'deselected'"
                     [class.read-only]="readOnly"
                     [tabindex]="readOnly ? -1 : 0"
-                    (click)="setTarget(column.layers[layerId][m])">
+                    (click)="readOnly ? null : setTarget(column.layers[layerId][m])">
                 </span>
                 <span className="ge">&ge;</span>
                 <input
@@ -82,7 +82,7 @@
                   [class.read-only]="readOnly"
                   (keydown.enter)="startSearch($event)">
                 <div class="add-match"
-                     *ngIf="m+1 == column.layers[layerId].length && (layerId == 'segment' || schema.layers[layerId].parentId == 'segment')">
+                     *ngIf="!readOnly && m+1 == column.layers[layerId].length && (layerId == 'segment' || schema.layers[layerId].parentId == 'segment')">
                   <lib-button
                     i18n-title title="Add word-internal segment pattern"
                     class="small"
@@ -106,7 +106,9 @@
                     i18n-title title="Target this match"
                     alt="🎯" [src]="imagesLocation+'/target.svg'"
                     [class]="column.layers[layerId][m].target?'selected':'deselected'"
-                    (click)="setTarget(column.layers[layerId][m])">
+                    [class.read-only]="readOnly"
+                    [tabindex]="readOnly ? -1 : 0"
+                    (click)="readOnly ? null : setTarget(column.layers[layerId][m])">
                 </span>
                 <span class="not">
                   <select class="not"
@@ -168,7 +170,7 @@
                     (symbolSelected)="appendToPattern(match, $event, 'regexp-'+c+'-'+layerId+'-'+m)"></lib-valid-label-helper>
                 </span>
                 <div class="add-match"
-                     *ngIf="m+1 == column.layers[layerId].length && (layerId == 'segment' || schema.layers[layerId].parentId == 'segment')">
+                     *ngIf="!readOnly && m+1 == column.layers[layerId].length && (layerId == 'segment' || schema.layers[layerId].parentId == 'segment')">
                   <lib-button
                     i18n-title title="Add word-internal segment pattern"
                     class="small"

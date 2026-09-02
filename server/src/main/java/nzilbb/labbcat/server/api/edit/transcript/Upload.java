@@ -140,7 +140,7 @@ import nzilbb.util.IO;
  * annotation layers, etc. 
  * <p> The request method must be <b> PUT </b> and the URL path following
  * <tt>.../upload/</tt> must be the <var>id</var> that was returned by the earlier 
- * <a href="POST">POST</a>. 
+ * <a href="#POST">POST</a>. 
  * <p> The URL-encoded parameters should include values for the parameters returned by 
  *  the earlier POST request. These may include both information
  * required by the format deserializer (e.g. mappings from tiers to LaBB-CAT layers) 
@@ -171,7 +171,13 @@ import nzilbb.util.IO;
  *        to <i>thread</i>.</dd> 
  *  </dl>
  * <p> The <q>parameters</q> returned have the <a href="#parameters">same structure</a> as
- * used by the POST request. 
+ * used by the POST request.
+ *
+ * <h2 id="DELETE"> <tt>/api/edit/transcript/upload/...</tt> </h2>
+ * <p> <b> DELETE </b> method requests cancel a previously POSTed upload. 
+ * <p> The request method must be <b> DELETE </b> and the URL path following
+ * <tt>.../upload/</tt> must be the <var>id</var> that was returned by the earlier 
+ * <a href="#POST">POST</a>. 
  * @author Robert Fromont robert@fromont.net.nz
  */
 @RequiredRole("edit")

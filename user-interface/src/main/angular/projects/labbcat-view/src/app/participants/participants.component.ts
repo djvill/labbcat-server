@@ -44,6 +44,13 @@ export class ParticipantsComponent implements OnInit {
     nextPage: string;
     searchJson: string;
     imagesLocation: string;
+    // parameters to pass back to search
+    mainParticipantOnly: boolean;
+    onlyAligned: boolean;
+    firstMatchOnly: boolean;
+    excludeSimultaneousSpeech: boolean;
+    overlapThreshold: number;
+    suppressResults: boolean;
     
     constructor(
         private labbcatService: LabbcatService,
@@ -135,7 +142,13 @@ export class ParticipantsComponent implements OnInit {
         /[?&](transcripts)=([^&]*)/,
         /[?&](participant_expression)=([^&]*)/,
         /[?&](participants)=([^&]*)/,
-        /[?&](searchJson)=([^&]*)/
+        /[?&](searchJson)=([^&]*)/,
+        /[?&](mainParticipantOnly)=([^&]*)/,
+        /[?&](onlyAligned)=([^&]*)/,
+        /[?&](firstMatchOnly)=([^&]*)/,
+        /[?&](excludeSimultaneousSpeech)=([^&]*)/,
+        /[?&](overlapThreshold)=([^&]*)/,
+        /[?&](suppressResults)=([^&]*)/
     ];
     
     /** if no query parameters are passed, load the default from system settings */
@@ -244,6 +257,12 @@ export class ParticipantsComponent implements OnInit {
                     this.transcriptDescription = "Selected transcripts";
                 }
             }
+            if (params["mainParticipantOnly"]) this.mainParticipantOnly = params["mainParticipantOnly"];
+            if (params["onlyAligned"]) this.onlyAligned = params["onlyAligned"];
+            if (params["firstMatchOnly"]) this.firstMatchOnly = params["firstMatchOnly"];
+            if (params["excludeSimultaneousSpeech"]) this.excludeSimultaneousSpeech = params["excludeSimultaneousSpeech"];
+            if (params["overlapThreshold"]) this.overlapThreshold = params["overlapThreshold"];
+            if (params["suppressResults"]) this.suppressResults = params["suppressResults"];
             this.listParticipants();
         });
     }
@@ -484,6 +503,12 @@ export class ParticipantsComponent implements OnInit {
         if (this.participantQuery) queryParams.participant_expression = this.participantQuery;
         if (this.participantDescription) queryParams.participants = this.participantDescription;
         if (this.searchJson) queryParams.searchJson = this.searchJson;
+        if (this.mainParticipantOnly) queryParams.mainParticipantOnly = this.mainParticipantOnly;
+        if (this.onlyAligned) queryParams.onlyAligned = this.onlyAligned;
+        if (this.firstMatchOnly) queryParams.firstMatchOnly = this.firstMatchOnly;
+        if (this.excludeSimultaneousSpeech) queryParams.excludeSimultaneousSpeech = this.excludeSimultaneousSpeech;
+        if (this.overlapThreshold) queryParams.overlapThreshold = this.overlapThreshold;
+        if (this.suppressResults) queryParams.suppressResults = this.suppressResults;
         for (let layer of this.filterLayers) { // for each filter layer
             if (this.filterValues[layer.id].length > 0) { // there's at least one value
                 // add it to the query parameters
@@ -779,6 +804,12 @@ export class ParticipantsComponent implements OnInit {
     layeredSearch(): void {
         let params = this.selectedParticipantsQueryParameters("participant_id");
         if (this.searchJson) params["searchJson"] = this.searchJson;
+        if (this.mainParticipantOnly) params["mainParticipantOnly"] = this.mainParticipantOnly;
+        if (this.onlyAligned) params["onlyAligned"] = this.onlyAligned;
+        if (this.firstMatchOnly) params["firstMatchOnly"] = this.firstMatchOnly;
+        if (this.excludeSimultaneousSpeech) params["excludeSimultaneousSpeech"] = this.excludeSimultaneousSpeech;
+        if (this.overlapThreshold) params["overlapThreshold"] = this.overlapThreshold;
+        if (this.suppressResults) params["suppressResults"] = this.suppressResults;
         this.router.navigate(["search"], { queryParams: params });
     }
 

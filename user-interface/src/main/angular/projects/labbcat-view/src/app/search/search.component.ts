@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, ViewChild, ElementRef, SecurityContext } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, Params } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { Layer } from 'labbcat-common';
@@ -111,12 +111,16 @@ export class SearchComponent implements OnInit {
                         this.transcriptDescription = params["transcripts"];
                         this.currentTab = "Transcripts";
                     }
-                    
                     if (params["current_tab"]) {
                         this.currentTab = params["current_tab"];
                     }
-                    
                 }
+                if (params["mainParticipantOnly"] === "true") this.mainParticipantOnly = params["mainParticipantOnly"];
+                if (params["onlyAligned"] === "true") this.onlyAligned = params["onlyAligned"];
+                if (params["firstMatchOnly"] === "true") this.firstMatchOnly = params["firstMatchOnly"];
+                if (params["excludeSimultaneousSpeech"] === "true") this.excludeSimultaneousSpeech = params["excludeSimultaneousSpeech"];
+                if (!isNaN(parseFloat(params["overlapThreshold"]))) this.overlapThreshold = params["overlapThreshold"];
+                if (params["suppressResults"] === "true") this.suppressResults = params["suppressResults"];
                 this.listParticipants();
                 this.listTranscripts();
             });
@@ -169,15 +173,28 @@ export class SearchComponent implements OnInit {
         };
         this.tabLabels = Object.keys(this.tabs);
     }
+    loadParameters(): Params {
+        const searchJson = this.buildSearchJsonParam(this.matrix);
+        let params = {};
+        if (searchJson.length) params["searchJson"] = searchJson;
+        if (this.mainParticipantOnly) params["mainParticipantOnly"] = true;
+        if (this.onlyAligned) params["onlyAligned"] = true;
+        if (this.firstMatchOnly) params["firstMatchOnly"] = true;
+        if (this.excludeSimultaneousSpeech) params["excludeSimultaneousSpeech"] = true;
+        if (this.overlapThreshold && this.overlapThreshold != 5) {
+            params["overlapThreshold"] = this.overlapThreshold;
+        }
+        if (this.suppressResults) params["suppressResults"] = true;
+        return params;
+    }
     selectParticipants(): void {
         if (this.transcriptIds && this.transcriptIds.length) {
             if (!confirm("This will clear the transcript filter.\nAre you sure you want to select participants?")) { // TODO i18n
                 return;
             }
         }
-        let params = { to: "search" };
-        const searchJson = this.buildSearchJsonParam();
-        if (searchJson.length) params["searchJson"] = searchJson;
+        let params = this.loadParameters();
+        params["to"] = "search";
         this.router.navigate(["participants"], { queryParams: params });
     }
     clearParticipantFilter(): void {
@@ -197,13 +214,10 @@ export class SearchComponent implements OnInit {
         });
     }
     selectTranscripts(): void {
-        let params = {
-            to: "search",
-            participant_expression: this.participantQueryForTranscripts(),
-            participants: this.participantDescription
-        };
-        const searchJson = this.buildSearchJsonParam();
-        if (searchJson.length) params["searchJson"] = searchJson;
+        let params = this.loadParameters();
+        params["to"] = "search";
+        params["participant_expression"] = this.participantQueryForTranscripts();
+        params["participants"] = this.participantDescription;
         this.router.navigate(["transcripts"], { queryParams: params });
     }
     clearTranscriptFilter(): void {
@@ -298,8 +312,8 @@ export class SearchComponent implements OnInit {
         return matrix;
     }
     /** Build searchJson parameter (or return empty string if the default) */
-    buildSearchJsonParam(): string {
-        const searchColumns = JSON.stringify({ columns: this.condenseMatrix(this.matrix).columns });
+    buildSearchJsonParam(matrix: Matrix): string {
+        const searchColumns = JSON.stringify({ columns: this.condenseMatrix(matrix).columns });
         const defaultColumns = JSON.stringify({columns:[{layers:{orthography:[{pattern:"",min:null,max:null}]}}]});
         let searchJson = "";
         if (searchColumns != defaultColumns) { // search columns aren't the default

@@ -1,0 +1,28 @@
+label {
+    padding-right: 5px;
+}
+label:after {
+    content: ':';
+}
+.upload-progress {
+    max-width: 500px;
+    margin: auto;
+}
+
+
+#upgrade-versions {
+    margin: auto;
+}
+.war {
+    font-style: italic;
+}
+.version {
+    font-weight: bold;
+    text-align: center;
+}
+.to {
+    text-align: center;
+}
+.buttons {
+    text-align: center;
+}

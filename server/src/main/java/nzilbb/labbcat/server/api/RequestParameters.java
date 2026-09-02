@@ -90,13 +90,13 @@ public class RequestParameters extends HashMap<String,Object> {
     Object value = get(key);
     if (value != null) {
       if (value instanceof Vector) {
-        return (File)((Vector)value).elementAt(0);
-      } else {
+        value = ((Vector)value).elementAt(0);
+      }
+      if (value instanceof File) {
         return (File)value;
       }
-    } else {
-      return null;
-    } 
+    }
+    return null;
   } // end of getFiles()
   
   /**
@@ -109,15 +109,18 @@ public class RequestParameters extends HashMap<String,Object> {
     Object value = get(key);
     if (value != null) {
       if (value instanceof Vector) {
-        return (Vector<File>)value;
+        if (((Vector)value).size() > 0 && ((Vector)value).elementAt(0) instanceof File) {
+          return (Vector<File>)value;
+        }
       } else {
         Vector<File> files = new Vector<File>();
-        files.add((File)value);
+        if (value instanceof File) {
+          files.add((File)value);
+        }
         return files;
       }
-    } else {
-      return new Vector<File>();
-    } 
+    }
+    return new Vector<File>();
   } // end of getFiles()
   
   /**

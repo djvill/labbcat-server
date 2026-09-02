@@ -126,14 +126,24 @@ public class Upgrade extends APIRequestHandler {
 
   File uploadsDir;
   File root;
+  String driverName;
+  String connectionURL;
+  String connectionName;
+  String connectionPassword;
   
   /**
    * Constructor.
    */
-  public Upgrade(File root) {
+  public Upgrade(
+    File root, String driverName, String connectionURL, String connectionName,
+    String connectionPassword) {
     uploadsDir = new File(new File(System.getProperty("java.io.tmpdir")), "LaBB-CAT.Upgrade");
     if (!uploadsDir.exists()) uploadsDir.mkdir();
     this.root = root;
+    this.driverName = driverName;
+    this.connectionURL = connectionURL;
+    this.connectionName = connectionName;
+    this.connectionPassword = connectionPassword;
   } // end of constructor
 
   /**
@@ -292,7 +302,8 @@ public class Upgrade extends APIRequestHandler {
         }
         
         // start upgrader task
-        Upgrader task = new Upgrader(war, root);
+        Upgrader task = new Upgrader(
+          war, root, driverName, connectionURL, connectionName, connectionPassword);
         task.setStoreCache(new StoreCache() {
             public SqlGraphStore get() {
               return store;

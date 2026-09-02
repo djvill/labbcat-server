@@ -27,13 +27,18 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.jar.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import nzilbb.util.Execution;
 import nzilbb.util.IO;
 
 /**
@@ -41,7 +46,12 @@ import nzilbb.util.IO;
  * @author Robert Fromont robert@fromont.net.nz
  */
 public class Upgrader extends Task {
-
+  
+  protected String driverName;
+  protected String connectionURL;
+  protected String connectionName;
+  protected String connectionPassword;
+  
   protected static Upgrader upgrader = null;  
   /**
    * Provides the currently-running upgrader task, if any.
@@ -112,9 +122,15 @@ public class Upgrader extends Task {
    * @param war The .war package file to upgrade from.
    * @param dir The directory into which files should be unpacked.
    */
-  public Upgrader(File war, File dir) {
+  public Upgrader(
+    File war, File dir, String driverName, String connectionURL, String connectionName,
+    String connectionPassword) {
     this.war = war;
     this.dir = dir;
+    this.driverName = driverName;
+    this.connectionURL = connectionURL;
+    this.connectionName = connectionName;
+    this.connectionPassword = connectionPassword;
   }
 
   /**
@@ -139,16 +155,29 @@ public class Upgrader extends Task {
       
       File oldVersionFile = new File(dir, "version.txt");
       String oldVersion = IO.InputStreamToString(new FileInputStream(oldVersionFile));
-      
-      // TODO handle migration
-      
-      // unpack contents
-      String lastFile = null;
       JarFile jar = new JarFile(war);
       String newVersion = IO.InputStreamToString(
         jar.getInputStream(jar.getJarEntry("version.txt")));
       setStatus(oldVersion + " → " + newVersion);
       
+      // handle migration?
+      JarEntry migrateEntry = jar.getJarEntry("WEB-INF/migrate.sql");
+      setStatus("WEB-INF/migrate.sql " + migrateEntry);
+      if (migrateEntry != null) {
+        setStatus("Package includes data for migration...");
+
+        // extract migrate.sql
+        File migrateSql = new File(dir, "migrate.sql");
+        InputStream in = jar.getInputStream(migrateEntry);
+        IO.SaveInputStreamToFile(in, migrateSql);
+
+        setStatus("Importing data from migrate.sql...");
+        executeSql(migrateSql);
+        setStatus("Data imported from migrate.sql.");
+      }
+      
+      // unpack contents
+      String lastFile = null;      
       try {
         Enumeration<JarEntry> enEntries = jar.entries();
         while (enEntries.hasMoreElements()) {
@@ -215,6 +244,12 @@ public class Upgrader extends Task {
     } catch(IOException exception) {
       setStatus("Error processing jar: " + exception);
       setLastException(exception);
+    } catch(SQLException exception) {
+      setStatus("Error extracting migration data: " + exception);
+      setLastException(exception);
+    } catch(Exception exception) {
+      setStatus("Error extracting migration data: " + exception);
+      setLastException(exception);
     } finally {
       runEnd();
       bRunning = true; // leaving it 'running' so that the UI waits for restart
@@ -222,7 +257,90 @@ public class Upgrader extends Task {
       upgrader = null;
     }
   } // end of run()
+
   
+  /**
+   * Executes all SQL statements in the given file.
+   * @param sqlFile The file to execute.
+   * @throws SQLException If there was an SQL error.
+   * @throws Exception If there was a general error.
+   */
+  public void executeSql(File sqlFile) throws SQLException, Exception {
+    if (connectionURL.indexOf("mysql") < 0) throw new NullPointerException("Not a mysql connect string");
+    Matcher matcher = Pattern.compile("jdbc:[^:]+://([^/]+)/([^/]+)\\?.*")
+      .matcher(connectionURL);
+    if (!matcher.matches()) {
+      throw new Exception(
+        "Cannot infer dbHost and dbName from connect string: " + connectionURL);
+    }
+    String host = matcher.group(1);
+    String databaseName = matcher.group(2);
+    File mysqlExe = Execution.Which("mysql");
+    if (mysqlExe != null) {
+      Execution mysql = new Execution()
+        .setExe(mysqlExe)
+        .arg("--default-character-set=utf8")
+        .arg("--force") // ignore errors - some migrations files are sometimes slightly invalid (?!)
+        .arg("-h").arg(host)
+        .arg("-u").arg(connectionName)
+        .arg("-p"+connectionPassword)
+        .arg(databaseName)
+        .stdin(sqlFile)
+        .addStdoutObserver(m->{
+            System.out.println(m);
+            setStatus(m);
+        })
+        .addStderrObserver(m->{
+            System.err.println(m);
+            setStatus(m);
+        });
+      System.out.println("mysql: " + sqlFile.getPath());
+      setStatus("Running mysql...");
+      mysql.run();
+      
+    } else { // no mysql command available      
+      setStatus(
+        "mysql command not available, falling back to statement-based execution...");
+      
+      // connect to DB
+      //Class.forName(driverName).newInstance();
+      Connection connection = DriverManager.getConnection (
+        connectionURL, connectionName, connectionPassword);
+      
+      // read file into a string
+      String sql = "";
+      BufferedReader br = new BufferedReader(
+        new InputStreamReader(new FileInputStream(sqlFile), "UTF-8"));
+      String line = br.readLine();
+      while (line != null) {
+        sql += line + "\n";
+        
+        // execute statements as we find them...
+        if (sql.trim().endsWith(";")) {
+          // Ignore DELIMITER blocks created by sqldump TODO check this...
+          if (sql.trim().startsWith("DELIMITER")
+             // ignore empty statements
+             || sql.trim().equals(";")) {
+            sql = "";
+          } else {
+            try {
+              connection.prepareStatement(sql).execute();
+            } catch (SQLException x) {
+              setStatus(sql + " - " + x.getMessage() + "\n");
+            }
+            sql = "";
+          }
+        } // semicolon encountered
+        line = br.readLine();
+      } // next line
+        // execute the last statement
+      if (sql.trim().length() > 0) {
+        connection.prepareStatement(sql).execute();
+      }
+      setStatus("Finished SQL execution");
+    }
+  } // end of executeSql()
+    
   /**
    * Release resources.
    */

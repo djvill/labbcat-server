@@ -4,7 +4,8 @@
     import = "javax.json.JsonObject" 
     import = "javax.json.JsonWriter" 
 %><%@ include file="../base.jsp" %><%{
-    Upgrade handler = new Upgrade(getRootDir());
+    Upgrade handler = new Upgrade(
+      getRootDir(), driverName, connectionURL, connectionName, connectionPassword);
     initializeHandler(handler, request);
     JsonObject json = null;
     if ("GET".equals(request.getMethod())) {

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { environment } from '../../environments/environment';
 
-import { MessageService, LabbcatService, SerializationDescriptor } from 'labbcat-common';
+import { MessageService, LabbcatService, SerializationDescriptor, Task } from 'labbcat-common';
 import { AdminComponent } from '../admin-component';
 
 @Component({
@@ -29,6 +29,11 @@ export class AdminUpgradeComponent extends AdminComponent implements OnInit {
     stackTrace: string;
     upgradeComplete = false;
 
+    // for showing other activity
+    tasks: Task[] = [];
+    loading = true;
+    refreshTimer: any;
+
     constructor(
         labbcatService: LabbcatService,
         messageService: MessageService,
@@ -42,7 +47,54 @@ export class AdminUpgradeComponent extends AdminComponent implements OnInit {
             if (messages) messages.forEach(m => this.messageService.info(m));
             this.baseUrl = url;
         });
+        this.readTasks();        
     }
+    readTasks(): void {
+        if (this.monitoring || this.upgradeComplete) return;
+        
+        this.loading = true;
+        this.labbcatService.labbcat.getTasks((ids, errors, messages) => {
+            this.loading = false;
+            if (errors) errors.forEach(m => this.messageService.error(m));
+            if (messages) messages.forEach(m => this.messageService.info(m));
+            if (ids) {
+                for (let id of ids) {                    
+                    if (!this.tasks.find(task=>task.threadId == id)) {
+                        // add new task to the list
+                        this.labbcatService.labbcat.taskStatus(
+                            id, {keepalive:false}, (task, errors, messages) => {
+                                if (task && task.threadId) this.tasks.push(task);
+                            });
+                    }
+                }
+            }
+            // now read all the task details
+            for (let task of this.tasks) {
+                if (task.threadId) { // only tasks that aren't gone
+                    this.loadTask(task.threadId);
+                } // not gone already
+            }
+            // readTasks might take more than 5 seconds to respond,
+            // so instead of setInterval to check regardless of whether the last
+            // check returned, we create use setTimeout each time around
+            // so that we're only ever waiting on one readTasks call at a time
+            this.refreshTimer = setTimeout(()=>{
+                this.readTasks();
+            }, 5000);
+        });
+    }
+    loadTask(id: string) {
+        this.labbcatService.labbcat.taskStatus(
+            id, {keepalive:false}, (task, errors, messages) => {
+                const t = this.tasks.findIndex(t=>t.threadId==id);
+                if (task) {
+                    this.tasks[t] = task;
+                } else { // remove it
+                    this.tasks = this.tasks.filter(t=>t.threadId != id);
+                }
+            });
+    }
+
     /** Called when an upgrader file is selected */
     selectFile(files: File[]): void {
         if (files.length == 0) {
@@ -138,7 +190,11 @@ export class AdminUpgradeComponent extends AdminComponent implements OnInit {
         this.monitoring = true;
         const monitor = this.labbcatService.labbcat.createRequest(
             "upgrade", null, (model, errors, messages) => {
-                if (errors) errors.forEach(m => this.messageService.error(m));
+                if (errors) {
+                    // filter out transient restart errors 
+                    errors.filter(m => !m.endsWith("upgrade_jsp")) 
+                        .forEach(m => this.messageService.error(m));
+                }
                 if (messages) messages.forEach(m => this.messageService.info(m));
                 if (model) {
                     this.percentComplete = model.percentComplete;

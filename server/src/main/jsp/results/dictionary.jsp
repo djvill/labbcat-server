@@ -7,14 +7,11 @@
 %><%@ include file="../base.jsp" %><%{
     if ("GET".equals(request.getMethod()) || "POST".equals(request.getMethod())) { // GET/POST only
       Dictionary handler = new Dictionary();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       handler.get(
         parseParameters(request),
         response.getOutputStream(),
-        (fileName)->{
-          ResponseAttachmentName(
-            request, response, fileName);
-        },
+        (fileName)->handler.getContext().responseAttachmentName(fileName),
         (status)->response.setStatus(status));
     } else if ("OPTIONS".equals(request.getMethod())) {
       response.addHeader("Allow", "OPTIONS, GET, POST");

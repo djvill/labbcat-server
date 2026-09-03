@@ -26,7 +26,7 @@
       }
       if ("GET".equals(request.getMethod()) || "POST".equals(request.getMethod())) { // GET/POST
         Store handler = new Store();
-        initializeHandler(handler, request);
+        initializeHandler(handler, request, response);
         JsonObject json = handler.get(
           request.getRequestURI(), request.getMethod(), request.getPathInfo(),
           request.getQueryString(), parameters, request.getInputStream(),

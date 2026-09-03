@@ -7,7 +7,7 @@
 %><%@ include file="../base.jsp" %><%{
       if ("GET".equals(request.getMethod())) {
         Verify handler = new Verify();
-        initializeHandler(handler, request);
+        initializeHandler(handler, request, response);
         JsonObject json = handler.get(
           parseParameters(request),
           (status)->response.setStatus(status));

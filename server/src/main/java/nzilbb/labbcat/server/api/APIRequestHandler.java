@@ -89,7 +89,14 @@ public class APIRequestHandler {
   protected String defaultTitle;
   protected ResourceBundle defaultResourceBundle;
 
-  protected APIRequestContext context;
+  protected APIRequestContext context;  
+  /**
+   * Gets the servlet context.
+   * @return The context.
+   */
+  public APIRequestContext getContext() {
+    return context;
+  } // end of getContext()
   
   // Methods:
   

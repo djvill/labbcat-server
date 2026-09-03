@@ -16,7 +16,7 @@ Timer annotatorDeactivator = new Timer("annotator/ext");
         || "PUT".equals(request.getMethod())
         || "DELETE".equals(request.getMethod())) { // GET/POST/PUT/DELETE
       ExtWebApp handler = new ExtWebApp(activeAnnotators, annotatorDeactivator);
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       handler.get(
         request.getMethod(),
         request.getRequestURI(),

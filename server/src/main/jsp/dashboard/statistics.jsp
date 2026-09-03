@@ -5,17 +5,14 @@
 %><%@ include file="../base.jsp" %><%{
     if ("GET".equals(request.getMethod())) { // GET only
       Statistics handler = new Statistics();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       handler.get(
         request.getPathInfo(),
         parseParameters(request),
         (headerName)->request.getHeader(headerName),
         response.getOutputStream(),
         (contentType)->response.setContentType(contentType),
-        (fileName)->{
-          ResponseAttachmentName(
-            request, response, fileName);
-        },
+        (fileName)->handler.getContext().responseAttachmentName(fileName),
         (status)->response.setStatus(status));
     } else if ("OPTIONS".equals(request.getMethod())) {
       response.addHeader("Allow", "OPTIONS, GET");

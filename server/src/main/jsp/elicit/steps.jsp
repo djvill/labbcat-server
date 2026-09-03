@@ -7,13 +7,10 @@
 %><%@ include file="../base.jsp" %><%{
       if ("GET".equals(request.getMethod())) {
         Steps handler = new Steps();
-        initializeHandler(handler, request);
+        initializeHandler(handler, request, response);
         JsonObject json = handler.get(
           request.getRemoteUser(), parseParameters(request),
-          (fileName)->{
-            ResponseAttachmentName(
-              request, response, fileName, false);
-          },
+          (fileName)->handler.getContext().responseAttachmentName(fileName),
           (status)->response.setStatus(status));
         if (json != null) {
           JsonWriter writer = Json.createWriter(response.getWriter());

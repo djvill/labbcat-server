@@ -2,7 +2,7 @@
     import = "nzilbb.labbcat.server.api.Doc" 
 %><%@ include file="base.jsp" %><%{
     Doc handler = new Doc();
-    initializeHandler(handler, request);
+    initializeHandler(handler, request, response);
     if ("GET".equals(request.getMethod())) {
       handler.get(
         request.getHeader("Referer"),

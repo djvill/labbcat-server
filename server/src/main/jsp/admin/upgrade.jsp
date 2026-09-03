@@ -6,7 +6,7 @@
 %><%@ include file="../base.jsp" %><%{
     Upgrade handler = new Upgrade(
       getRootDir(), driverName, connectionURL, connectionName, connectionPassword);
-    initializeHandler(handler, request);
+    initializeHandler(handler, request, response);
     JsonObject json = null;
     if ("GET".equals(request.getMethod())) {
       json = handler.get((status)->response.setStatus(status));

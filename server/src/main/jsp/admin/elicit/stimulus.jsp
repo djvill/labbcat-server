@@ -9,7 +9,7 @@
     import = "javax.json.JsonWriter" 
 %><%@ include file="../../base.jsp" %><%{
   Stimulus handler = new Stimulus(new File(getRootDir(), "elicit"));
-  initializeHandler(handler, request);
+  initializeHandler(handler, request, response);
   if ("GET".equals(request.getMethod())) {
     JsonObject json = handler.get((status)->response.setStatus(status));
     if (json != null) {

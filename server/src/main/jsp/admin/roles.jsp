@@ -2,7 +2,7 @@
     import = "nzilbb.labbcat.server.api.admin.Roles" 
 %><%@ include file="../base.jsp" %><%{
     Roles handler = new Roles();
-    initializeHandler(handler, request);
+    initializeHandler(handler, request, response);
     if ("GET".equals(request.getMethod())) {
       handler.get(
         request.getPathInfo(),
@@ -10,10 +10,7 @@
         (headerName)->request.getHeader(headerName),
         response.getOutputStream(),
         (contentType)->response.setContentType(contentType),
-        (fileName)->{
-          ResponseAttachmentName(
-            request, response, fileName);
-        },
+        (fileName)->handler.getContext().responseAttachmentName(fileName),
         (status)->response.setStatus(status));
     } else if ("POST".equals(request.getMethod())) {
       handler.post(

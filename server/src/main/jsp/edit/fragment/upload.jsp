@@ -20,7 +20,7 @@ log("edit/fragment/upload " + request.getMethod());
         RequestParameters parameters = (RequestParameters)
         request.getAttribute("multipart-parameters");
         Upload handler = new Upload();
-        initializeHandler(handler, request);
+        initializeHandler(handler, request, response);
         JsonObject json = handler.post(
           parameters, (status)->response.setStatus(status));
         if (json != null) {
@@ -30,7 +30,7 @@ log("edit/fragment/upload " + request.getMethod());
         }
       } else if ("PUT".equals(request.getMethod())) { // PUT finishes processing files
         Upload handler = new Upload();
-        initializeHandler(handler, request);
+        initializeHandler(handler, request, response);
         JsonObject json = handler.put(
           request.getPathInfo(), parseParameters(request), (status)->response.setStatus(status));
         if (json != null) {
@@ -40,7 +40,7 @@ log("edit/fragment/upload " + request.getMethod());
         }
       } else if ("DELETE".equals(request.getMethod())) { // DELETE abandons a POSTed upload
         Upload handler = new Upload();
-        initializeHandler(handler, request);
+        initializeHandler(handler, request, response);
         JsonObject json = handler.delete(
           request.getPathInfo(), (status)->response.setStatus(status));
         if (json != null) {

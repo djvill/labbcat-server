@@ -18,7 +18,7 @@
       }
     }
     Serialization handler = new Serialization(tempDir);
-    initializeHandler(handler, request);
+    initializeHandler(handler, request, response);
     if ("POST".equals(request.getMethod())) { // POST
       // load multipart request parameters - the implementation depends on the servlet container:
       // Server info something like "Apache Tomcat/9.0.58 (Ubuntu)" or "Apache Tomcat/10.1.36"

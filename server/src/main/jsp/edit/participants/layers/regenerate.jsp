@@ -26,7 +26,7 @@
         RequestParameters parameters = (RequestParameters)
         request.getAttribute("multipart-parameters");
         Regenerate handler = new Regenerate();
-        initializeHandler(handler, request);
+        initializeHandler(handler, request, response);
         JsonObject json = handler.post(
           parameters, (status)->response.setStatus(status),
           (Collection<Annotation> participants, Layer layer)-> { // layer generator

@@ -343,7 +343,11 @@
                 <a *ngIf="historyItem.task.size && historyItem.task.resultUrl"
                   [href]="historyItem.task.resultUrl"
                   [target]="'task-' + historyItem.task.threadId"
-                  >{{historyItem.task.size}}&nbsp;<span i18n>results</span></a>
+                  >{{historyItem.task.size}}&nbsp;<span
+                    *ngIf="historyItem.task.size == 1"
+                    i18n="singular result">result</span><span
+                    *ngIf="historyItem.task.size > 1"
+                    i18n="plural results">results</span></a>
                 <span *ngIf="historyItem.task.size && !historyItem.task.resultUrl"
                   >{{historyItem.task.size}}&nbsp;<span i18n>results</span></span>
                 <span *ngIf="!historyItem.task.running && historyItem.task.hasOwnProperty('size') && historyItem.task.size == 0"

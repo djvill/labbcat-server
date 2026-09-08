@@ -497,6 +497,21 @@ export class SearchComponent implements OnInit {
     anyFilters(history: SearchHistoryItem[]): boolean {
         return history.length && history.map(x => this.hasFilters(x)).reduce((x, y) => x || y);
     }
+    isUpdated(historyItem: SearchHistoryItem): boolean {
+        return this.labbcatTitle == historyItem.metadata.labbcat_title &&
+            this.versions.System["LaBB-CAT"] == historyItem.metadata.labbcat_version &&
+            (this.versions.Data ?? {})["dataVersion"] == historyItem.metadata.data_version &&
+            JSON.stringify(this.matrix) == JSON.stringify(historyItem.matrix) &&
+            this.participantDescription == (historyItem.filters.participantDescription ?? "") &&
+            this.participantCount == historyItem.filters.participantCount &&
+            this.transcriptDescription == (historyItem.filters.transcriptDescription ?? "") &&
+            this.transcriptCount == historyItem.filters.transcriptCount &&
+            this.mainParticipantOnly == historyItem.matchOptions.mainParticipantOnly &&
+            this.onlyAligned == historyItem.matchOptions.onlyAligned &&
+            this.firstMatchOnly == historyItem.matchOptions.firstMatchOnly &&
+            this.excludeSimultaneousSpeech == historyItem.matchOptions.excludeSimultaneousSpeech &&
+            this.overlapThreshold == historyItem.matchOptions.overlapThreshold
+    }
 
     repeat(historyItem: SearchHistoryItem): void {
         let params = { current_tab: "History" };

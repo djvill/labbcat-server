@@ -140,8 +140,6 @@ export class ParticipantsComponent implements OnInit {
         /[?&](to)=([^&]*)/,
         /[?&](transcript_expression)=([^&]*)/,
         /[?&](transcripts)=([^&]*)/,
-        /[?&](participant_expression)=([^&]*)/,
-        /[?&](participants)=([^&]*)/,
         /[?&](searchJson)=([^&]*)/,
         /[?&](mainParticipantOnly)=([^&]*)/,
         /[?&](onlyAligned)=([^&]*)/,
@@ -214,12 +212,11 @@ export class ParticipantsComponent implements OnInit {
     parseQueryParameters(): void {
         this.route.queryParams.subscribe((params) => {
             // remember the query for next time
-            // remember the query for next time
             let queryString = window.location.search;
             for (let pattern of this.passthroughPatterns) { // but not the passthrough parameters
                 queryString = queryString.replace(pattern, "");
             }
-            // strip ay leading/trailing parameter delimiters
+            // strip any leading/trailing parameter delimiters
             queryString = queryString.replace(/^[?&]/,"").replace(/[?&]$/,"");
             if (queryString) {
                 // save the query in session storage
@@ -314,8 +311,75 @@ export class ParticipantsComponent implements OnInit {
         this.query = this.participantQuery; // if any
         // this.queryDescription = this.participantDescription || this.transcriptDescription;
         this.queryDescription = this.participantDescription;
+        if (this.query) { // page loaded with participant_expression param
+            this.participantQuery = "";
+            this.participantDescription = "";
+            const queryItems = this.query.split(" && ");
+            for (let item of queryItems) {
+                // all participants: clear filters and don't consider further query items
+                if (item.match(/^\/\.\+\/\.test\(id\)$/)) {
+                    this.clearFilters();
+                    break;
+                }
+                // participant filter
+                const testId = item.match(/^\/(.+)\/\.test\(id\)$/);
+                if (testId) {
+                    this.filterValues["participant"] = [testId[1]];
+                    continue;
+                }
+                // transcript-count filter
+                const allLength = item.match(/all\('transcript'\)\.length (?<operator>..) (?<value>\d+)/);
+                if (allLength) {
+                    if (allLength.groups.operator == ">=") {
+                        this.filterValues["--transcript-count"] = [allLength.groups.value, ""];
+                    } else if (allLength.groups.operator == "<=") {
+                        this.filterValues["--transcript-count"] = [
+                            this.filterValues["--transcript-count"][0] ?? "",
+                            allLength.groups.value
+                        ];
+                    }
+                    continue;
+                }
+                // all other filters
+                const layerMatch = item.match(/(labels|first)\('(.+?)'\)/);
+                if (layerMatch && this.filterLayers.map(x => x.id).includes(layerMatch[2])) {
+                    // /REGEXP/.test(labels('LAYER'))
+                    const testLabels = item.match(/\/(?<regexp>.+)\/\.test/);
+                    if (testLabels) {
+                        this.filterValues[layerMatch[2]][0] = testLabels.groups.regexp;
+                        continue;
+                    }
+                    // ["VALUE1", "VALUE2"].includesAny(labels('LAYER'))
+                    const includesAny = item.match(/(?<not>!?)\["(?<value>.+)"\].includesAny/);
+                    if (includesAny) {
+                        if (!includesAny.groups.not) {
+                            this.filterValues[layerMatch[2]] = includesAny.groups.value.split('","');
+                        } else {
+                            this.filterValues[layerMatch[2]] = Object
+                                .keys(this.filterLayers.filter(l => l.id == layerMatch[2])[0].validLabels)
+                                .filter(l => !includesAny.groups.value.split('","').includes(l))
+                                .toSpliced(0, 0, "!");
+                        }
+                        continue;
+                    }
+                    // first('LAYER').label OPERATOR [']VALUE[']
+                    const firstLabel = item.match(/first\('.+'\)\.label (?<operator>..?) '?(?<value>[^']+)/);
+                    if (firstLabel) {
+                        if ([">=", "="].includes(firstLabel.groups.operator)) {
+                            this.filterValues[layerMatch[2]] = [firstLabel.groups.value, ""];
+                        } else if (firstLabel.groups.operator == "<=") {
+                            this.filterValues[layerMatch[2]] = [
+                                this.filterValues[layerMatch[2]][0] ?? "",
+                                firstLabel.groups.value.replace(" 23:59:59", "")
+                            ];
+                        }
+                        continue;
+                    }
+                }
+            }
+        } else {
+            // TODO indenting
         for (let layer of this.filterLayers) {
-
             if (layer.id == this.schema.participantLayerId
                 && this.filterValues[layer.id][0]) {
                 // participant layer
@@ -496,12 +560,12 @@ export class ParticipantsComponent implements OnInit {
                     + (this.filterValues[layer.id][0].length <= 50 ? this.filterValues[layer.id][0] : this.filterValues[layer.id][0].slice(0, 49) + "…");
             }
         } // next filter layer
+            // end TODO indenting
+        }
 
         // change the query string so the user can easily replicate this filter
         const queryParams: Params = {};
         if (this.nextPage) queryParams.to = this.nextPage; // pass through context parameters...
-        if (this.participantQuery) queryParams.participant_expression = this.participantQuery;
-        if (this.participantDescription) queryParams.participants = this.participantDescription;
         if (this.searchJson) queryParams.searchJson = this.searchJson;
         if (this.mainParticipantOnly) queryParams.mainParticipantOnly = this.mainParticipantOnly;
         if (this.onlyAligned) queryParams.onlyAligned = this.onlyAligned;

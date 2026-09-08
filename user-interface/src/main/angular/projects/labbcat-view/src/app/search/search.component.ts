@@ -195,6 +195,12 @@ export class SearchComponent implements OnInit {
         }
         let params = this.loadParameters();
         params["to"] = "search";
+        if (this.matrix.participantQuery) {
+            params["participant_expression"] = this.matrix.participantQuery;
+        }
+        if (this.participantDescription) {
+            params["participants"] = this.participantDescription;
+        }
         this.router.navigate(["participants"], { queryParams: params });
     }
     clearParticipantFilter(): void {
@@ -218,6 +224,12 @@ export class SearchComponent implements OnInit {
         params["to"] = "search";
         params["participant_expression"] = this.participantQueryForTranscripts();
         params["participants"] = this.participantDescription;
+        if (this.matrix.transcriptQuery) {
+            params["transcript_expression"] = this.transcriptQueryIncludingParticipantConditions();
+        }
+        if (this.transcriptDescription) {
+            params["transcripts"] = this.transcriptDescription;
+        }
         this.router.navigate(["transcripts"], { queryParams: params });
     }
     clearTranscriptFilter(): void {
@@ -484,6 +496,41 @@ export class SearchComponent implements OnInit {
     }
     anyFilters(history: SearchHistoryItem[]): boolean {
         return history.length && history.map(x => this.hasFilters(x)).reduce((x, y) => x || y);
+    }
+
+    repeat(historyItem: SearchHistoryItem): void {
+        let params = { current_tab: "History" };
+        this.matrix = structuredClone(historyItem.matrix);
+        if (historyItem.matrix.participantQuery) {
+            this.participantDescription = historyItem.filters.participantDescription;
+            params["participant_expression"] = historyItem.matrix.participantQuery;
+            params["participants"] = historyItem.filters.participantDescription;
+            sessionStorage.removeItem("lastQueryParticipants"); // just in case
+        } else {
+            this.participantDescription = "";
+            this.participantIds = [];
+            this.participantCount = 0;
+            params["participant_expression"] = null;
+            params["participants"] = null;
+        }
+        if (historyItem.matrix.transcriptQuery) {
+            this.transcriptDescription = historyItem.filters.transcriptDescription;
+            params["transcript_expression"] = historyItem.matrix.transcriptQuery;
+            params["transcripts"] = historyItem.filters.transcriptDescription;
+            sessionStorage.removeItem("lastQueryTranscripts"); // just in case
+        } else {
+            this.transcriptDescription = "";
+            this.transcriptIds = [];
+            this.transcriptCount = 0;
+            params["transcript_expression"] = null;
+            params["transcripts"] = null;
+        }
+        this.mainParticipantOnly = historyItem.matchOptions.mainParticipantOnly;
+        this.onlyAligned = historyItem.matchOptions.onlyAligned;
+        this.firstMatchOnly = historyItem.matchOptions.firstMatchOnly;
+        this.excludeSimultaneousSpeech = historyItem.matchOptions.excludeSimultaneousSpeech;
+        this.overlapThreshold = historyItem.matchOptions.overlapThreshold;
+        this.router.navigate([], { queryParams: params });
     }
 
     replacer(key: string, value: string): any {

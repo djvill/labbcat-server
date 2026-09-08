@@ -34,7 +34,7 @@ export class SearchMatrixComponent implements OnInit, OnChanges {
     ngOnChanges(changes: SimpleChanges): void {
         if (!this.columns) this.columns = [];
         // if we haven't set selectedLayerIds yet
-        if (this.schema && !this.selectedLayerIds) {
+        if (this.schema) {
             // if there's no search matrix yet
             if (this.columns.length == 0) {
                 // default to a word search (preferably orthography)

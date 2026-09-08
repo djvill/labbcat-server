@@ -441,6 +441,12 @@
               <td class="history-buttons">
                 <div class="button-container">
                   <lib-button
+                    (press)="repeat(historyItem)"
+                    img="repeat.svg" icon="🔁"
+                    i18n-label label="Repeat"
+                    i18n-title title="Copy search matrix, filters, and match options to this page"
+                    ></lib-button>
+                  <lib-button
                     (press)="exportHistoryItem(historyItem)"
                     img="code-file.svg" icon="<>"
                     i18n-label label="Export search"

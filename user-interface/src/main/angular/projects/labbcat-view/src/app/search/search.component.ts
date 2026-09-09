@@ -7,6 +7,7 @@ import { User, Task } from 'labbcat-common';
 import { MessageService, LabbcatService, VersionInfo } from 'labbcat-common';
 
 import { Matrix } from '../matrix';
+import { MatrixColumn } from '../matrix-column';
 import { MatrixLayerMatch } from '../matrix-layer-match';
 import { SearchHistoryItem } from '../search-history-item';
 
@@ -70,6 +71,7 @@ export class SearchComponent implements OnInit {
         this.setupTabs();
         this.readTitle();
         this.readVersions().then(() => {
+            // TODO indenting
         this.labbcatService.labbcat.getSchema((schema, errors, messages) => {
             this.schema = schema;
             
@@ -125,6 +127,7 @@ export class SearchComponent implements OnInit {
                 this.listTranscripts();
             });
         });
+            // end TODO indenting
         });
     }
     readTitle(): void {
@@ -487,6 +490,76 @@ export class SearchComponent implements OnInit {
     }
 
     /** Convenience functions for display */
+    matrixColumnsEquals(columnsA: MatrixColumn[], columnsB: MatrixColumn[]): boolean {
+        // different numbers of columns
+        if (columnsA.length != columnsB.length) {
+            return false;
+        }
+
+        // check each column
+        for (let col in columnsA) {
+            // different layers
+            if (Object.keys(columnsA[col].layers).sort().join(' ') !=
+                Object.keys(columnsB[col].layers).sort().join(' ')) {
+                return false;
+            }
+            // different adjacency
+            if (columnsA[col].adj != columnsB[col].adj) {
+                return false;
+            }
+
+            // check each layer
+            for (let l of Object.keys(columnsA[col].layers)) {
+                // different numbers of word-internal columns
+                if (columnsA[col].layers[l].length !=
+                    columnsB[col].layers[l].length) {
+                    return false;
+                }
+
+                // check each word-internal column
+                for (let wcol in columnsA[col].layers[l]) {
+                    const colA = columnsA[col].layers[l][wcol];
+                    const colB = columnsB[col].layers[l][wcol];
+                    // different layer parameters
+                    if (colA.id != colB.id ||
+                        colA.pattern != colB.pattern ||
+                        colA.not != colB.not ||
+                        colA.min != colB.min ||
+                        colA.max != colB.max ||
+                        colA.anchorStart != colB.anchorStart ||
+                        colA.anchorEnd != colB.anchorEnd ||
+                        colA.target != colB.target) {
+                            return false;
+                        }
+                }
+            }
+        }
+
+        // passed all checks
+        return true;
+    }
+    sameMatrixAsPrevious(index: number): boolean {
+        return index > 0 &&
+            index <= this.history.length - 1 &&
+            this.matrixColumnsEquals(this.history[index].matrix.columns, this.history[index - 1].matrix.columns);
+    }
+    sameFiltersAsPrevious(index: number): boolean {
+        return index > 0 &&
+            index <= this.history.length - 1 &&
+            (this.history[index].filters.participantDescription ?? "") == (this.history[index - 1].filters.participantDescription ?? "") &&
+            this.history[index].filters.participantCount == this.history[index - 1].filters.participantCount &&
+            (this.history[index].filters.transcriptDescription ?? "") == (this.history[index - 1].filters.transcriptDescription ?? "") &&
+            this.history[index].filters.transcriptCount == this.history[index - 1].filters.transcriptCount;
+    }
+    sameOptionsAsPrevious(index: number): boolean {
+        return index > 0 &&
+            index <= this.history.length - 1 &&
+            this.history[index].matchOptions.mainParticipantOnly == this.history[index - 1].matchOptions.mainParticipantOnly &&
+            this.history[index].matchOptions.onlyAligned == this.history[index - 1].matchOptions.onlyAligned &&
+            this.history[index].matchOptions.firstMatchOnly == this.history[index - 1].matchOptions.firstMatchOnly &&
+            this.history[index].matchOptions.excludeSimultaneousSpeech == this.history[index - 1].matchOptions.excludeSimultaneousSpeech &&
+            this.history[index].matchOptions.overlapThreshold == this.history[index - 1].matchOptions.overlapThreshold;
+    }
     anyImported(history: SearchHistoryItem[]): boolean {
         return history.length && history.filter(x => x.sourceFile).length > 0;
     }

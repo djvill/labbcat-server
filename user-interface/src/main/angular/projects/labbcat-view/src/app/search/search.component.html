@@ -445,19 +445,10 @@
               <td class="history-buttons">
                 <div class="button-container">
                   <lib-button
-                    *ngIf="!isUpdated(historyItem)"
                     (press)="repeat(historyItem)"
                     img="repeat.svg" icon="🔁"
                     i18n-label label="Repeat"
                     i18n-title title="Copy search matrix, filters, and match options to this page"
-                    ></lib-button>
-                  <lib-button
-                    *ngIf="isUpdated(historyItem)"
-                    (press)="repeat(historyItem)"
-                    img="repeat.svg" icon="🔁"
-                    [disabled]="true"
-                    i18n-label label="Repeat"
-                    i18n-title title="This page already matches this history item"
                     ></lib-button>
                   <lib-button
                     (press)="exportHistoryItem(historyItem)"

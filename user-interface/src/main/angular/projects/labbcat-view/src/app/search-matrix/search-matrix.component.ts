@@ -99,6 +99,9 @@ export class SearchMatrixComponent implements OnInit, OnChanges {
             }
             column.layers = newLayers;
         } // next column
+
+        // update layers
+        this.selectedLayerIds = selectedLayerIds;
     }
 
     setTarget(targetMatch: MatrixLayerMatch): void {

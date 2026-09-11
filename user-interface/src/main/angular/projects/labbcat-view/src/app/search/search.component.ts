@@ -212,13 +212,18 @@ export class SearchComponent implements OnInit {
         this.participantCount = 0;
         this.matrix.participantQuery = "";
         sessionStorage.removeItem("lastQueryParticipants");
+        let params = {
+            searchJson: null,
+            participant_expression: null,
+            participants: null,
+            current_tab: 'Participants'
+        };
+        if (this.transcriptDescription == "all transcripts with selected participants") {
+            this.transcriptDescription = "all transcripts";
+            params["transcripts"] = "all transcripts";
+        }
         this.router.navigate([], {
-            queryParams: {
-                searchJson: null,
-                participant_expression: null,
-                participants: null,
-                current_tab: 'Participants'
-            },
+            queryParams: params,
             queryParamsHandling: 'merge'
         });
     }

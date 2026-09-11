@@ -114,6 +114,13 @@ td:has(~ td > details[open]), td:has(> details[open]) ~ td {
 #history .history-buttons {
     vertical-align: middle;
 }
+#history .attribute-list-container {
+    display: flex;
+    .attribute-list {
+        flex-grow: 1;
+        min-width: 20em;
+    }
+}
 .history-name {
     text-align: center;
 }
@@ -140,17 +147,11 @@ td:has(~ td > details[open]), td:has(> details[open]) ~ td {
     }
 }
 .history-metadata {
-    .attribute-list {
-        min-width: 20em;
-    }
     .values {
         display: inline;
     }
 }
 .history-filters {
-    .attribute-list {
-        min-width: 20em;
-    }
     .attribute > label {
         width: 30%;
     }

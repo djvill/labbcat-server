@@ -301,6 +301,8 @@
                             i18n-title title="One or more metadata fields does not match this corpus">
                     <span i18n>Metadata</span>
                   </summary>
+                  <div class="attribute-list-container">
+                    <!-- TODO indenting -->
                   <div class="attribute-list">
                     <div class="attribute">
                       <label for="labbcat-title" i18n>LaBB-CAT title</label>
@@ -334,6 +336,8 @@
                           i18n-title title="Does not match this corpus"
                           i18n>(None)</span>
                     </div>
+                  </div>
+                    <!-- end TODO indenting -->
                   </div>
                 </details>
               </td>
@@ -382,6 +386,8 @@
                   i18n>Same as previous</span>
                 <details *ngIf="!sameFiltersAsPrevious(i) && hasFilters(historyItem)">
                   <summary i18n>Filters</summary>
+                  <div class="attribute-list-container">
+                    <!-- TODO indenting -->
                   <div class="attribute-list">
                     <div *ngIf="historyItem.matrix.participantQuery"
                       class="attribute">
@@ -407,6 +413,8 @@
                         class="values"
                         i18n>Selected transcripts</span>
                     </div>
+                  </div>
+                    <!-- end TODO indenting -->
                   </div>
                 </details>
                 <span *ngIf="!sameFiltersAsPrevious(i) && !hasFilters(historyItem)"

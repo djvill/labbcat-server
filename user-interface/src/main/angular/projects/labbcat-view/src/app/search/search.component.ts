@@ -710,7 +710,8 @@ export class SearchComponent implements OnInit {
         this.updateTask(lastHistoryItem, lastHistoryItem.task.threadId).then(() => {
             const jsonString = JSON.stringify(this.history, this.replacer, 2);
             this.exportUrl = this.sanitizer.sanitize(SecurityContext.HTML, 'data:application/json;charset=UTF-8,' + encodeURIComponent(jsonString));
-            this.exportName = 'search-history-' + new Date().toISOString().slice(0,10) + '.json';
+            let now = new Date();
+            this.exportName = 'search-history-' + [now.getFullYear(), now.getMonth() + 1, now.getDate()].join("-") + '.json';
             setTimeout(() => this.exportAnchor.nativeElement.click(), 50);
         });
     }

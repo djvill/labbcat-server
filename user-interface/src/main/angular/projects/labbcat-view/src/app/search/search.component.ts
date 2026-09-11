@@ -28,9 +28,11 @@ export class SearchComponent implements OnInit {
     participantDescription: string;
     participantIds: string[];
     participantsFile: File;
+    totalParticipants: number;
     transcriptDescription: string;
     transcriptIds: string[];
     transcriptsFile: File;
+    totalTranscripts: number;
     historyFile: File;
     mainParticipantOnly: boolean;
     onlyAligned: boolean;
@@ -70,6 +72,16 @@ export class SearchComponent implements OnInit {
         this.readUserInfo();
         this.setupTabs();
         this.readTitle();
+        this.labbcatService.labbcat.getParticipantIds((result, errors, messages) => {
+            if (errors) errors.forEach(m => this.messageService.error(m));
+            if (messages) messages.forEach(m => this.messageService.info(m));
+            this.totalParticipants = result.length;
+        });
+        this.labbcatService.labbcat.getTranscriptIds((result, errors, messages) => {
+            if (errors) errors.forEach(m => this.messageService.error(m));
+            if (messages) messages.forEach(m => this.messageService.info(m));
+            this.totalTranscripts = result.length;
+        });
         this.readVersions().then(() => {
             // TODO indenting
         this.labbcatService.labbcat.getSchema((schema, errors, messages) => {
@@ -478,11 +490,27 @@ export class SearchComponent implements OnInit {
             historyItem.metadata.data_version = this.versions.Data["dataVersion"];
         }
         historyItem.matrix = structuredClone(this.matrix);
+        // participantCount/transcriptCount logic:
+        // - if both are unfiltered or trivially filtered (i.e. "all participants"),
+        //   store the corpus total. (This doesn't cover "all transcripts with
+        //   selected participants", which may be a trivial filter depending on
+        //   the participant filter.)
+        // - if only the other filter is applied, we don't know this filter's
+        //   count, so store undefined
+        // - if a nontrivial filter is applied, store the reported count
         historyItem.filters = {
             participantDescription: this.participantDescription,
-            participantCount: this.participantCount,
+            participantCount: !this.participantCount && !this.participantDescription ?
+                                  [0, this.totalTranscripts].includes(this.transcriptCount) ?
+                                      this.totalParticipants :
+                                      undefined :
+                                  this.participantCount,
             transcriptDescription: this.transcriptDescription,
-            transcriptCount: this.transcriptCount
+            transcriptCount: !this.transcriptCount && !this.transcriptDescription ?
+                                  [0, this.totalParticipants].includes(this.participantCount) ?
+                                      this.totalTranscripts :
+                                      undefined :
+                                  this.transcriptCount
         };
         historyItem.matchOptions = {
             mainParticipantOnly: this.mainParticipantOnly,
@@ -549,12 +577,33 @@ export class SearchComponent implements OnInit {
             this.matrixColumnsEquals(this.history[index].matrix.columns, this.history[index - 1].matrix.columns);
     }
     sameFiltersAsPrevious(index: number): boolean {
-        return index > 0 &&
-            index <= this.history.length - 1 &&
-            (this.history[index].filters.participantDescription ?? "") == (this.history[index - 1].filters.participantDescription ?? "") &&
-            this.history[index].filters.participantCount == this.history[index - 1].filters.participantCount &&
-            (this.history[index].filters.transcriptDescription ?? "") == (this.history[index - 1].filters.transcriptDescription ?? "") &&
-            this.history[index].filters.transcriptCount == this.history[index - 1].filters.transcriptCount;
+        if (index == 0 || index > this.history.length - 1) {
+            return false;
+        }
+        const curr = this.history[index].filters;
+        const prev = this.history[index - 1].filters;
+        if ((curr.participantDescription ?? "").replace("all participants", "") !=
+                (prev.participantDescription ?? "").replace("all participants", "") ||
+                curr.participantCount != prev.participantCount ||
+                curr.transcriptCount != prev.transcriptCount) {
+            return false;
+        }
+        // both items' transcripts are unfiltered or de facto unfiltered
+        if (((curr.participantDescription == "all participants" &&
+              curr.transcriptDescription == "all transcripts with selected participants") ||
+             curr.transcriptDescription == "all transcripts" ||
+             !curr.transcriptDescription) &&
+             ((prev.participantDescription == "all participants" &&
+              prev.transcriptDescription == "all transcripts with selected participants") ||
+             prev.transcriptDescription == "all transcripts" ||
+             !prev.transcriptDescription)) {
+             return true;
+         }
+         // same transcript filters
+         if (curr.transcriptDescription == prev.transcriptDescription) {
+             return true;
+         }
+         return false;
     }
     sameOptionsAsPrevious(index: number): boolean {
         return index > 0 &&
@@ -622,10 +671,18 @@ export class SearchComponent implements OnInit {
             return undefined;
         }
         if (["participantQuery", "transcriptQuery"].includes(key) && value) {
-            return value.replaceAll(/"/g, "'");
+            if (value == "/.+/.test(id)") {
+                return undefined;
+            } else {
+                return value.replaceAll(/"/g, "'");
+            }
         }
         if (["participantDescription", "participantCount",
              "transcriptDescription", "transcriptCount"].includes(key) && !value) {
+            return undefined;
+        }
+        if (["participantDescription", "transcriptDescription"].includes(key) &&
+            ["all participants", "all transcripts"].includes(value)) {
             return undefined;
         }
         if (typeof value === "undefined") {

@@ -659,8 +659,10 @@ export class SearchComponent implements OnInit {
         this.mainParticipantOnly = historyItem.matchOptions.mainParticipantOnly;
         this.onlyAligned = historyItem.matchOptions.onlyAligned;
         this.firstMatchOnly = historyItem.matchOptions.firstMatchOnly;
-        this.excludeSimultaneousSpeech = historyItem.matchOptions.excludeSimultaneousSpeech;
-        this.overlapThreshold = historyItem.matchOptions.overlapThreshold;
+        if (this.overlapOption) {
+            this.excludeSimultaneousSpeech = historyItem.matchOptions.excludeSimultaneousSpeech;
+            this.overlapThreshold = historyItem.matchOptions.overlapThreshold;
+        }
         this.router.navigate([], { queryParams: params });
     }
 

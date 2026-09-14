@@ -455,6 +455,7 @@ export class SearchComponent implements OnInit {
                 if (messages) messages.forEach(m => this.messageService.info(m));
                 this.threadId = result.threadId;
                 this.history.push(this.historyItem());
+                console.log("this.history", this.history);
         });
     }
 
@@ -905,6 +906,14 @@ export class SearchComponent implements OnInit {
             for (let item of jsonData) {
                 item.cancelled = false;
                 item.sourceFile = "Imported from " + this.historyFile.name; // TODO i18n
+            }
+            // handle false matchOptions
+            for (let item of jsonData) {
+                for (let option in item.matchOptions) {
+                    if (!item.matchOptions[option]) {
+                        delete item.matchOptions[option];
+                    }
+                }
             }
             // handle empty participantQuery/transcriptQuery
             for (let item of jsonData) {

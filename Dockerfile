@@ -3,9 +3,9 @@ FROM tomcat:9.0.102
 # install Praat
 RUN mkdir /opt/praat
 WORKDIR /opt/praat
-RUN wget https://www.fon.hum.uva.nl/praat/praat6439_linux-intel64-barren.tar.gz
-RUN tar xvf praat6439_linux-intel64-barren.tar.gz
-RUN rm praat6439_linux-intel64-barren.tar.gz
+RUN wget https://github.com/praat/praat/releases/download/v6.6.30/praat6630_linux-x64v3-barren.tar.gz
+RUN tar xvf praat6630_linux-x64v3-barren.tar.gz
+RUN rm praat6630_linux-x64v3-barren.tar.gz
 RUN cp praat_barren /usr/bin/praat
 
 # HTK cannot be distributed, but with a registers username/password, the source code can be

@@ -5,7 +5,7 @@
 %><%@ include file="base.jsp" %><%{
     if ("GET".equals(request.getMethod())) { // GET only
       User handler = new User();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       handler.get(Json.createGenerator(out));
     } else if ("OPTIONS".equals(request.getMethod())) {
       response.addHeader("Allow", "OPTIONS, GET");

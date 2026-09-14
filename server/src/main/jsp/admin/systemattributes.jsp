@@ -6,7 +6,7 @@
     import = "javax.json.JsonWriter" 
 %><%@ include file="../base.jsp" %><%{
     SystemAttributes handler = new SystemAttributes();
-    initializeHandler(handler, request);
+    initializeHandler(handler, request, response);
     if ("PUT".equals(request.getMethod())) {
       JsonObject json = handler.put(
         request.getInputStream(), (status)->response.setStatus(status));

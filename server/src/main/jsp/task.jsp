@@ -7,7 +7,7 @@
 %><%@ include file="base.jsp" %><%{
     if ("GET".equals(request.getMethod())) {
       Task handler = new Task();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       JsonObject json = handler.get(
         request.getPathInfo(), parseParameters(request),
         (status)->response.setStatus(status));
@@ -18,7 +18,7 @@
       }
     } else if ("DELETE".equals(request.getMethod())) {
       Task handler = new Task();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       JsonObject json = handler.delete(
         request.getPathInfo(), parseParameters(request),
         (status)->response.setStatus(status));

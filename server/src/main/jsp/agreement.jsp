@@ -2,7 +2,7 @@
     import = "nzilbb.labbcat.server.api.Agreement" 
 %><%@ include file="base.jsp" %><%{
     Agreement handler = new Agreement();
-    initializeHandler(handler, request);
+    initializeHandler(handler, request, response);
     if ("GET".equals(request.getMethod())) {
       handler.get(        
         request.getPathInfo(),

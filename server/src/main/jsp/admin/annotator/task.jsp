@@ -18,7 +18,7 @@ Timer annotatorDeactivator = new Timer("admin/annotator/task");
         || "PUT".equals(request.getMethod())
         || "DELETE".equals(request.getMethod())) { // GET/POST/PUT/DELETE
       TaskWebApp handler = new TaskWebApp(activeAnnotators, annotatorDeactivator);
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       handler.get(
         request.getMethod(),
         request.getRequestURI(),

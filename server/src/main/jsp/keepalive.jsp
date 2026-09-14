@@ -4,7 +4,7 @@
 %><%@ include file="base.jsp" %><%{
     if ("GET".equals(request.getMethod())) {
       KeepAlive handler = new KeepAlive();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       handler.get(
         parseParameters(request),
         (refreshSeconds)->response.addHeader("Refresh", refreshSeconds.toString()));

@@ -34,6 +34,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import nzilbb.labbcat.server.api.APIRequestHandler;
 import nzilbb.labbcat.server.api.RequestParameters;
+import nzilbb.labbcat.server.api.RequiredRole;
 
 /**
  * <tt>/api/admin/activity</tt> : Tracks current user activity on certain admin pages.
@@ -69,6 +70,7 @@ import nzilbb.labbcat.server.api.RequestParameters;
  *  </p>
  * @author Robert Fromont
  */
+@RequiredRole("admin")
 public class Activity extends APIRequestHandler {
   
   /**
@@ -87,26 +89,30 @@ public class Activity extends APIRequestHandler {
   public JsonObject get(
     RequestParameters parameters, UnaryOperator<String> requestHeaders,
     Consumer<Integer> httpStatus) {
-    // get thread ID if any
-    String resource = requestHeaders.apply("Referer");
-    if (resource == null) {
-      httpStatus.accept(SC_BAD_REQUEST);
-      return failureResult("Could not determine resource."); // TODO i18n
-    }
-    String user = Optional.ofNullable(context.getUser())
-      .orElse(context.getUserHost());
-    String viewport = Optional.ofNullable(parameters.getString("viewport")).orElse("");
-
     try {
-      JsonArrayBuilder otherUserIds = Json.createArrayBuilder();
       try (Connection connection = newConnection()) {
-      
+        if (!hasAccess(connection)) {
+          httpStatus.accept(SC_FORBIDDEN);
+          return null;
+        }
+        // get thread ID if any
+        String resource = requestHeaders.apply("Referer");
+        if (resource == null) {
+          httpStatus.accept(SC_BAD_REQUEST);
+          return failureResult("Could not determine resource."); // TODO i18n
+        }
+        String user = Optional.ofNullable(context.getUser())
+          .orElse(context.getUserHost());
+        String viewport = Optional.ofNullable(parameters.getString("viewport")).orElse("");
+        
+        JsonArrayBuilder otherUserIds = Json.createArrayBuilder();
+        
         // delete all activity older that 10 seconds
         try (PreparedStatement delete = connection.prepareStatement(
                "DELETE FROM activity WHERE last_seen < ADDTIME(Now(), '-00:00:10')")) {
           delete.executeUpdate();
         } // close delete
-      
+        
         // register this user's activity for this resource
         try (PreparedStatement replace = connection.prepareStatement(
                "REPLACE INTO activity (resource, user_id, viewport) VALUES (?,?,?)")) {
@@ -130,8 +136,8 @@ public class Activity extends APIRequestHandler {
             }
           } // close result set
         } // close sql
+        return successResult(otherUserIds.build(), null);
       } // close connection
-      return successResult(otherUserIds.build(), null);
     } catch (SQLException x) {
       System.err.println("api/activity: SQL ERROR: " + x.getMessage());
       x.printStackTrace(System.err);

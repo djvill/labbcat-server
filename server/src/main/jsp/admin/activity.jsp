@@ -7,7 +7,7 @@
 %><%@ include file="../base.jsp" %><%{
     if ("GET".equals(request.getMethod())) { // GET only
       Activity handler = new Activity();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       JsonObject json = handler.get(
         parseParameters(request),
         (headerName)->request.getHeader(headerName),

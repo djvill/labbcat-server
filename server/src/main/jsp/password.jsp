@@ -7,7 +7,7 @@
 %><%@ include file="base.jsp" %><%{
     if ("PUT".equals(request.getMethod())) { // PUT only
       Password handler = new Password();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       JsonObject json = handler.put(
         request.getInputStream(), (status)->response.setStatus(status));
       if (json != null) {

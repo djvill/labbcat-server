@@ -46,8 +46,9 @@ export class AppComponent {
     }
 
     ngOnInit(): void {
-        const searchHistory = JSON.parse(sessionStorage.getItem("searchHistory"));
-        if (searchHistory) {
+        let searchHistory = JSON.parse(sessionStorage.getItem("searchHistory")) ?? [];
+        searchHistory = searchHistory.filter(x => !x.sourceFile && x.task && x.task.threadId);
+        if (searchHistory.length > 0) {
             this.searchHistoryThreads = searchHistory.map(x => x.task.threadId);
         }
     }

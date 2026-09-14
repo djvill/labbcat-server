@@ -11,7 +11,7 @@
 .tab-labels label {
     cursor: context-menu;
 }
-.tab-labels label img {
+.tab-labels label img, .history-name img, .history-metadata img {
     width: 16px;
     height: 16px;
     vertical-align: middle;
@@ -99,12 +99,6 @@ details[open] > div {
     animation-name: roll-down;
     animation-duration: 1s;
 }
-details[disabled] summary {
-    pointer-events: none;
-    user-select: none;
-    color: silver;
-    cursor: not-allowed;
-}
 #history table {
     width: 100%;
 }
@@ -120,6 +114,13 @@ td:has(~ td > details[open]), td:has(> details[open]) ~ td {
 }
 #history .history-buttons {
     vertical-align: middle;
+}
+#history .attribute-list-container {
+    display: flex;
+    .attribute-list {
+        flex-grow: 1;
+        min-width: 20em;
+    }
 }
 .history-name {
     text-align: center;
@@ -146,16 +147,21 @@ td:has(~ td > details[open]), td:has(> details[open]) ~ td {
         font-size: unset;
     }
 }
-.history-filters {
-    .attribute-list {
-        min-width: 20em;
+.history-metadata {
+    .values {
+        display: inline;
     }
+}
+.history-filters {
     .attribute > label {
         width: 30%;
     }
     .attribute > .values {
         width: 70%;
         white-space: pre-line;
+    }
+    .no-filters {
+        color: silver;
     }
 }
 .attribute:nth-child(2n+1), .list > .item:nth-child(2n+1) {
@@ -170,6 +176,10 @@ td:has(~ td > details[open]), td:has(> details[open]) ~ td {
 .button-container {
     display: flex;
     justify-content: flex-end;
+}
+.same-prev {
+    font-style: italic;
+    color: silver;
 }
 #export-anchor {
     display: none;

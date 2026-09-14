@@ -1,12 +1,13 @@
 import { Component, OnInit, Inject, ViewChild, ElementRef, SecurityContext } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, Params } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { Layer } from 'labbcat-common';
 import { User, Task } from 'labbcat-common';
-import { MessageService, LabbcatService } from 'labbcat-common';
+import { MessageService, LabbcatService, VersionInfo } from 'labbcat-common';
 
 import { Matrix } from '../matrix';
+import { MatrixColumn } from '../matrix-column';
 import { MatrixLayerMatch } from '../matrix-layer-match';
 import { SearchHistoryItem } from '../search-history-item';
 
@@ -27,9 +28,12 @@ export class SearchComponent implements OnInit {
     participantDescription: string;
     participantIds: string[];
     participantsFile: File;
+    totalParticipants: number;
     transcriptDescription: string;
     transcriptIds: string[];
     transcriptsFile: File;
+    totalTranscripts: number;
+    historyFile: File;
     mainParticipantOnly: boolean;
     onlyAligned: boolean;
     firstMatchOnly: boolean;
@@ -42,6 +46,8 @@ export class SearchComponent implements OnInit {
     exportUrl: string;
     exportName: string;
     @ViewChild('exportAnchor', {static: false}) exportAnchor: ElementRef;
+    labbcatTitle: string;
+    versions: VersionInfo;
     
     constructor(
         private labbcatService: LabbcatService,
@@ -63,8 +69,22 @@ export class SearchComponent implements OnInit {
         this.participantIds = [];
         this.transcriptIds = [];
         this.history = JSON.parse(sessionStorage.getItem("searchHistory")) ?? [];
+        this.history = this.history.filter(x => x.task);
         this.readUserInfo();
         this.setupTabs();
+        this.readTitle();
+        this.labbcatService.labbcat.getParticipantIds((result, errors, messages) => {
+            if (errors) errors.forEach(m => this.messageService.error(m));
+            if (messages) messages.forEach(m => this.messageService.info(m));
+            this.totalParticipants = result.length;
+        });
+        this.labbcatService.labbcat.getTranscriptIds((result, errors, messages) => {
+            if (errors) errors.forEach(m => this.messageService.error(m));
+            if (messages) messages.forEach(m => this.messageService.info(m));
+            this.totalTranscripts = result.length;
+        });
+        this.readVersions().then(() => {
+            // TODO indenting
         this.labbcatService.labbcat.getSchema((schema, errors, messages) => {
             this.schema = schema;
             
@@ -106,14 +126,37 @@ export class SearchComponent implements OnInit {
                         this.transcriptDescription = params["transcripts"];
                         this.currentTab = "Transcripts";
                     }
-                    
                     if (params["current_tab"]) {
                         this.currentTab = params["current_tab"];
                     }
-                    
                 }
+                if (params["mainParticipantOnly"] === "true") this.mainParticipantOnly = params["mainParticipantOnly"];
+                if (params["onlyAligned"] === "true") this.onlyAligned = params["onlyAligned"];
+                if (params["firstMatchOnly"] === "true") this.firstMatchOnly = params["firstMatchOnly"];
+                if (params["excludeSimultaneousSpeech"] === "true") this.excludeSimultaneousSpeech = params["excludeSimultaneousSpeech"];
+                if (!isNaN(parseFloat(params["overlapThreshold"]))) this.overlapThreshold = params["overlapThreshold"];
+                if (params["suppressResults"] === "true") this.suppressResults = params["suppressResults"];
                 this.listParticipants();
                 this.listTranscripts();
+            });
+        });
+            // end TODO indenting
+        });
+    }
+    readTitle(): void {
+        if (!this.labbcatTitle) {
+            setTimeout(()=>{ // wait for the corpus title to come in
+                if (!this.labbcatTitle) this.labbcatTitle = this.labbcatService.title;
+                // then try again
+                this.readTitle();
+            }, 100);
+        }
+    }
+    readVersions(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.labbcatService.labbcat.versionInfo((versions, errors, messages) => {
+                this.versions = versions;
+                resolve();
             });
         });
     }
@@ -139,14 +182,26 @@ export class SearchComponent implements OnInit {
             description: "Configure options for matching and displaying search results", // TODO i18n
             icon: "cog.svg"
         };
-        if (this.history.length) {
-            this.tabs["History"] = {
-                label: "History", // TODO i18n
-                description: "View history of searches on this browser tab", // TODO i18n
-                icon: "history.svg"
-            };
-        }
+        this.tabs["History"] = {
+            label: "History", // TODO i18n
+            description: "View history of searches on this browser tab", // TODO i18n
+            icon: "history.svg"
+        };
         this.tabLabels = Object.keys(this.tabs);
+    }
+    loadParameters(): Params {
+        const searchJson = this.buildSearchJsonParam(this.matrix);
+        let params = {};
+        if (searchJson.length) params["searchJson"] = searchJson;
+        if (this.mainParticipantOnly) params["mainParticipantOnly"] = true;
+        if (this.onlyAligned) params["onlyAligned"] = true;
+        if (this.firstMatchOnly) params["firstMatchOnly"] = true;
+        if (this.excludeSimultaneousSpeech) params["excludeSimultaneousSpeech"] = true;
+        if (this.overlapThreshold && this.overlapThreshold != 5) {
+            params["overlapThreshold"] = this.overlapThreshold;
+        }
+        if (this.suppressResults) params["suppressResults"] = true;
+        return params;
     }
     selectParticipants(): void {
         if (this.transcriptIds && this.transcriptIds.length) {
@@ -154,9 +209,14 @@ export class SearchComponent implements OnInit {
                 return;
             }
         }
-        let params = { to: "search" };
-        const searchJson = this.buildSearchJsonParam();
-        if (searchJson.length) params["searchJson"] = searchJson;
+        let params = this.loadParameters();
+        params["to"] = "search";
+        if (this.matrix.participantQuery) {
+            params["participant_expression"] = this.matrix.participantQuery;
+        }
+        if (this.participantDescription) {
+            params["participants"] = this.participantDescription;
+        }
         this.router.navigate(["participants"], { queryParams: params });
     }
     clearParticipantFilter(): void {
@@ -165,24 +225,32 @@ export class SearchComponent implements OnInit {
         this.participantCount = 0;
         this.matrix.participantQuery = "";
         sessionStorage.removeItem("lastQueryParticipants");
+        let params = {
+            searchJson: null,
+            participant_expression: null,
+            participants: null,
+            current_tab: 'Participants'
+        };
+        if (this.transcriptDescription == "all transcripts with selected participants") {
+            this.transcriptDescription = "all transcripts";
+            params["transcripts"] = "all transcripts";
+        }
         this.router.navigate([], {
-            queryParams: {
-                searchJson: null,
-                participant_expression: null,
-                participants: null,
-                current_tab: 'Participants'
-            },
+            queryParams: params,
             queryParamsHandling: 'merge'
         });
     }
     selectTranscripts(): void {
-        let params = {
-            to: "search",
-            participant_expression: this.participantQueryForTranscripts(),
-            participants: this.participantDescription
-        };
-        const searchJson = this.buildSearchJsonParam();
-        if (searchJson.length) params["searchJson"] = searchJson;
+        let params = this.loadParameters();
+        params["to"] = "search";
+        params["participant_expression"] = this.participantQueryForTranscripts();
+        params["participants"] = this.participantDescription;
+        if (this.matrix.transcriptQuery) {
+            params["transcript_expression"] = this.transcriptQueryIncludingParticipantConditions();
+        }
+        if (this.transcriptDescription) {
+            params["transcripts"] = this.transcriptDescription;
+        }
         this.router.navigate(["transcripts"], { queryParams: params });
     }
     clearTranscriptFilter(): void {
@@ -277,8 +345,8 @@ export class SearchComponent implements OnInit {
         return matrix;
     }
     /** Build searchJson parameter (or return empty string if the default) */
-    buildSearchJsonParam(): string {
-        const searchColumns = JSON.stringify({ columns: this.condenseMatrix(this.matrix).columns });
+    buildSearchJsonParam(matrix: Matrix): string {
+        const searchColumns = JSON.stringify({ columns: this.condenseMatrix(matrix).columns });
         const defaultColumns = JSON.stringify({columns:[{layers:{orthography:[{pattern:"",min:null,max:null}]}}]});
         let searchJson = "";
         if (searchColumns != defaultColumns) { // search columns aren't the default
@@ -388,19 +456,16 @@ export class SearchComponent implements OnInit {
                 if (messages) messages.forEach(m => this.messageService.info(m));
                 this.threadId = result.threadId;
                 this.history.push(this.historyItem());
-                if (!this.tabs["History"]) {
-                    this.tabs["History"] = {
-                        label: "History", // TODO i18n
-                        description: "View history of searches on this browser tab", // TODO i18n
-                        icon: "history.svg"
-                    };
-                    this.tabLabels.push("History");
-                }
+                console.log("this.history", this.history);
         });
     }
 
     updateTask(historyItem: SearchHistoryItem, threadId: string): Promise<void> {
         return new Promise((resolve, reject) => {
+            if (historyItem.sourceFile) {
+                resolve();
+                return;
+            }
             this.labbcatService.labbcat.taskStatus(threadId, (task, errors, messages) => {
                 if (errors) errors.forEach(m => this.messageService.error(m));
                 if (messages) messages.forEach(m => this.messageService.info(m));
@@ -419,12 +484,35 @@ export class SearchComponent implements OnInit {
         let historyItem = {} as SearchHistoryItem;
         historyItem.task = {} as Task;
         this.updateTask(historyItem, this.threadId);
+        historyItem.metadata = {
+            labbcat_title: this.labbcatTitle,
+            labbcat_version: this.versions.System["LaBB-CAT"]
+        };
+        if (this.versions.Data && this.versions.Data["dataVersion"]) {
+            historyItem.metadata.data_version = this.versions.Data["dataVersion"];
+        }
         historyItem.matrix = structuredClone(this.matrix);
+        // participantCount/transcriptCount logic:
+        // - if both are unfiltered or trivially filtered (i.e. "all participants"),
+        //   store the corpus total. (This doesn't cover "all transcripts with
+        //   selected participants", which may be a trivial filter depending on
+        //   the participant filter.)
+        // - if only the other filter is applied, we don't know this filter's
+        //   count, so store undefined
+        // - if a nontrivial filter is applied, store the reported count
         historyItem.filters = {
             participantDescription: this.participantDescription,
-            participantCount: this.participantCount,
+            participantCount: !this.participantCount && !this.participantDescription ?
+                                  [0, this.totalTranscripts].includes(this.transcriptCount) ?
+                                      this.totalParticipants :
+                                      undefined :
+                                  this.participantCount,
             transcriptDescription: this.transcriptDescription,
-            transcriptCount: this.transcriptCount
+            transcriptCount: !this.transcriptCount && !this.transcriptDescription ?
+                                  [0, this.totalParticipants].includes(this.participantCount) ?
+                                      this.totalTranscripts :
+                                      undefined :
+                                  this.transcriptCount
         };
         historyItem.matchOptions = {
             mainParticipantOnly: this.mainParticipantOnly,
@@ -439,18 +527,147 @@ export class SearchComponent implements OnInit {
     }
 
     /** Convenience functions for display */
+    matrixColumnsEquals(columnsA: MatrixColumn[], columnsB: MatrixColumn[]): boolean {
+        // different numbers of columns
+        if (columnsA.length != columnsB.length) {
+            return false;
+        }
+
+        // check each column
+        for (let col in columnsA) {
+            // different layers
+            if (Object.keys(columnsA[col].layers).sort().join(' ') !=
+                Object.keys(columnsB[col].layers).sort().join(' ')) {
+                return false;
+            }
+            // different adjacency
+            if (columnsA[col].adj != columnsB[col].adj) {
+                return false;
+            }
+
+            // check each layer
+            for (let l of Object.keys(columnsA[col].layers)) {
+                // different numbers of word-internal columns
+                if (columnsA[col].layers[l].length !=
+                    columnsB[col].layers[l].length) {
+                    return false;
+                }
+
+                // check each word-internal column
+                for (let wcol in columnsA[col].layers[l]) {
+                    const colA = columnsA[col].layers[l][wcol];
+                    const colB = columnsB[col].layers[l][wcol];
+                    // different layer parameters
+                    if (colA.id != colB.id ||
+                        colA.pattern != colB.pattern ||
+                        colA.not != colB.not ||
+                        colA.min != colB.min ||
+                        colA.max != colB.max ||
+                        colA.anchorStart != colB.anchorStart ||
+                        colA.anchorEnd != colB.anchorEnd ||
+                        colA.target != colB.target) {
+                            return false;
+                        }
+                }
+            }
+        }
+
+        // passed all checks
+        return true;
+    }
+    sameMatrixAsPrevious(index: number): boolean {
+        return index > 0 &&
+            index <= this.history.length - 1 &&
+            this.matrixColumnsEquals(this.history[index].matrix.columns, this.history[index - 1].matrix.columns);
+    }
+    sameFiltersAsPrevious(index: number): boolean {
+        if (index == 0 || index > this.history.length - 1) {
+            return false;
+        }
+        const curr = this.history[index].filters;
+        const prev = this.history[index - 1].filters;
+        if ((curr.participantDescription ?? "").replace("all participants", "") !=
+                (prev.participantDescription ?? "").replace("all participants", "") ||
+                curr.participantCount != prev.participantCount ||
+                curr.transcriptCount != prev.transcriptCount) {
+            return false;
+        }
+        // both items' transcripts are unfiltered or de facto unfiltered
+        if (((curr.participantDescription == "all participants" &&
+              curr.transcriptDescription == "all transcripts with selected participants") ||
+             curr.transcriptDescription == "all transcripts" ||
+             !curr.transcriptDescription) &&
+             ((prev.participantDescription == "all participants" &&
+              prev.transcriptDescription == "all transcripts with selected participants") ||
+             prev.transcriptDescription == "all transcripts" ||
+             !prev.transcriptDescription)) {
+             return true;
+         }
+         // same transcript filters
+         if (curr.transcriptDescription == prev.transcriptDescription) {
+             return true;
+         }
+         return false;
+    }
+    sameOptionsAsPrevious(index: number): boolean {
+        return index > 0 &&
+            index <= this.history.length - 1 &&
+            this.history[index].matchOptions.mainParticipantOnly == this.history[index - 1].matchOptions.mainParticipantOnly &&
+            this.history[index].matchOptions.onlyAligned == this.history[index - 1].matchOptions.onlyAligned &&
+            this.history[index].matchOptions.firstMatchOnly == this.history[index - 1].matchOptions.firstMatchOnly &&
+            this.history[index].matchOptions.excludeSimultaneousSpeech == this.history[index - 1].matchOptions.excludeSimultaneousSpeech &&
+            this.history[index].matchOptions.overlapThreshold == this.history[index - 1].matchOptions.overlapThreshold;
+    }
+    anyImported(history: SearchHistoryItem[]): boolean {
+        return history.length && history.filter(x => x.sourceFile).length > 0;
+    }
     hasFilters(historyItem: SearchHistoryItem): boolean {
         return historyItem.matrix.participantQuery !== undefined ||
             historyItem.matrix.transcriptQuery !== undefined;
     }
     anyFilters(history: SearchHistoryItem[]): boolean {
-        return history.map(x => this.hasFilters(x)).reduce((x, y) => x || y);
+        return history.length && history.map(x => this.hasFilters(x)).reduce((x, y) => x || y);
+    }
+
+    repeat(historyItem: SearchHistoryItem): void {
+        let params = { current_tab: "History" };
+        this.matrix = structuredClone(historyItem.matrix);
+        if (historyItem.matrix.participantQuery) {
+            this.participantDescription = historyItem.filters.participantDescription;
+            params["participant_expression"] = historyItem.matrix.participantQuery;
+            params["participants"] = historyItem.filters.participantDescription;
+            sessionStorage.removeItem("lastQueryParticipants"); // just in case
+        } else {
+            this.participantDescription = "";
+            this.participantIds = [];
+            this.participantCount = 0;
+            params["participant_expression"] = null;
+            params["participants"] = null;
+        }
+        if (historyItem.matrix.transcriptQuery) {
+            this.transcriptDescription = historyItem.filters.transcriptDescription;
+            params["transcript_expression"] = historyItem.matrix.transcriptQuery;
+            params["transcripts"] = historyItem.filters.transcriptDescription;
+            sessionStorage.removeItem("lastQueryTranscripts"); // just in case
+        } else {
+            this.transcriptDescription = "";
+            this.transcriptIds = [];
+            this.transcriptCount = 0;
+            params["transcript_expression"] = null;
+            params["transcripts"] = null;
+        }
+        this.mainParticipantOnly = historyItem.matchOptions.mainParticipantOnly;
+        this.onlyAligned = historyItem.matchOptions.onlyAligned;
+        this.firstMatchOnly = historyItem.matchOptions.firstMatchOnly;
+        this.excludeSimultaneousSpeech = historyItem.matchOptions.excludeSimultaneousSpeech;
+        this.overlapThreshold = historyItem.matchOptions.overlapThreshold;
+        this.router.navigate([], { queryParams: params });
     }
 
     replacer(key: string, value: string): any {
         if (["cancelled", "csv", "csvColumns", "percentComplete",
              "refreshSeconds", "resultTarget", "resultText", "resultUrl",
-             "resultsName", "running", "seriesId", "targetLayer",
+             "resultsName", "running", "seriesId", "sourceFile", "targetLayer",
              "totalUtteranceDuration", "who"].includes(key)) {
             return undefined;
         }
@@ -458,10 +675,18 @@ export class SearchComponent implements OnInit {
             return undefined;
         }
         if (["participantQuery", "transcriptQuery"].includes(key) && value) {
-            return value.replaceAll(/"/g, "'");
+            if (value == "/.+/.test(id)") {
+                return undefined;
+            } else {
+                return value.replaceAll(/"/g, "'");
+            }
         }
         if (["participantDescription", "participantCount",
              "transcriptDescription", "transcriptCount"].includes(key) && !value) {
+            return undefined;
+        }
+        if (["participantDescription", "transcriptDescription"].includes(key) &&
+            ["all participants", "all transcripts"].includes(value)) {
             return undefined;
         }
         if (typeof value === "undefined") {
@@ -479,7 +704,7 @@ export class SearchComponent implements OnInit {
         this.updateTask(historyItem, historyItem.task.threadId).then(() => {
             const jsonString = JSON.stringify(historyItem, this.replacer, 2);
             this.exportUrl = this.sanitizer.sanitize(SecurityContext.HTML, 'data:application/json;charset=UTF-8,' + encodeURIComponent(jsonString));
-            this.exportName = historyItem.task.threadName;
+            this.exportName = historyItem.task.threadName + '.json';
             setTimeout(() => this.exportAnchor.nativeElement.click(), 50);
         });
     }
@@ -489,7 +714,8 @@ export class SearchComponent implements OnInit {
         this.updateTask(lastHistoryItem, lastHistoryItem.task.threadId).then(() => {
             const jsonString = JSON.stringify(this.history, this.replacer, 2);
             this.exportUrl = this.sanitizer.sanitize(SecurityContext.HTML, 'data:application/json;charset=UTF-8,' + encodeURIComponent(jsonString));
-            this.exportName = 'search-history.json';
+            let now = new Date();
+            this.exportName = 'search-history-' + [now.getFullYear(), now.getMonth() + 1, now.getDate()].join("-") + '.json';
             setTimeout(() => this.exportAnchor.nativeElement.click(), 50);
         });
     }
@@ -497,17 +723,11 @@ export class SearchComponent implements OnInit {
     deleteHistoryItem(historyItem: SearchHistoryItem): void {
         this.history = this.history.filter(x => x.task.threadId !== historyItem.task.threadId);
         sessionStorage.setItem("searchHistory", JSON.stringify(this.history));
-        if (!this.history.length) {
-            delete this.tabs["History"];
-            this.tabLabels.pop();
-        }
     }
 
     deleteHistory(): void {
         this.history = this.history.filter(x => false);
         sessionStorage.removeItem("searchHistory");
-        delete this.tabs["History"];
-        this.tabLabels.pop();
     }
 
     transcriptQueryIncludingParticipantConditions(): string {
@@ -649,5 +869,100 @@ export class SearchComponent implements OnInit {
             component.messageService.error("Error reading " + component.transcriptsFile.name); // TODO i18n
         };
         reader.readAsText(this.transcriptsFile);
+    }
+
+    /** Called when a history JSON file is selected; parses the file to determine fields. */
+    selectHistoryFile(files: File[]): void {
+        if (files.length == 0) return;
+        this.historyFile = files[0]
+        if (!this.historyFile.name.endsWith(".json")) {
+            this.messageService.error("File must be a JSON search history file.")
+            this.historyFile = null;
+            return;
+        }
+
+        // read the file to determine fields
+        const reader = new FileReader();
+        const component = this;
+        reader.onload = () => {
+            let jsonData;
+            try {
+                jsonData = JSON.parse(<string>reader.result);
+            } catch(error) {
+                component.messageService.error(
+                    "Error parsing file: " + // TODO i18n
+                    component.historyFile.name + "\n" + error.message);
+                return;
+            }
+            // if a single item, put into array
+            if (!Array.isArray(jsonData)) {
+                jsonData = [jsonData]
+            }
+            // ensure it's an array of historyItems
+            const historyKeys = "filters matchOptions matrix metadata task"
+            if (jsonData.filter(x => Object.keys(x).sort().join(' ') != historyKeys).length) {
+                component.messageService.error(
+                    "File does not contain any valid history item(s): " + component.historyFile.name); // TODO i18n
+                return;
+            }
+            // add tracking fields
+            for (let item of jsonData) {
+                item.cancelled = false;
+                item.sourceFile = "Imported from " + this.historyFile.name; // TODO i18n
+            }
+            // handle false matchOptions
+            for (let item of jsonData) {
+                for (let option in item.matchOptions) {
+                    if (!item.matchOptions[option]) {
+                        delete item.matchOptions[option];
+                    }
+                }
+            }
+            // handle empty participantQuery/transcriptQuery
+            for (let item of jsonData) {
+                if (item.matrix.hasOwnProperty("participantQuery") && item.matrix.participantQuery == "") {
+                    delete item.matrix.participantQuery;
+                }
+                if (item.matrix.hasOwnProperty("transcriptQuery") && item.matrix.transcriptQuery == "") {
+                    delete item.matrix.transcriptQuery;
+                }
+            }
+            // handle nonexistent layers
+            for (let item of jsonData) {
+                let threadId = item.task.threadId;
+                for (let [i, column] of item.matrix.columns.entries()) {
+                    for (let l in column.layers) {
+                        if (!Object.keys(this.schema.layers).includes(l)) {
+                            delete column.layers[l];
+                            component.messageService.info("Imported thread " + threadId + ": Removed nonexistent layer " + l + " from search matrix"); // TODO i18n
+                        }
+                    }
+                    if (!Object.keys(column.layers).length) {
+                        column.empty = true;
+                        component.messageService.info("Imported thread " + threadId + ": Removed column " + (i + 1) + " from search matrix because there were no existent layers"); // TODO i18n
+                    }
+                }
+                item.matrix.columns = item.matrix.columns.filter(x => !x.empty);
+                // TODO figure out how to make this appear below info messages
+                if (!item.matrix.columns.length) {
+                    item.empty = true;
+                    component.messageService.error("Failed to import thread " + threadId + " - no existent layers in search matrix"); // TODO i18n
+                }
+            }
+            jsonData = jsonData.filter(x => !x.empty);
+
+            // add to history
+            if (!jsonData.length) {
+                // TODO figure out how to make this appear below info messages
+                component.messageService.error("Failed to import search history - no threads with existent layers"); // TODO i18n
+            } else {
+                this.history = this.history.concat(jsonData);
+                sessionStorage.setItem("searchHistory", JSON.stringify(this.history));
+            }
+        };
+        reader.onerror = function () {
+            component.messageService.error("Error reading " + component.historyFile.name); // TODO i18n
+        };
+        reader.readAsText(this.historyFile);
     }
 }

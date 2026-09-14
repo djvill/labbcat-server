@@ -7,7 +7,7 @@
 %><%@ include file="base.jsp" %><%{
     if ("GET".equals(request.getMethod())) { // GET only
       Corpus handler = new Corpus();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       JsonObject json = handler.get(
         request.getPathInfo(), (status)->response.setStatus(status));
       if (json != null) {

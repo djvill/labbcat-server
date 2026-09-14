@@ -17,7 +17,7 @@
       }
     }
     Annotators handler = new Annotators(tempDir);
-    initializeHandler(handler, request);
+    initializeHandler(handler, request, response);
     if ("GET".equals(request.getMethod())) { // GET
       handler.get(
         (contentType)->response.setContentType(contentType),

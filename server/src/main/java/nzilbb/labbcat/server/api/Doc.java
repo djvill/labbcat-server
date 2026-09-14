@@ -55,7 +55,6 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import nzilbb.labbcat.server.db.SqlGraphStoreAdministration;
-import nzilbb.labbcat.server.servlet.LabbcatServlet;
 import nzilbb.util.IO;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;

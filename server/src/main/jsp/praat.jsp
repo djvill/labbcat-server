@@ -18,13 +18,10 @@
       RequestParameters parameters = (RequestParameters)
         request.getAttribute("multipart-parameters");
       Praat handler = new Praat();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       JsonObject json = handler.post(
         parameters,
-        (fileName)->{
-          ResponseAttachmentName(
-            request, response, fileName);
-        },
+        (fileName)->handler.getContext().responseAttachmentName(fileName),
         (status)->response.setStatus(status));
       if (json != null) {
         JsonWriter writer = Json.createWriter(response.getWriter());

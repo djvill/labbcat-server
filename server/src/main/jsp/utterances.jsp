@@ -7,13 +7,10 @@
 %><%@ include file="base.jsp" %><%{
     if ("GET".equals(request.getMethod()) || "POST".equals(request.getMethod())) { // GET/POST only
       Utterances handler = new Utterances();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       JsonObject json = handler.post(
         parseParameters(request),
-        (fileName)->{
-          ResponseAttachmentName(
-            request, response, fileName);
-        },
+        (fileName)->handler.getContext().responseAttachmentName(fileName),
         (status)->response.setStatus(status),
         (redirectUrl)->{
           try {

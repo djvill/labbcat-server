@@ -46,7 +46,6 @@ import javax.json.Json;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonWriter;
 import nzilbb.labbcat.server.db.SqlGraphStoreAdministration;
-import nzilbb.labbcat.server.servlet.LabbcatServlet;
 import nzilbb.util.IO;
 
 /**

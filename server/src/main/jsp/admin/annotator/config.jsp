@@ -16,7 +16,7 @@ Timer annotatorDeactivator = new Timer("admin/annotator/config");
         || "PUT".equals(request.getMethod())
         || "DELETE".equals(request.getMethod())) { // GET/POST/PUT/DELETE
       ConfigWebApp handler = new ConfigWebApp(activeAnnotators, annotatorDeactivator);
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       handler.get(
         request.getMethod(),
         request.getRequestURI(),

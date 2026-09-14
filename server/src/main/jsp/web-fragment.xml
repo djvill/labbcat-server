@@ -98,6 +98,9 @@
   <servlet><servlet-name>admin/systemattributes.jsp</servlet-name><jsp-file>/jsp/admin/systemattributes.jsp</jsp-file></servlet>
   <servlet-mapping><servlet-name>admin/systemattributes.jsp</servlet-name><url-pattern>/api/admin/systemattributes</url-pattern></servlet-mapping>
   
+  <servlet><servlet-name>admin/upgrade.jsp</servlet-name><jsp-file>/jsp/admin/upgrade.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>admin/upgrade.jsp</servlet-name><url-pattern>/api/admin/upgrade/*</url-pattern></servlet-mapping>
+  
   <servlet><servlet-name>systemattributes.jsp</servlet-name><jsp-file>/jsp/systemattributes.jsp</jsp-file></servlet>
   <servlet-mapping><servlet-name>systemattributes.jsp</servlet-name><url-pattern>/api/systemattributes/*</url-pattern></servlet-mapping>
   
@@ -131,6 +134,12 @@
   
   <servlet><servlet-name>edit/transcripts/attributes/upload.jsp</servlet-name><jsp-file>/jsp/edit/transcripts/attributes/upload.jsp</jsp-file></servlet>
   <servlet-mapping><servlet-name>edit/transcripts/attributes/upload.jsp</servlet-name><url-pattern>/api/edit/transcripts/attributes/upload</url-pattern></servlet-mapping>
+  
+  <servlet><servlet-name>edit/transcripts/layers/regenerate.jsp</servlet-name><jsp-file>/jsp/edit/transcripts/layers/regenerate.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>edit/transcripts/layers/regenerate.jsp</servlet-name><url-pattern>/api/edit/transcripts/layers/regenerate</url-pattern></servlet-mapping>
+  
+  <servlet><servlet-name>edit/participants/layers/regenerate.jsp</servlet-name><jsp-file>/jsp/edit/participants/layers/regenerate.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>edit/participants/layers/regenerate.jsp</servlet-name><url-pattern>/api/edit/participants/layers/regenerate</url-pattern></servlet-mapping>
   
   <servlet><servlet-name>edit/annotations/tokens.jsp</servlet-name><jsp-file>/jsp/edit/annotations/tokens.jsp</jsp-file></servlet>
   <servlet-mapping><servlet-name>edit/annotations/tokens.jsp</servlet-name><url-pattern>/api/edit/annotations/tokens</url-pattern></servlet-mapping>
@@ -175,6 +184,21 @@
   <servlet-mapping><servlet-name>admin/annotator.jsp</servlet-name><url-pattern>/api/admin/annotator/*</url-pattern></servlet-mapping>
   <servlet-mapping><servlet-name>admin/annotator.jsp</servlet-name><url-pattern>/admin/annotator/*</url-pattern></servlet-mapping>
 
+  <servlet><servlet-name>admin/serialization.jsp</servlet-name><jsp-file>/jsp/admin/serialization.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>admin/serialization.jsp</servlet-name><url-pattern>/api/admin/serialization</url-pattern></servlet-mapping>
+  
+  <servlet><servlet-name>admin/elicit/stimulus.jsp</servlet-name><jsp-file>/jsp/admin/elicit/stimulus.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>admin/elicit/stimulus.jsp</servlet-name><url-pattern>/api/admin/elicit/stimulus/*</url-pattern></servlet-mapping>
+
+  <servlet><servlet-name>elicit/steps.jsp</servlet-name><jsp-file>/jsp/elicit/steps.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>elicit/steps.jsp</servlet-name><url-pattern>/api/elicit/steps</url-pattern></servlet-mapping>
+  
+  <servlet><servlet-name>elicit/upload.jsp</servlet-name><jsp-file>/jsp/elicit/upload.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>elicit/upload.jsp</servlet-name><url-pattern>/api/elicit/upload</url-pattern></servlet-mapping>
+  
+  <servlet><servlet-name>elicit/verify.jsp</servlet-name><jsp-file>/jsp/elicit/verify.jsp</jsp-file></servlet>
+  <servlet-mapping><servlet-name>elicit/verify.jsp</servlet-name><url-pattern>/api/elicit/verify</url-pattern></servlet-mapping>
+  
   <!-- Also map ui requests to their static resources, which are packed into the .jar -->
   <!--servlet><servlet-name>ui.jsp</servlet-name><jsp-file>/jsp/ui.jsp</jsp-file></servlet>
   <servlet-mapping>

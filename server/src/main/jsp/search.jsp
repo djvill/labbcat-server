@@ -7,7 +7,7 @@
 %><%@ include file="base.jsp" %><%{
     if ("GET".equals(request.getMethod()) || "POST".equals(request.getMethod())) { // GET/POST only
       Search handler = new Search();
-      initializeHandler(handler, request);
+      initializeHandler(handler, request, response);
       JsonObject json = handler.get(
         parseParameters(request), (status)->response.setStatus(status));
       if (json != null) {

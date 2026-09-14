@@ -65,6 +65,7 @@ import nzilbb.configure.Parameter;
 import nzilbb.configure.ParameterSet;
 import nzilbb.labbcat.server.api.APIRequestHandler;
 import nzilbb.labbcat.server.api.RequestParameters;
+import nzilbb.labbcat.server.api.RequiredRole;
 import nzilbb.labbcat.server.db.SqlGraphStoreAdministration;
 import nzilbb.util.IO;
 import org.apache.commons.csv.CSVFormat;
@@ -81,7 +82,7 @@ import org.apache.commons.csv.CSVRecord;
  *   <dt> csv </dt>
  *       <dd> CSV file containing the attribute values to import. </dd>
  *   <dt> idColumn </dt>
-o *       <dd> The (zero based) index of the column that identifies the transcript;
+ *       <dd> The (zero based) index of the column that identifies the transcript;
  *            if the transcript exists, its attribute values will be updated,
  *            otherwise, the row is ignored.</dd>
  *   <dt> columnLayer </dt>
@@ -99,6 +100,7 @@ o *       <dd> The (zero based) index of the column that identifies the transcri
  *  </dl>
  * @author Robert Fromont robert@fromont.net.nz
  */
+@RequiredRole("edit")
 public class Upload extends APIRequestHandler {
 
   /**
@@ -124,6 +126,10 @@ public class Upload extends APIRequestHandler {
       Schema schema = store.getSchema();
       File csvFile = requestParameters.getFile("csv");
       try {
+        if (!hasAccess(store.getConnection())) {
+          httpStatus.accept(SC_FORBIDDEN);
+          return null;
+        }
         if (csvFile == null) {
           httpStatus.accept(SC_BAD_REQUEST);
           return failureResult("No file received.");

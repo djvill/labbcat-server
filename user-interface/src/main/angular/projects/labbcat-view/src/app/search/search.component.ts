@@ -454,15 +454,18 @@ export class SearchComponent implements OnInit {
                 if (errors) errors.forEach(m => this.messageService.error(m));
                 if (messages) messages.forEach(m => this.messageService.info(m));
                 this.threadId = result.threadId;
-                this.history.push(this.historyItem());
-                console.log("this.history", this.history);
+                this.historyItem();
         });
     }
 
-    updateTask(historyItem: SearchHistoryItem, threadId: string): Promise<void> {
+    updateTask(threadId: string): Promise<SearchHistoryItem> {
         return new Promise((resolve, reject) => {
+            let historyItem = this.history.filter(x => x.task && x.task.threadId == threadId)[0];
+            if (!historyItem) {
+                historyItem = {} as SearchHistoryItem;
+            }
             if (historyItem.sourceFile) {
-                resolve();
+                resolve(historyItem);
                 return;
             }
             this.labbcatService.labbcat.taskStatus(threadId, (task, errors, messages) => {
@@ -474,15 +477,14 @@ export class SearchComponent implements OnInit {
                     delete historyItem.task.size;
                 }
                 sessionStorage.setItem("searchHistory", JSON.stringify(this.history));
-                resolve();
+                resolve(historyItem);
             });
         });
     }
 
-    historyItem(): SearchHistoryItem {
-        let historyItem = {} as SearchHistoryItem;
-        historyItem.task = {} as Task;
-        this.updateTask(historyItem, this.threadId);
+    historyItem(): void {
+        this.updateTask(this.threadId).then(historyItem => {
+            // TODO indenting
         historyItem.metadata = {
             labbcat_title: this.labbcatTitle,
             labbcat_version: this.versions.System["LaBB-CAT"]
@@ -520,7 +522,10 @@ export class SearchComponent implements OnInit {
             excludeSimultaneousSpeech: this.excludeSimultaneousSpeech,
             overlapThreshold: this.overlapThreshold
         };
-        return historyItem;
+            // end TODO indenting
+            this.history.push(historyItem);
+            console.log("this.history", this.history);
+        });
     }
 
     /** Convenience functions for display */
@@ -698,7 +703,7 @@ export class SearchComponent implements OnInit {
     }
 
     exportHistoryItem(historyItem: SearchHistoryItem): void {
-        this.updateTask(historyItem, historyItem.task.threadId).then(() => {
+        this.updateTask(historyItem.task.threadId).then(() => {
             const jsonString = JSON.stringify(historyItem, this.replacer, 2);
             this.exportUrl = this.sanitizer.sanitize(SecurityContext.HTML, 'data:application/json;charset=UTF-8,' + encodeURIComponent(jsonString));
             this.exportName = historyItem.task.threadName + '.json';
@@ -707,8 +712,8 @@ export class SearchComponent implements OnInit {
     }
 
     exportHistory(): void {
-        const lastHistoryItem = this.history[this.history.length-1];
-        this.updateTask(lastHistoryItem, lastHistoryItem.task.threadId).then(() => {
+        const lastHistoryItem = this.history.filter(x => !x.sourceFile).slice(-1)[0];
+        this.updateTask(lastHistoryItem.task.threadId).then(() => {
             const jsonString = JSON.stringify(this.history, this.replacer, 2);
             this.exportUrl = this.sanitizer.sanitize(SecurityContext.HTML, 'data:application/json;charset=UTF-8,' + encodeURIComponent(jsonString));
             let now = new Date();

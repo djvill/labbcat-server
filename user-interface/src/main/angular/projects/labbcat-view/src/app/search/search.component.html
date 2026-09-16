@@ -286,6 +286,7 @@
                   [threadId]="historyItem.task.threadId"
                   [autoOpenResults]="false"
                   [singleSpan]="true"
+                  (historyPurged)="purgeHistory($event)"
                   ></lib-task>
                 <div *ngIf="historyItem.sourceFile" [title]="historyItem.sourceFile">
                   <img [src]="imagesLocation + '/file-import.svg'"

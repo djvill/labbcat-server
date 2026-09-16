@@ -721,14 +721,18 @@ export class SearchComponent implements OnInit {
         });
     }
 
+    /** Button actions */
     deleteHistoryItem(historyItem: SearchHistoryItem): void {
         this.history = this.history.filter(x => x.task.threadId !== historyItem.task.threadId);
         sessionStorage.setItem("searchHistory", JSON.stringify(this.history));
     }
-
     deleteHistory(): void {
         this.history = this.history.filter(x => false);
         sessionStorage.removeItem("searchHistory");
+    }
+    /** Triggered by task */
+    purgeHistory(threadId: string): void {
+        this.history = this.history.filter(x => x.task.threadId != threadId);
     }
 
     transcriptQueryIncludingParticipantConditions(): string {

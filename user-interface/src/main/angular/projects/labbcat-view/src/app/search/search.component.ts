@@ -455,15 +455,18 @@ export class SearchComponent implements OnInit {
                 if (errors) errors.forEach(m => this.messageService.error(m));
                 if (messages) messages.forEach(m => this.messageService.info(m));
                 this.threadId = result.threadId;
-                this.history.push(this.historyItem());
-                console.log("this.history", this.history);
+                this.historyItem();
         });
     }
 
-    updateTask(historyItem: SearchHistoryItem, threadId: string): Promise<void> {
+    updateTask(threadId: string): Promise<SearchHistoryItem> {
         return new Promise((resolve, reject) => {
+            let historyItem = this.history.filter(x => x.task && x.task.threadId == threadId)[0];
+            if (!historyItem) {
+                historyItem = {} as SearchHistoryItem;
+            }
             if (historyItem.sourceFile) {
-                resolve();
+                resolve(historyItem);
                 return;
             }
             this.labbcatService.labbcat.taskStatus(threadId, (task, errors, messages) => {
@@ -475,55 +478,54 @@ export class SearchComponent implements OnInit {
                     delete historyItem.task.size;
                 }
                 sessionStorage.setItem("searchHistory", JSON.stringify(this.history));
-                resolve();
+                resolve(historyItem);
             });
         });
     }
 
-    historyItem(): SearchHistoryItem {
-        let historyItem = {} as SearchHistoryItem;
-        historyItem.task = {} as Task;
-        this.updateTask(historyItem, this.threadId);
-        historyItem.metadata = {
-            labbcat_title: this.labbcatTitle,
-            labbcat_version: this.versions.System["LaBB-CAT"]
-        };
-        if (this.versions.Data && this.versions.Data["dataVersion"]) {
-            historyItem.metadata.data_version = this.versions.Data["dataVersion"];
-        }
-        historyItem.matrix = structuredClone(this.matrix);
-        // participantCount/transcriptCount logic:
-        // - if both are unfiltered or trivially filtered (i.e. "all participants"),
-        //   store the corpus total. (This doesn't cover "all transcripts with
-        //   selected participants", which may be a trivial filter depending on
-        //   the participant filter.)
-        // - if only the other filter is applied, we don't know this filter's
-        //   count, so store undefined
-        // - if a nontrivial filter is applied, store the reported count
-        historyItem.filters = {
-            participantDescription: this.participantDescription,
-            participantCount: !this.participantCount && !this.participantDescription ?
-                                  [0, this.totalTranscripts].includes(this.transcriptCount) ?
-                                      this.totalParticipants :
-                                      undefined :
-                                  this.participantCount,
-            transcriptDescription: this.transcriptDescription,
-            transcriptCount: !this.transcriptCount && !this.transcriptDescription ?
-                                  [0, this.totalParticipants].includes(this.participantCount) ?
-                                      this.totalTranscripts :
-                                      undefined :
-                                  this.transcriptCount
-        };
-        historyItem.matchOptions = {
-            mainParticipantOnly: this.mainParticipantOnly,
-            onlyAligned: this.onlyAligned,
-            firstMatchOnly: this.firstMatchOnly
-        };
-        if (this.overlapOption) {
-            historyItem.matchOptions['excludeSimultaneousSpeech'] = this.excludeSimultaneousSpeech;
-            historyItem.matchOptions['overlapThreshold'] = this.overlapThreshold;
-        }
-        return historyItem;
+    historyItem(): void {
+        this.updateTask(this.threadId).then(historyItem => {
+            historyItem.metadata = {
+                labbcat_title: this.labbcatTitle,
+                labbcat_version: this.versions.System["LaBB-CAT"]
+            };
+            if (this.versions.Data && this.versions.Data["dataVersion"]) {
+                historyItem.metadata.data_version = this.versions.Data["dataVersion"];
+            }
+            historyItem.matrix = structuredClone(this.matrix);
+            // participantCount/transcriptCount logic:
+            // - if both are unfiltered or trivially filtered (i.e. "all participants"),
+            //   store the corpus total. (This doesn't cover "all transcripts with
+            //   selected participants", which may be a trivial filter depending on
+            //   the participant filter.)
+            // - if only the other filter is applied, we don't know this filter's
+            //   count, so store undefined
+            // - if a nontrivial filter is applied, store the reported count
+            historyItem.filters = {
+                participantDescription: this.participantDescription,
+                participantCount: !this.participantCount && !this.participantDescription ?
+                                      [0, this.totalTranscripts].includes(this.transcriptCount) ?
+                                          this.totalParticipants :
+                                          undefined :
+                                      this.participantCount,
+                transcriptDescription: this.transcriptDescription,
+                transcriptCount: !this.transcriptCount && !this.transcriptDescription ?
+                                      [0, this.totalParticipants].includes(this.participantCount) ?
+                                          this.totalTranscripts :
+                                          undefined :
+                                      this.transcriptCount
+            };
+            historyItem.matchOptions = {
+                mainParticipantOnly: this.mainParticipantOnly,
+                onlyAligned: this.onlyAligned,
+                firstMatchOnly: this.firstMatchOnly,
+                excludeSimultaneousSpeech: this.excludeSimultaneousSpeech,
+                overlapThreshold: this.overlapThreshold
+            };
+
+            this.history.push(historyItem);
+            console.log("this.history", this.history);
+        });
     }
 
     /** Convenience functions for display */
@@ -703,7 +705,7 @@ export class SearchComponent implements OnInit {
     }
 
     exportHistoryItem(historyItem: SearchHistoryItem): void {
-        this.updateTask(historyItem, historyItem.task.threadId).then(() => {
+        this.updateTask(historyItem.task.threadId).then(() => {
             const jsonString = JSON.stringify(historyItem, this.replacer, 2);
             this.exportUrl = this.sanitizer.sanitize(SecurityContext.HTML, 'data:application/json;charset=UTF-8,' + encodeURIComponent(jsonString));
             this.exportName = historyItem.task.threadName + '.json';
@@ -712,8 +714,8 @@ export class SearchComponent implements OnInit {
     }
 
     exportHistory(): void {
-        const lastHistoryItem = this.history[this.history.length-1];
-        this.updateTask(lastHistoryItem, lastHistoryItem.task.threadId).then(() => {
+        const lastHistoryItem = this.history.filter(x => !x.sourceFile).slice(-1)[0];
+        this.updateTask(lastHistoryItem.task.threadId).then(() => {
             const jsonString = JSON.stringify(this.history, this.replacer, 2);
             this.exportUrl = this.sanitizer.sanitize(SecurityContext.HTML, 'data:application/json;charset=UTF-8,' + encodeURIComponent(jsonString));
             let now = new Date();
@@ -722,14 +724,18 @@ export class SearchComponent implements OnInit {
         });
     }
 
+    /** Button actions */
     deleteHistoryItem(historyItem: SearchHistoryItem): void {
         this.history = this.history.filter(x => x.task.threadId !== historyItem.task.threadId);
         sessionStorage.setItem("searchHistory", JSON.stringify(this.history));
     }
-
     deleteHistory(): void {
         this.history = this.history.filter(x => false);
         sessionStorage.removeItem("searchHistory");
+    }
+    /** Triggered by task */
+    purgeHistory(threadId: string): void {
+        this.history = this.history.filter(x => x.task.threadId != threadId);
     }
 
     transcriptQueryIncludingParticipantConditions(): string {

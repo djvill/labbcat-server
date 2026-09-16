@@ -286,6 +286,7 @@
                   [threadId]="historyItem.task.threadId"
                   [autoOpenResults]="false"
                   [singleSpan]="true"
+                  (historyPurged)="purgeHistory($event)"
                   ></lib-task>
                 <div *ngIf="historyItem.sourceFile" [title]="historyItem.sourceFile">
                   <img [src]="imagesLocation + '/file-import.svg'"
@@ -539,5 +540,5 @@
     </lib-button>
   </div>
   <lib-task *ngIf="threadId" [threadId]="threadId" [autoOpenResults]="!suppressResults"
-    (finished)="updateTask(history[history.length - 1], $event.threadId);"></lib-task>
+    (finished)="updateTask($event.threadId);"></lib-task>
 </div>

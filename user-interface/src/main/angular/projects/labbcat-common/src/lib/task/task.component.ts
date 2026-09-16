@@ -22,6 +22,7 @@ export class TaskComponent implements OnInit, OnChanges, OnDestroy {
     @Output() finished = new EventEmitter<Task>();
     @Input() singleSpan: boolean;
     @Input() purgeHistoryIfInvalid: boolean;
+    @Output() historyPurged = new EventEmitter<string>();
     task: Task;
     timeout: number;
     cancelling = false;
@@ -79,6 +80,7 @@ export class TaskComponent implements OnInit, OnChanges, OnDestroy {
                         let history = JSON.parse(sessionStorage.getItem("searchHistory")).filter(x => x.task && x.task.threadId !== this.threadId);
                         sessionStorage.setItem("searchHistory", JSON.stringify(history));
                         this.messageService.info("Removed missing thread " + this.threadId + " from search history"); // TODO i18n
+                        this.historyPurged.emit(this.threadId);
                     }
                 });
                 if (messages) messages.forEach(m => this.messageService.info(m));

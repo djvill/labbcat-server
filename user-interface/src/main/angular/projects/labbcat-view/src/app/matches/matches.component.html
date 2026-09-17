@@ -8,7 +8,7 @@
     i18n="in (duration) milliseconds"> in {{taskDuration}} milliseconds</span>
   <span
     *ngIf="totalUtteranceDuration"
-    i18n-title title="Total duration (minutes:seconds) of all utterances with at least one result"
+    i18n-title title="Total duration ({{ totalUtteranceDuration > 3600 ? 'hours:' : ''}}minutes:seconds) of all utterances with at least one result"
     > (<span i18n>Total utterance duration:</span> {{totalUtteranceDuration | duration}})</span>
 </p>
 

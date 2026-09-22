@@ -200,17 +200,24 @@
             <span *ngIf="!displayExportNames" i18n="csv options">Result number</span>
             <span *ngIf="displayExportNames" i18n="csv options">Number</span>
           </label>
+          <label i18n-title title="Start time of the transcript relative to the beginning of the whole episode">
+            <input type="checkbox" name="csv_option"
+                   value="series_offset"
+                   [checked]="precheckedCsvOptions.includes('series_offset')">
+            <span *ngIf="!displayExportNames" i18n="csv options">Episode offset</span>
+            <span *ngIf="displayExportNames" i18n="csv options">SeriesOffset</span>
+          </label>
           <label i18n-title title="Start time of the utterance relative to the beginning of the transcript">
             <input type="checkbox" name="csv_option"
                    value="line_time"
                    [checked]="precheckedCsvOptions.includes('line_time')">
-            <span *ngIf="!displayExportNames" i18n="csv options">Line start</span>
+            <span *ngIf="!displayExportNames" i18n="csv options">Utterance start</span>
             <span *ngIf="displayExportNames" i18n="csv options">Line</span>
           </label>
           <label i18n-title title="End time of the utterance relative to the beginning of the transcript">
             <input type="checkbox" name="csv_option" value="line_end_time"
                    [checked]="precheckedCsvOptions.includes('line_end_time')">
-            <span *ngIf="!displayExportNames" i18n="csv options">Line end</span>
+            <span *ngIf="!displayExportNames" i18n="csv options">Utterance end</span>
             <span *ngIf="displayExportNames" i18n="csv options">LineEnd</span>
           </label>
           <label i18n-title title="Unique identifier for the match - always exported">

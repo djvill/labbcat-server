@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import javax.json.Json;
@@ -64,7 +65,7 @@ import nzilbb.util.IO;
  * @author Robert Fromont
  */
 public class Versions extends APIRequestHandler {
-  
+
   /** Constructor */
   public Versions() {}
   
@@ -199,11 +200,10 @@ public class Versions extends APIRequestHandler {
         jsonOut.writeEnd(); // Layer Managers
 
         String dataVersion = store.getSystemAttribute("dataVersion");
-        if (dataVersion != null && dataVersion.length() > 0) {
-          jsonOut.writeStartObject("Data");
-          jsonOut.write("dataVersion", dataVersion);
-          jsonOut.writeEnd(); // Data
-        }
+        if (dataVersion == null) dataVersion = "";
+        jsonOut.writeStartObject("Data");
+        jsonOut.write("dataVersion", dataVersion);
+        jsonOut.writeEnd(); // Data
         
         endSuccessResult(jsonOut, null);
       } finally {

@@ -140,12 +140,13 @@ public class Stimulus extends APIRequestHandler {
         if (!hasAccess(store.getConnection())) {
           return null;
         }
+        if (parameters == null) {
+          httpStatus.accept(SC_BAD_REQUEST);
+          return failureResult("No file received.");
+        }
         Optional anyFileValue = parameters.keySet().stream()
-          .map(key->parameters.get(key))
-          .filter(value->value instanceof Vector)
-          .filter(value->((Vector)value).size() > 0)
-          .map(value->((Vector)value).firstElement())
-          .filter(firstValue->firstValue instanceof File)
+          .map(key->parameters.getFile(key))
+          .filter(file->file != null)
           .findAny();
         if (!anyFileValue.isPresent()) {
           httpStatus.accept(SC_BAD_REQUEST);
@@ -157,7 +158,7 @@ public class Stimulus extends APIRequestHandler {
             String mimeType = extensionToMimeType.get(IO.Extension(formFile));
             if (mimeType == null) {
               httpStatus.accept(SC_UNSUPPORTED_MEDIA_TYPE); // 415
-              return failureResult("Invalid file: {0}", formFile.getName()); // TODO i18n
+              return failureResult("Invalid file: {0}", formFile.getName());
             }
             File stimulusFile = new File(stimulusDir, formFile.getName());
             boolean preexisting = stimulusFile.exists();
@@ -165,13 +166,14 @@ public class Stimulus extends APIRequestHandler {
             // return information
             JsonObjectBuilder jsonResult = Json.createObjectBuilder()
               .add("file_name", stimulusFile.getName())
+              .add("url", getContext().getBaseUrl()+"/elicit/"+stimulusFile.getName())
               .add("file_size", ""+stimulusFile.length())
               .add("file_content_type", mimeType);
             
             httpStatus.accept(SC_CREATED);
             return successResult(
               jsonResult.build(),
-              preexisting?"Replaced {0}":"Saved {0}", // TODO i18n
+              preexisting?"Replaced {0}":"Saved {0}",
               stimulusFile.getName());
           } finally {
             formFile.delete();
@@ -253,7 +255,7 @@ public class Stimulus extends APIRequestHandler {
         String mimeType = extensionToMimeType.get(IO.Extension(fileName));
         if (mimeType == null) {
           httpStatus.accept(SC_UNSUPPORTED_MEDIA_TYPE); // 415
-          return failureResult("Invalid file: {0}", fileName); // TODO i18n
+          return failureResult("Invalid file: {0}", fileName);
         }
         File stimulus = new File(stimulusDir, fileName);
         if (!stimulus.exists()) {

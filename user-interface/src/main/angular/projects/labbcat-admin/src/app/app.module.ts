@@ -32,6 +32,12 @@ import { AdminCategoriesComponent } from './admin-categories/admin-categories.co
 import { AdminAgreementComponent } from './admin-agreement/admin-agreement.component';
 import { AdminFormattersComponent } from './admin-formatters/admin-formatters.component';
 import { AdminUpgradeComponent } from './admin-upgrade/admin-upgrade.component';
+import { AdminTasksComponent } from './admin-tasks/admin-tasks.component';
+import { AdminTaskResourcesComponent } from './admin-task-resources/admin-task-resources.component';
+import { AdminTaskAttributesComponent } from './admin-task-attributes/admin-task-attributes.component';
+import { AdminTaskAttributeOptionsComponent } from './admin-task-attribute-options/admin-task-attribute-options.component';
+import { AdminTaskRemindersComponent } from './admin-task-reminders/admin-task-reminders.component';
+import { ActivityComponent } from './activity/activity.component';
 
 @NgModule({
     declarations: [
@@ -58,7 +64,13 @@ import { AdminUpgradeComponent } from './admin-upgrade/admin-upgrade.component';
         AdminCategoriesComponent,
         AdminAgreementComponent,
         AdminFormattersComponent,
-        AdminUpgradeComponent
+        AdminUpgradeComponent,
+        AdminTasksComponent,
+        AdminTaskResourcesComponent,
+        AdminTaskAttributesComponent,
+        AdminTaskAttributeOptionsComponent,
+        AdminTaskRemindersComponent,
+        ActivityComponent
     ],
     imports: [
         BrowserModule,
@@ -106,6 +118,15 @@ import { AdminUpgradeComponent } from './admin-upgrade/admin-upgrade.component';
             { path: 'admin/formatters', component: AdminFormattersComponent,
               canDeactivate: [PendingChangesGuard]},
             { path: 'admin/upgrade', component: AdminUpgradeComponent},
+            { path: 'admin/tasks', component: AdminTasksComponent,
+              canDeactivate: [PendingChangesGuard]},
+            { path: 'admin/task/resources/:task_id', component: AdminTaskResourcesComponent,
+              canDeactivate: [PendingChangesGuard]},
+            { path: 'admin/task/attributes/:scope/:task_id', component: AdminTaskAttributesComponent},
+            { path: 'admin/task/options/:scope/:task_id/:attribute', component: AdminTaskAttributeOptionsComponent,
+              canDeactivate: [PendingChangesGuard]},
+            { path: 'admin/task/reminders/:task_id', component: AdminTaskRemindersComponent,
+              canDeactivate: [PendingChangesGuard]},
         ]), // TODO add { path: '**', component: PageNotFoundComponent }
         FormsModule,
         LabbcatCommonModule.forRoot(environment)

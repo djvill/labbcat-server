@@ -5284,8 +5284,8 @@
     /**
      * Creates a new media track record.
      * @see LabbcatAdmin#readMediaTracks
-     * @see LabbcatAdmin#updateTask
-     * @see LabbcatAdmin#deleteTask
+     * @see LabbcatAdmin#updateMediaTrack
+     * @see LabbcatAdmin#deleteMediaTrack
      * @param {string} suffix The suffix of the mediaTrack.
      * @param {string} description The description of the mediaTrack.
      * @param {int} display_order The position of the mediaTrack relative to other mediaTracks.
@@ -5305,8 +5305,8 @@
     /**
      * Reads a list of media track records.
      * @see LabbcatAdmin#createMediaTrack
-     * @see LabbcatAdmin#updateTask
-     * @see LabbcatAdmin#deleteTask
+     * @see LabbcatAdmin#updateMediaTrack
+     * @see LabbcatAdmin#deleteMediaTrack
      * @param {int} [pageNumber] The zero-based  page of records to return (if null, all
      * records will be returned). 
      * @param {int} [pageLength] The length of pages (if null, the default page length is 20).
@@ -6344,6 +6344,438 @@
         .send();
     }
 
+    /**
+     * Creates a new elicitation task.
+     * @see LabbcatAdmin#readElicitationTasks
+     * @see LabbcatAdmin#updateElicitationTask
+     * @see LabbcatAdmin#deleteElicitationTask
+     * @param {string} taskName The name of the elicitation task.
+     * @param {string} description The description of the task.
+     * @param {string} corpusName The corpus for elicited transcripts/recordings.
+     * @param {string} transcriptType The transcript type for elicited transcripts/recordings.
+     * @param {string} preamble HTML-encoded text the participant sees when they are
+     *         about to start the task.
+     * @param {string} consent Optional HTML-encoded consent form to be 'signed' by
+     *         the participant.
+     * @param {string} endUrl Optional URL to send participants to after
+     *         they finish the task (<tt>{participant}</tt>, if present in
+     *         the URL, is replaced by the participant's ID).
+     * @param {resultCallback} onResult Invoked when the request has returned a 
+     * <var>result</var> which will be: A copy of the elicitation task record. 
+     */
+    createElicitationTask(
+      taskName, description, corpusName, transcriptType, preamble, consent, endUrl,
+      onResult) {
+      this.createRequest(
+        "elicitationTasks", null, onResult, this.baseUrl+"api/admin/elicit/tasks", "POST",
+        null, "application/json")
+        .send(JSON.stringify({
+          task_name : taskName,
+          description : description,
+          corpus_name : corpusName,
+          transcript_type : transcriptType,
+          preamble : preamble,
+          consent : consent,
+          endUrl : endUrl}));
+    }
+    
+    /**
+     * Reads a list of elicitation task records.
+     * @see LabbcatAdmin#createElicitationTask
+     * @see LabbcatAdmin#updateElicitationTask
+     * @see LabbcatAdmin#deleteElicitationTask
+     * @param {int} [pageNumber] The zero-based  page of records to return (if null, all
+     * records will be returned). 
+     * @param {int} [pageLength] The length of pages (if null, the default page length is 20).
+     * @param {resultCallback} onResult Invoked when the request has returned a 
+     * <var>result</var> which will be: A list of elicitation task records with the
+     * following attributes:
+     * <dl>
+     *  <dt> task_id </dt><dd> The database key for the record. </dd>
+     *  <dt> task_name </dt><dd> The name of the task. </dd>
+     *  <dt> description </dt><dd> Description of the task. </dd>
+     *  <dt> corpus_name </dt><dd> The corpus for elicited transcripts/recordings. </dd>
+     *  <dt> transcript_type </dt><dd> The transcript type for elicited transcripts/recordings. </dd>
+     *  <dt> preamble </dt><dd> HTML-encoded text the participant sees when they are
+     *       about to start the task. </dd>
+     *  <dt> consent </dt><dd> Optional HTML-encoded consent form to be 'signed' by
+     *       the participant. </dd>
+     *  <dt> endUrl </dt><dd> Optional URL to send participants to after
+     *       they finish the task (<tt>{participant}</tt>, if present in
+     *       the URL, is replaced by the participant's ID). </dd>
+     *  <dt> _cantDelete </dt><dd> This is not a database field, but rather is present in
+     *       records returned from the server that can not currently be deleted; 
+     *       a string representing the reason the record can't be deleted. </dd>
+     * </dl>
+     */
+    readElicitationTasks(pageNumber, pageLength, onResult) {
+      if (typeof pageNumber === "function") { // (onResult)
+        onResult = pageNumber;
+        pageNumber = null;
+        pageLength = null;
+      } else if (typeof l === "function") { // (p, onResult)
+        onResult = l;
+        pageLength = null;
+      }
+      this.createRequest(
+        "elicitationTasks", {
+          pageNumber:pageNumber,
+          pageLength:pageLength
+        }, onResult, this.baseUrl+"api/admin/elicit/tasks")
+        .send();
+    }
+    
+    /**
+     * Updates an existing elicitation task.
+     * @see LabbcatAdmin#createElicitationTask
+     * @see LabbcatAdmin#readElicitationTasks
+     * @see LabbcatAdmin#deleteElicitationTask
+     * @param {number} taskId The database ID of the elicitation task.
+     * @param {string} taskName The name of the elicitation task.
+     * @param {string} description The description of the task.
+     * @param {string} corpusName The corpus for elicited transcripts/recordings.
+     * @param {string} transcriptType The transcript type for elicited transcripts/recordings.
+     * @param {string} preamble HTML-encoded text the participant sees when they are
+     *         about to start the task.
+     * @param {string} consent Optional HTML-encoded consent form to be 'signed' by
+     *         the participant.
+     * @param {string} endUrl Optional URL to send participants to after
+     *         they finish the task (<tt>{participant}</tt>, if present in
+     *         the URL, is replaced by the participant's ID).
+     * @param {resultCallback} onResult Invoked when the request has returned a 
+     * <var>result</var> which will be: A copy of the elicitation task record. 
+     */
+    updateElicitationTask(
+      taskId, taskName, description, corpusName, transcriptType, preamble, consent, endUrl,
+      onResult) {
+      this.createRequest(
+        "elicitationTasks", null, onResult, this.baseUrl+"api/admin/elicit/tasks", "PUT")
+        .send(JSON.stringify({
+          task_id : taskId,
+          task_name : taskName,
+          description : description,
+          corpus_name : corpusName,
+          transcript_type : transcriptType,
+          preamble : preamble,
+          consent : consent,
+          endUrl : endUrl}));
+    }
+    
+    /**
+     * Deletes an existing elicitation task.
+     * @see LabbcatAdmin#createElicitationTask
+     * @see LabbcatAdmin#readElicitationTasks
+     * @see LabbcatAdmin#updateElicitationTask
+     * @param {int} taskId The task_id of the task.
+     * @param {resultCallback} onResult Invoked when the request has completed.
+     */
+    deleteElicitationTask(taskId, onResult) {
+      this.createRequest(
+        "elicitationTasks", null, onResult,
+        `${this.baseUrl}api/admin/elicit/tasks/${taskId}`,
+        "DELETE").send();
+    }
+    
+    /**
+     * Upload a full task definition to be added/updated from a JSON file.
+     * @param [file|string] file The task definition file, the name of which must end
+     *       in <q>.json</q>. The name of the file (without the .json
+     *       extension) is taken as the name of the task being
+     *       uploaded. If there is already a task with that name, it
+     *       will be <u>replaced</u> with the task in the
+     *       file. Otherwise, a new task is created.
+     * @param {resultCallback} onResult Invoked when the request has returned a 
+     * <var>result</var> which will be: An object with one attribute, "task_id",
+     * which identifies the resulting task.
+     * @param onProgress Invoked on XMLHttpRequest progress.
+     * @see LabbcatAdmin#createElicitationTask
+     * @see LabbcatAdmin#readElicitationTasks
+     * @see LabbcatAdmin#updateElicitationTask
+     * @see LabbcatAdmin#deleteElicitationTask
+     */
+    elicitatationTaskUpload(file, onResult, onProgress) {
+      if (exports.verbose) {
+        console.log("elicitatationTaskUpload(" + file + ")");
+      }
+      // create form
+      var fd = new FormData();
+      if (!runningOnNode) {
+        
+	fd.append("file", file);
+        
+	// create HTTP request
+	var xhr = new XMLHttpRequest();
+	xhr.call = "elicitatationTaskUpload";
+	xhr.onResult = onResult;
+	xhr.addEventListener("load", callComplete, false);
+	xhr.addEventListener("error", callFailed, false);
+	xhr.addEventListener("abort", callCancelled, false);
+	xhr.upload.addEventListener("progress", onProgress, false);
+	
+	xhr.open("POST", this.baseUrl + "api/admin/elicit/task/upload");
+	if (this.username) {
+	  xhr.setRequestHeader("Authorization", "Basic " + btoa(this.username + ":" + this.password))
+	}
+	xhr.setRequestHeader("Accept", "application/json");
+	xhr.send(fd);
+      } else { // runningOnNode
+	
+	// on node.js, files are actually paths
+	var fileName = file.replace(/.*\//g, "");
+        if (exports.verbose) console.log("fileName: " + fileName);
+
+	fd.append(
+          "file", 
+	  fs.createReadStream(file).on('error', function(){
+	    onResult(
+              null, ["Invalid results: " + resultsName], [], "resultsUpload", resultsName);
+	  }), fileName);
+        
+	var urlParts = parseUrl(this.baseUrl + "api/admin/elicit/task/upload");
+	// for tomcat 8, we need to explicitly send the content-type and content-length headers...
+        if (exports.verbose) console.log("urlParts " + JSON.stringify(urlParts));
+	var labbcat = this;
+        var password = this._password;
+	fd.getLength(function(something, contentLength) {
+	  var requestParameters = {
+	    port: urlParts.port,
+	    path: urlParts.pathname,
+	    host: urlParts.hostname,
+	    headers: {
+	      "Accept" : "application/json",
+	      "content-length" : contentLength,
+	      "Content-Type" : "multipart/form-data; boundary=" + fd.getBoundary()
+	    }
+	  };
+	  if (labbcat.username && password) {
+	    requestParameters.auth = labbcat.username+':'+password;
+	  }
+	  if (/^https.*/.test(labbcat.baseUrl)) {
+	    requestParameters.protocol = "https:";
+	  }
+          if (exports.verbose) {
+            console.log("submit: " + labbcat.baseUrl + "api/admin/elicit/task/upload");
+          }
+          if (exports.verbose) console.log("fd.submit " + JSON.stringify(requestParameters));
+	  fd.submit(requestParameters, function(err, res) {
+	    var responseText = "";
+	    if (!err) {
+	      res.on('data',function(buffer) {
+		responseText += buffer;
+	      });
+	      res.on('end',function(){
+	        var result = null;
+	        var errors = null;
+	        var messages = null;
+		try {
+		  var response = JSON.parse(responseText);
+		  result = response.model.result || response.model;
+		  errors = response.errors;
+		  if (errors && errors.length == 0) errors = null
+		  messages = response.messages;
+		  if (messages && messages.length == 0) messages = null
+		} catch(exception) {
+		  result = null
+                  errors = ["" +exception+ ": " + labbcat.responseText];
+                  messages = [];
+		}
+		onResult(result, errors, messages, "elicitatationTaskUpload", fileName);
+	      });
+	    } else {
+	      onResult(null, ["" +err+ ": " + labbcat.responseText], [], "elicitatationTaskUpload", fileName);
+	    }
+	    
+	    if (res) res.resume();
+	  });
+	}); // got length
+      } // runningOnNode
+    }
+    
+    /**
+     * Reads a list of elicitation task resources.
+     * @see LabbcatAdmin#createElicitationTaskResource
+     * @see LabbcatAdmin#updateElicitationTaskResource
+     * @see LabbcatAdmin#deleteElicitationTaskResource
+     * @param {int} taskId The task_id of the elicitaiton task. 
+     * @param {int} [pageNumber] The zero-based  page of records to return (if null, all
+     * records will be returned). 
+     * @param {int} [pageLength] The length of pages (if null, the default page length is 20).
+     * @param {resultCallback} onResult Invoked when the request has returned a 
+     * <var>result</var> which will be: A list of resource records with the following
+     * attributes:
+     * <dl>
+     *  <dt> task_id </dt><dd> The database key for the elicitation task. </dd>
+     *  <dt> resource_id </dt><dd> The database key for the resource (message). </dd>
+     *  <dt> help </dt><dd> A description of the message to help administrators/translators
+     *       understand the purpose of the resource. </dd>
+     *  <dt> message </dt><dd> The participant-facing message. </dd>
+     * </dl>
+     */
+    readElicitationTaskResources(taskId, pageNumber, pageLength, onResult) {
+      if (typeof pageNumber === "function") { // (onResult)
+        onResult = pageNumber;
+        pageNumber = null;
+        pageLength = null;
+      } else if (typeof l === "function") { // (p, onResult)
+        onResult = l;
+        pageLength = null;
+      }
+      this.createRequest(
+        "elicitationTaskResources", {
+          pageNumber:pageNumber,
+          pageLength:pageLength
+        }, onResult, this.baseUrl+"api/admin/elicit/resources/"+taskId)
+        .send();
+    }
+    
+    /**
+     * Updates an existing elicitation resource record.
+     * @see LabbcatAdmin#createElicitationTaskResource
+     * @see LabbcatAdmin#readElicitationTaskResources
+     * @see LabbcatAdmin#deleteElicitationTaskResource
+     * @param {number} taskId The database ID of the elicitation task.
+     * @param {string} resourceId The name of the elicitation task.
+     * @param {string} help A description of the message to help administrators/translators
+     *         understand the purpose of the resource.
+     * @param {string} message The participant-facing message.
+     * @param {resultCallback} onResult Invoked when the request has returned a 
+     * <var>result</var> which will be: A copy of the resource record. 
+     */
+    updateElicitationTaskResource(
+      taskId, resourceId, help, message, onResult) {
+      this.createRequest(
+        "elicitationTaskResources", null, onResult,
+        this.baseUrl+"api/admin/elicit/resources", "PUT")
+        .send(JSON.stringify({
+          task_id : taskId,
+          resource_id : resourceId,
+          help : help,
+          message : message }));
+    }
+    
+    /**
+     * Creates a new elicitation task attribute option.
+     * @see LabbcatAdmin#readElicitationTaskAttributeOptions
+     * @see LabbcatAdmin#updateElicitationTaskAttributeOption
+     * @see LabbcatAdmin#deleteElicitationTaskAttributeOption
+     * @param {string} taskId The ID of the elicitation task.
+     * @param {string} scope "transcript" for a transcript attribute,
+     * "participant" for a participant attribute.
+     * @param {string} attribute The attribute name.
+     * @param {string} value The option for the attribute value.
+     * @param {string} description The participant-facing description of the option.
+     * @param {resultCallback} onResult Invoked when the request has returned a 
+     * <var>result</var> which will be: A copy of the attribute option record. 
+     */
+    createElicitationTaskAttributeOption(
+      taskId, scope, attribute, value, description, onResult) {
+      this.createRequest(
+        "elicitationTaskAttributeOptions", null, onResult,
+        this.baseUrl+"/api/admin/elicit/options/"
+          +(scope=="transcript"?"transcript":"participant")
+          +"/"+encodeURIComponent(taskId), "POST",
+        null, "application/json")
+        .send(JSON.stringify({
+          task_id : taskId,
+          attribute : attribute,
+          value : value,
+          description : description }));
+    }
+    
+    /**
+     * Reads a list of elicitation task attribute option records.
+     * @see LabbcatAdmin#createElicitationTaskAttributeOption
+     * @see LabbcatAdmin#updateElicitationTaskAttributeOption
+     * @see LabbcatAdmin#deleteElicitationTaskAttributeOption
+     * @param {string} taskId The ID of the elicitation task.
+     * @param {string} scope "transcript" for a transcript attribute,
+     * "participant" for a participant attribute.
+     * @param {string} attribute The attribute name.
+     * @param {int} [pageNumber] The zero-based  page of records to return (if null, all
+     * records will be returned). 
+     * @param {int} [pageLength] The length of pages (if null, the default page length is 20).
+     * @param {resultCallback} onResult Invoked when the request has returned a 
+     * <var>result</var> which will be: A list of attribute option records with the
+     * following attributes:
+     * <dl>
+     *  <dt> task_id </dt><dd> The database key for the record. </dd>
+     *  <dt> attribute </dt><dd> The transcript attribute. </dd>
+     *  <dt> value </dt><dd> The possible value presented to the participant, which
+     *       must be one of the valid labels for the given attribute. </dd>
+     *  <dt> description </dt><dd> The participant-facing text describing the option. </dd>
+     * </dl>
+     */
+    readElicitationTaskAttributeOptions(
+      taskId, scope, attribute, pageNumber, pageLength, onResult) {
+      if (typeof pageNumber === "function") { // (onResult)
+        onResult = pageNumber;
+        pageNumber = null;
+        pageLength = null;
+      } else if (typeof pageLength === "function") { // (p, onResult)
+        onResult = pageLength;
+        pageLength = null;
+      }
+      this.createRequest(
+        "elicitationTaskAttributeOptions", {
+          pageNumber:pageNumber,
+          pageLength:pageLength
+        }, onResult, 
+        this.baseUrl+"/api/admin/elicit/options/"
+          +(scope=="transcript"?"transcript":"participant")
+          +"/"+encodeURIComponent(taskId)
+          +"/"+encodeURIComponent(attribute))
+        .send();
+    }
+    
+    /**
+     * Updates an existing elicitation task.
+     * @see LabbcatAdmin#createElicitationTaskAttributeOption
+     * @see LabbcatAdmin#readElicitationTaskAttributeOptions
+     * @see LabbcatAdmin#deleteElicitationTaskAttributeOption
+     * @param {string} taskId The ID of the elicitation task.
+     * @param {string} scope "transcript" for a transcript attribute,
+     * "participant" for a participant attribute.
+     * @param {string} attribute The attribute name.
+     * @param {string} value The option for the attribute value.
+     * @param {string} description The participant-facing description of the option.
+     * @param {resultCallback} onResult Invoked when the request has returned a 
+     * <var>result</var> which will be: A copy of the attribute option record. 
+     */
+    updateElicitationTaskAttributeOption(
+      taskId, scope, attribute, value, description, onResult) {
+      this.createRequest(
+        "elicitationTaskAttributeOptions", null, onResult, 
+        this.baseUrl+"/api/admin/elicit/options/"
+          +(scope=="transcript"?"transcript":"participant"), "PUT")
+        .send(JSON.stringify({
+          task_id : taskId,
+          attribute : attribute,
+          value : value,
+          description : description }));
+    }
+    
+    /**
+     * Deletes an existing elicitation task.
+     * @see LabbcatAdmin#createElicitationTaskAttributeOption
+     * @see LabbcatAdmin#readElicitationTaskAttributeOptions
+     * @see LabbcatAdmin#updateElicitationTaskAttributeOption
+     * @param {string} taskId The ID of the elicitation task.
+     * @param {string} scope "transcript" for a transcript attribute,
+     * "participant" for a participant attribute.
+     * @param {string} attribute The attribute name.
+     * @param {string} value The option for the attribute value.
+     * @param {resultCallback} onResult Invoked when the request has completed.
+     */
+    deleteElicitationTaskAttributeOption(taskId, scope, attribute, value, onResult) {
+      this.createRequest(
+        "elicitationTaskAttributeOptions", null, onResult,
+        this.baseUrl+"/api/admin/elicit/options/"
+          +(scope=="transcript"?"transcript":"participant")
+          +"/"+encodeURIComponent(taskId)
+          +"/"+encodeURIComponent(attribute)
+          +"/"+encodeURIComponent(value),
+        "DELETE").send();
+    }
   }
   
   /**

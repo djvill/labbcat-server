@@ -81,13 +81,10 @@ public class Steps extends APIRequestHandler { // TODO automated tests
       try (Connection db = newConnection()) {
         try (PreparedStatement sqlTask = db.prepareStatement(
                "SELECT task_id, task_name, description,"
-               +" corpus.corpus_name AS corpus,"
-               + " transcript_type.transcript_type AS transcriptType,"
+               +" corpus_name AS corpus,"
+               +" transcript_type AS transcriptType,"
                +" preamble, consent, endUrl"
                +" FROM elicitation_task"
-               +" INNER JOIN corpus ON elicitation_task.corpus_id = corpus.corpus_id"
-               +" INNER JOIN transcript_type"
-               +" ON elicitation_task.type_id = transcript_type.type_id"
                +" WHERE task_name = ?")) {
           sqlTask.setString(1, task);
           try (ResultSet rsTask = sqlTask.executeQuery()) {
@@ -96,7 +93,15 @@ public class Steps extends APIRequestHandler { // TODO automated tests
               return failureResult("Invalid ID: {0}", task);
             } else {
               int taskId = rsTask.getInt("task_id");
-              JsonObjectBuilder model = Json.createObjectBuilder();
+              JsonObjectBuilder model = Json.createObjectBuilder()
+                .add("task_id", rsTask.getInt("task_id"))
+                .add("task_name", rsTask.getString("task_name"))
+                .add("description", rsTask.getString("description"))
+                .add("corpus", rsTask.getString("corpus"))
+                .add("transcriptType", rsTask.getString("transcriptType"))
+                .add("preamble", rsTask.getString("preamble"))
+                .add("consent", rsTask.getString("consent"))
+                .add("endUrl", rsTask.getString("endUrl"));
                 
               try (PreparedStatement sqlTopSteps = db.prepareStatement(
                      "SELECT * FROM elicitation_step"
@@ -258,7 +263,7 @@ public class Steps extends APIRequestHandler { // TODO automated tests
                   "consentUrl", context.getBaseUrl().toString() + "/elicit/consent");
                 model.add(
                   "newParticipantUrl", context.getBaseUrl() + "/elicit/participant");
-                model.add("verifyUrl", context.getBaseUrl() + "/elicit/verify");
+                model.add("verifyUrl", context.getBaseUrl() + "/api/elicit/verify");
                 
                 // set filename for cases where this is a task definition export
                 fileName.accept(task + ".json");

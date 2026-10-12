@@ -324,7 +324,7 @@
                     </div>
                     <div *ngIf="versions.Data.dataVersion || historyItem.metadata.data_version"
                       class="attribute">
-                      <label for="data-version" i18n>Data version</label>
+                      <label for="data-version" i18n>{{labbcatTitle == historyItem.metadata.labbcat_title ? 'APLS' : 'Data'}} version</label>
                       <span *ngIf="historyItem.metadata.data_version"
                         id="data-version" class="values">
                         <img *ngIf="versions.Data.dataVersion != historyItem.metadata.data_version"

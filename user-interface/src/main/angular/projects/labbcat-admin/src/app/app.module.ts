@@ -26,6 +26,7 @@ import { AdminAnnotatorExtComponent } from './admin-annotator-ext/admin-annotato
 import { AdminUsersComponent } from './admin-users/admin-users.component';
 import { AdminChangePasswordComponent } from './admin-change-password/admin-change-password.component';
 import { AdminLayersComponent } from './admin-layers/admin-layers.component';
+import { AdminDashboardComponent } from './admin-dashboard/admin-dashboard.component';
 import { AdminLayerLabelsComponent } from './admin-layer-labels/admin-layer-labels.component';
 import { AdminAttributesComponent } from './admin-attributes/admin-attributes.component';
 import { AdminCategoriesComponent } from './admin-categories/admin-categories.component';
@@ -36,6 +37,7 @@ import { AdminTasksComponent } from './admin-tasks/admin-tasks.component';
 import { AdminTaskResourcesComponent } from './admin-task-resources/admin-task-resources.component';
 import { AdminTaskAttributesComponent } from './admin-task-attributes/admin-task-attributes.component';
 import { AdminTaskAttributeOptionsComponent } from './admin-task-attribute-options/admin-task-attribute-options.component';
+import { AdminTaskAttributeValidationComponent } from './admin-task-attribute-validation/admin-task-attribute-validation.component';
 import { AdminTaskRemindersComponent } from './admin-task-reminders/admin-task-reminders.component';
 import { ActivityComponent } from './activity/activity.component';
 
@@ -62,6 +64,7 @@ import { ActivityComponent } from './activity/activity.component';
         AdminLayerLabelsComponent,
         AdminAttributesComponent,
         AdminCategoriesComponent,
+        AdminDashboardComponent,
         AdminAgreementComponent,
         AdminFormattersComponent,
         AdminUpgradeComponent,
@@ -69,6 +72,7 @@ import { ActivityComponent } from './activity/activity.component';
         AdminTaskResourcesComponent,
         AdminTaskAttributesComponent,
         AdminTaskAttributeOptionsComponent,
+        AdminTaskAttributeValidationComponent,
         AdminTaskRemindersComponent,
         ActivityComponent
     ],
@@ -113,6 +117,8 @@ import { ActivityComponent } from './activity/activity.component';
             { path: 'admin/layers/:scope', component: AdminLayersComponent},
             { path: 'admin/attributes/:scope', component: AdminAttributesComponent},
             { path: 'admin/categories/:scope', component: AdminCategoriesComponent},
+            { path: 'admin/dashboard/:scope', component: AdminDashboardComponent,
+              canDeactivate: [PendingChangesGuard]},
             { path: 'admin/agreement', component: AdminAgreementComponent,
               canDeactivate: [PendingChangesGuard]},
             { path: 'admin/formatters', component: AdminFormattersComponent,
@@ -122,8 +128,10 @@ import { ActivityComponent } from './activity/activity.component';
               canDeactivate: [PendingChangesGuard]},
             { path: 'admin/task/resources/:task_id', component: AdminTaskResourcesComponent,
               canDeactivate: [PendingChangesGuard]},
-            { path: 'admin/task/attributes/:scope/:task_id', component: AdminTaskAttributesComponent},
-            { path: 'admin/task/options/:scope/:task_id/:attribute', component: AdminTaskAttributeOptionsComponent,
+            { path: 'admin/task/attributes/:task_id/:scope', component: AdminTaskAttributesComponent},
+            { path: 'admin/task/options/:task_id/:scope/:attribute', component: AdminTaskAttributeOptionsComponent,
+              canDeactivate: [PendingChangesGuard]},
+            { path: 'admin/task/validation/:task_id/:scope/:attribute', component: AdminTaskAttributeValidationComponent,
               canDeactivate: [PendingChangesGuard]},
             { path: 'admin/task/reminders/:task_id', component: AdminTaskRemindersComponent,
               canDeactivate: [PendingChangesGuard]},

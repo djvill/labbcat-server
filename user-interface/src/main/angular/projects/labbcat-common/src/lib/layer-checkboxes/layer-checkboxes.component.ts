@@ -29,6 +29,8 @@ export class LayerCheckboxesComponent implements OnInit {
     @Input() displayIcons: boolean;
     /** Display prefixes for participant/transcript attributes */
     @Input() displayAttributePrefixes: boolean;
+    /** Output updated displayAttributePrefixes state */
+    @Output() attributePrefixesChange = new EventEmitter<boolean>();
     /** Show the data type of each layer */
     @Input() includeDataType: boolean;
     /** Display layer counts */
@@ -145,11 +147,15 @@ export class LayerCheckboxesComponent implements OnInit {
         if (!this.hiddenCategory) this.hiddenCategory = "";
     }
 
-    ngOnChanges(): void {
+    ngOnChanges(changes: SimpleChanges): void {
         if (!this.fromCheckbox) {
             this.processSchema();
         }
         this.fromCheckbox = false;
+        if (changes.displayCsvNames) {
+            this.displayAttributePrefixes = changes.displayCsvNames.currentValue;
+            sessionStorage.setItem("displayAttributePrefixes", JSON.stringify(this.displayAttributePrefixes));
+        }
     }
 
     loadSchema(): void {
@@ -270,13 +276,19 @@ export class LayerCheckboxesComponent implements OnInit {
         if (id == this.schema.participantLayerId && this.displayCsvNames) {
             return "Speaker"; // TODO i18n
         }
-        return id.replace(/^participant_/,"");
+        if (!this.displayAttributePrefixes) {
+            return id.replace(/^participant_/,"");
+        }
+        return id;
     }
     TranscriptLayerLabel(id): string {
         if (id == this.schema.root.id && this.displayCsvNames) {
             return "Transcript"; // TODO i18n
         }
-        return id.replace(/^transcript_/,"");
+        if (!this.displayAttributePrefixes) {
+            return id.replace(/^transcript_/,"");
+        }
+        return id;
     }
     IsAnchorable(layer: Layer): boolean {
         return this.includeAnchorSharing // only if enabled
@@ -340,6 +352,7 @@ export class LayerCheckboxesComponent implements OnInit {
     }
     toggleAttributePrefixes(): void {
         this.displayAttributePrefixes = !this.displayAttributePrefixes;
+        this.attributePrefixesChange.emit(this.displayAttributePrefixes);
         sessionStorage.setItem("displayAttributePrefixes", JSON.stringify(this.displayAttributePrefixes));
     }
     toggleLayerCounts(): void {

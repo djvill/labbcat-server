@@ -184,12 +184,12 @@ export class LayerCheckboxesComponent implements OnInit {
         for (let c in this.schema.categories) {
             if (!this.categorySelections.hasOwnProperty(c)) {
                 if (c.startsWith("participant_")) { // participant attribute category
-                    if (this.participant) this.categorySelections[c] = false;
+                    if (this.participant) this.categorySelections[c] = !this.category;
                 } else if (c.startsWith("transcript_")) {  // transcript attribute category
-                    if (this.transcript) this.categorySelections[c] = false;
+                    if (this.transcript) this.categorySelections[c] = !this.category;
                 } else  { // temporal layer category/project
                     if (this.span || this.phrase || this.word) {
-                        this.categorySelections[c] = false;
+                        this.categorySelections[c] = !this.category;
                     }
                 }
             }

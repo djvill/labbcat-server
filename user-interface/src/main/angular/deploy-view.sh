@@ -4,8 +4,13 @@
 # and deploying them to a local instance of LaBB-CAT,
 # adding "prev-" prefix to existing index.html
 
-LOCAL_LABBCAT="/c/Program Files/Apache Software Foundation/Tomcat 9.0/webapps/apls-dev"
-LL_UI="$LOCAL_LABBCAT/user-interface/en"
+WEBAPPS="/c/Program Files/Apache Software Foundation/Tomcat 9.0/webapps"
+if [ $HOSTNAME = "labb-cat" ] ; then
+  INSTANCE="apls-dev"
+else
+  INSTANCE="labbcat"
+fi
+LL_UI="$WEBAPPS/$INSTANCE/user-interface/en"
 
 common=${1}
 if [ -z $common ] ; then

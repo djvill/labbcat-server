@@ -307,13 +307,8 @@ export class ParticipantsComponent implements OnInit {
     loadingList = false;
     /** List participants that match the filters */
     listParticipants(): void {
-        // this.query = this.participantQuery || this.transcriptQuery; // if any
-        this.query = this.participantQuery; // if any
-        // this.queryDescription = this.participantDescription || this.transcriptDescription;
-        this.queryDescription = this.participantDescription;
-        if (this.query) { // page loaded with participant_expression param
-            this.participantQuery = "";
-            this.participantDescription = "";
+        let queryCanBeTranslatedToFilterValues = true; 
+        if (this.participantQuery) { // page loaded with participant_expression param
             const queryItems = this.query.split(" && ");
             for (let item of queryItems) {
                 // all participants: clear filters and don't consider further query items
@@ -375,10 +370,22 @@ export class ParticipantsComponent implements OnInit {
                         }
                         continue;
                     }
+                } else { // a pattern not handled by filterValues
+                    // e.g. from transcript attributes page:
+                    // labels("transcript").includes("AP511_MikeThorpe.eaf")
+                    queryCanBeTranslatedToFilterValues = false;
+                    break;
                 }
+            } // next queryItem
+            if (queryCanBeTranslatedToFilterValues) {
+                this.participantQuery = "";
+                this.participantDescription = "";
             }
-        } else {
-            // TODO indenting
+        } // if there's a participantQuery
+        
+        this.query = this.participantQuery; // if any
+        this.queryDescription = this.participantDescription;
+        
         for (let layer of this.filterLayers) {
             if (layer.id == this.schema.participantLayerId
                 && this.filterValues[layer.id][0]) {
@@ -388,10 +395,14 @@ export class ParticipantsComponent implements OnInit {
                     this.queryDescription += ", ";
                 }
                 
-                this.query += "/"+this.esc(this.filterValues[this.schema.participantLayerId][0])
+                this.query += "/"+this.esc(
+                    this.filterValues[this.schema.participantLayerId][0])
                     +"/.test(id)";
                 this.queryDescription += "ID matches "
-                    + (this.filterValues[this.schema.participantLayerId][0].length <= 50 ? this.filterValues[this.schema.participantLayerId][0] : this.filterValues[this.schema.participantLayerId][0].slice(0, 49) + "…");
+                    + (this.filterValues[
+                        this.schema.participantLayerId][0].length <= 50 ?
+                        this.filterValues[this.schema.participantLayerId][0]
+                        : this.filterValues[this.schema.participantLayerId][0].slice(0, 49) + "…");
                 
             } else if (layer.id == "--transcript-count"
                 && this.filterValues[layer.id].length > 0) {
@@ -416,16 +427,16 @@ export class ParticipantsComponent implements OnInit {
                 if (this.filterValues[layer.id][0] && this.filterValues[layer.id][1]) {
                     if (this.queryDescription) this.queryDescription += ", ";
                     this.queryDescription += 
-                        "Transcript count " + this.filterValues[layer.id][0] // TODO i18n
+                    "Transcript count " + this.filterValues[layer.id][0] // TODO i18n
                         + "–" + this.filterValues[layer.id][1];
                 } else if (this.filterValues[layer.id][0]) {
                     if (this.queryDescription) this.queryDescription += ", ";
                     this.queryDescription +=
-                        "Transcript count ≥ " + this.filterValues[layer.id][0]; // TODO i18n
+                    "Transcript count ≥ " + this.filterValues[layer.id][0]; // TODO i18n
                 } else if (this.filterValues[layer.id][1]) {
                     if (this.queryDescription) this.queryDescription += ", ";
                     this.queryDescription += 
-                        "Transcript count ≤ " + this.filterValues[layer.id][1]; // TODO i18n
+                    "Transcript count ≤ " + this.filterValues[layer.id][1]; // TODO i18n
                 }
                 
             } else if (layer.validLabels && Object.keys(layer.validLabels).length > 0
@@ -557,11 +568,11 @@ export class ParticipantsComponent implements OnInit {
                     +".test(labels('" +this.esc(layer.id)+"'))";
                 this.queryDescription += layer.description
                     +" matches "
-                    + (this.filterValues[layer.id][0].length <= 50 ? this.filterValues[layer.id][0] : this.filterValues[layer.id][0].slice(0, 49) + "…");
+                    + (this.filterValues[layer.id][0].length <= 50 ?
+                        this.filterValues[layer.id][0]
+                        : this.filterValues[layer.id][0].slice(0, 49) + "…");
             }
         } // next filter layer
-            // end TODO indenting
-        }
 
         // change the query string so the user can easily replicate this filter
         const queryParams: Params = {};
@@ -758,6 +769,8 @@ export class ParticipantsComponent implements OnInit {
     /** Button action */
     clearFilters() : void {
         sessionStorage.setItem("lastQueryParticipants", "");
+        this.participantQuery = "";
+        this.participantDescription = "";
         this.initializeFilters().then(()=>{
             this.listParticipants();
         });
@@ -802,10 +815,7 @@ export class ParticipantsComponent implements OnInit {
     mergeParticipants(): void {
         window.location.href = this.baseUrl
             + "edit/participants/merge?"
-            + this.selectedIds.map(id=> {
-                // needs speaker_number, which we retrieve from the participant.id
-                return "speaker_number="+this.attributeValues[id].id.replace(/m_-2_/,"")
-            }).join("&");
+            + this.selectedIds.map(id=>"id="+this.attributeValues[id].id).join("&");
     }
 
     showAttributesSelection = false;

@@ -336,12 +336,9 @@ export class TranscriptsComponent implements OnInit {
     loadingList = false;
     /** List transcripts that match the filters */
     listTranscripts(): void {
-        this.query = this.transcriptQuery; // if any
-        this.queryDescription = this.transcriptDescription;
-        if (this.query) { // page loaded with transcript_expression param
-            this.transcriptQuery = "";
-            this.transcriptDescription = "";
-            const queryItems = this.query.split(" && ");
+        let queryCanBeTranslatedToFilterValues = true; 
+        if (this.transcriptQuery) { // page loaded with transcript_expression param
+            const queryItems = this.transcriptQuery.split(" && ");
             for (let item of queryItems) {
                 // all transcripts: clear filters and don't consider further query items
                 if (item.match(/^\/\.\+\/\.test\(id\)$/)) {
@@ -389,10 +386,21 @@ export class TranscriptsComponent implements OnInit {
                         }
                         continue;
                     }
+                } else { // a pattern not handled by filterValues
+                    // e.g. from participant attributes page:
+                    // labels("participant").includes("AP511_MikeThorpe")
+                    queryCanBeTranslatedToFilterValues = false;
+                    break;
                 }
+            } // next queryItem
+            if (queryCanBeTranslatedToFilterValues) {
+                this.transcriptQuery = "";
+                this.transcriptDescription = "";
             }
-        } else {
-            // TODO indenting
+        } // if there's a transcriptQuery
+        
+        this.query = this.transcriptQuery; // if any
+        this.queryDescription = this.transcriptDescription;
         for (let layer of this.filterLayers) {
             if (layer.id == this.schema.root.id
                 && this.filterValues[layer.id][0]) {
@@ -404,7 +412,9 @@ export class TranscriptsComponent implements OnInit {
                 
                 this.query += "/"+this.esc(this.filterValues[layer.id][0])+"/.test(id)";
                 this.queryDescription += "ID matches "
-                    + (this.filterValues[layer.id][0].length <= 50 ? this.filterValues[layer.id][0] : this.filterValues[layer.id][0].slice(0, 49) + "…");
+                    + (this.filterValues[layer.id][0].length <= 50 ?
+                        this.filterValues[layer.id][0]
+                        : this.filterValues[layer.id][0].slice(0, 49) + "…");
                 
             } else if (layer.validLabels && Object.keys(layer.validLabels).length > 0
                 && this.filterValues[layer.id].length > 0) {
@@ -482,24 +492,24 @@ export class TranscriptsComponent implements OnInit {
                 // from?
                 if (this.filterValues[layer.id][0]) {
                     if (this.query) {
-                    this.query += " && ";
-                    this.queryDescription += ", ";
-                }
+                        this.query += " && ";
+                        this.queryDescription += ", ";
+                    }
                     const value = this.filterValues[layer.id][0];
                     this.query += "first('"+this.esc(layer.id)+"').label"
-                    +" >= '"+this.esc(value)+"'";
+                        +" >= '"+this.esc(value)+"'";
                 }
                 
                 // to?
                 if (this.filterValues[layer.id][1]) {
                     if (this.query) {
-                    this.query += " && ";
-                    this.queryDescription += ", ";
-                }
+                        this.query += " && ";
+                        this.queryDescription += ", ";
+                    }
                     
                     const value = this.filterValues[layer.id][1];
                     this.query += "first('"+this.esc(layer.id)+"').label"
-                    +" <= '"+value+" 23:59:59'";
+                        +" <= '"+value+" 23:59:59'";
                 }
                 
                 if (this.filterValues[layer.id][0] && this.filterValues[layer.id][1]) {
@@ -538,12 +548,13 @@ export class TranscriptsComponent implements OnInit {
                     +".test(labels('" +this.esc(layer.id)+"'))";
                 this.queryDescription += layer.description
                     +" matches "
-                    + (this.filterValues[layer.id][0].length <= 50 ? this.filterValues[layer.id][0] : this.filterValues[layer.id][0].slice(0, 49) + "…");
+                    + (this.filterValues[layer.id][0].length <= 50 ?
+                        this.filterValues[layer.id][0]
+                        : this.filterValues[layer.id][0].slice(0, 49) + "…");
                 
             }
         } // next filter layer
-            // end TODO indenting
-        }
+
         // change the query string so the user can easily replicate this filter
         const queryParams: Params = {};
         if (this.nextPage) queryParams.to = this.nextPage; // pass through context parameters...
@@ -709,6 +720,8 @@ export class TranscriptsComponent implements OnInit {
     /** Button action */
     clearFilters() : void {
         sessionStorage.setItem("lastQueryTranscripts", "");
+        this.transcriptQuery = "";
+        this.transcriptDescription = "";
         this.initializeFilters().then(()=>{
             this.listTranscripts();
         });

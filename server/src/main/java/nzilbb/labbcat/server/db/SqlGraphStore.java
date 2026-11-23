@@ -21,6 +21,7 @@
 //
 package nzilbb.labbcat.server.db;
 
+import java.util.Locale;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
@@ -50,6 +51,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -263,6 +265,23 @@ public class SqlGraphStore implements GraphStore {
   public SqlGraphStore setDisconnectWhenFinished(boolean newDisconnectWhenFinished) {
     disconnectWhenFinished = newDisconnectWhenFinished; return this;
   }
+
+  /**
+   * Resources for localization of messages.
+   * @see #getResourceBundle()
+   * @see #setResourceBundle(ResourceBundle)
+   */
+  protected ResourceBundle resourceBundle;
+  /**
+   * Getter for {@link #resourceBundle}: Resources for localization of messages.
+   * @return Resources for localization of messages.
+   */
+  public ResourceBundle getResourceBundle() { return resourceBundle; }
+  /**
+   * Setter for {@link #resourceBundle}: Resources for localization of messages.
+   * @param newResourceBundle Resources for localization of messages.
+   */
+  public SqlGraphStore setResourceBundle(ResourceBundle newResourceBundle) { if (newResourceBundle != null) resourceBundle = newResourceBundle; return this; }
    
   /**
    * The store's ID.
@@ -344,6 +363,8 @@ public class SqlGraphStore implements GraphStore {
    * Default constructor.
    */
   public SqlGraphStore() {
+    resourceBundle = ResourceBundle.getBundle(
+      "nzilbb.labbcat.server.locale.Resources", Locale.UK);
   } // end of constructor
 
   /**
@@ -354,6 +375,9 @@ public class SqlGraphStore implements GraphStore {
    */
   @Deprecated
   public SqlGraphStore(String baseUrl, Connection connection, String user) throws SQLException {
+    resourceBundle = ResourceBundle.getBundle(
+      "nzilbb.labbcat.server.locale.Resources", Locale.UK);
+    
     setId(baseUrl);
     setBaseUrl(baseUrl);
     setConnection(connection);
@@ -372,6 +396,8 @@ public class SqlGraphStore implements GraphStore {
   @Deprecated
   public SqlGraphStore(String baseUrl, File files, Connection connection, String user)
     throws SQLException {
+    resourceBundle = ResourceBundle.getBundle(
+      "nzilbb.labbcat.server.locale.Resources", Locale.UK);
     setId(baseUrl);
     setBaseUrl(baseUrl);
     setFiles(files);
@@ -387,6 +413,8 @@ public class SqlGraphStore implements GraphStore {
    * @param user ID of the user
    */
   public SqlGraphStore(String baseUrl, ConnectionFactory db, String user) throws SQLException {
+    resourceBundle = ResourceBundle.getBundle(
+      "nzilbb.labbcat.server.locale.Resources", Locale.UK);
     setId(baseUrl);
     setBaseUrl(baseUrl);
     setDb(db);
@@ -404,6 +432,8 @@ public class SqlGraphStore implements GraphStore {
    */
   public SqlGraphStore(String baseUrl, File files, ConnectionFactory db, String user)
     throws SQLException {
+    resourceBundle = ResourceBundle.getBundle(
+      "nzilbb.labbcat.server.locale.Resources", Locale.UK);
     setId(baseUrl);
     setBaseUrl(baseUrl);
     setFiles(files);
@@ -424,8 +454,9 @@ public class SqlGraphStore implements GraphStore {
    */
   public SqlGraphStore(
     String baseUrl, File files, String connectString, String databaseUser, String password,
-    String storeUser)
-    throws SQLException {
+    String storeUser) throws SQLException {
+    resourceBundle = ResourceBundle.getBundle(
+      "nzilbb.labbcat.server.locale.Resources", Locale.UK);
     setId(baseUrl);
     setBaseUrl(baseUrl);
     setFiles(files);
@@ -526,7 +557,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
    
@@ -603,7 +634,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
    
     // set parents
@@ -1215,7 +1246,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -1260,7 +1291,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -1287,7 +1318,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
    
@@ -1459,7 +1490,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   } // end of getParticipant()
    
@@ -1484,21 +1515,22 @@ public class SqlGraphStore implements GraphStore {
       
     boolean thereWereChanges = false;
     try {
-      // save the participant record itself
-      switch(participant.getChange()) {
-        case Update: {
-          thereWereChanges = true;
-          Object[] o = fmtMetaAnnotationId.parse(participant.getId());
-          int speakerNumber = Integer.parseInt(o[1].toString().replace(",",""));
-          // update the label (the only possible change)
-          PreparedStatement sql = getConnection().prepareStatement(
-            "UPDATE speaker SET name = ? WHERE speaker_number = ?");
-          sql.setString(1, participant.getLabel());
-          sql.setInt(2, speakerNumber);
-          sql.executeUpdate();
-          sql.close();
-          break;
-        } case Create: {
+      try { // save the participant record itself
+        switch(participant.getChange()) {
+          case Update: {
+            thereWereChanges = true;
+            Object[] o = fmtMetaAnnotationId.parse(participant.getId());
+            int speakerNumber = Integer.parseInt(o[1].toString().replace(",",""));
+            // update the label (the only possible change)
+            PreparedStatement sql = getConnection().prepareStatement(
+              "UPDATE speaker SET name = ? WHERE speaker_number = ?");
+            sql.setString(1, participant.getLabel());
+            sql.setInt(2, speakerNumber);
+            sql.executeUpdate();
+            sql.close();
+            break;
+          }
+          case Create: {
             thereWereChanges = true;
             // update the label (the only possible change)
             PreparedStatement sql = getConnection().prepareStatement(
@@ -1516,6 +1548,10 @@ public class SqlGraphStore implements GraphStore {
             participant.setId(fmtMetaAnnotationId.format(o));
             break;
           }
+        }
+      } catch (java.sql.SQLIntegrityConstraintViolationException nameX) {
+        throw new StoreException(
+          "There is already a participant with label: "+participant.getLabel());
       }
 
       // save the tags
@@ -1569,10 +1605,108 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
     return thereWereChanges;
   } // end of saveParticipant()
+  
+  /**
+   * Merges the given source participants into a single record, the given destination
+   * participant, re-assigning all turns/utterances to the new participant record.
+   * Once this is complete, the source participants are deleted.
+   * @param sourceIds A list of existing participant IDs for merging into the destination.
+   * @param destinationId The ID of an existing participant, which will receive all the
+   * source participants' turns and utterances.
+   * @return Update messages for displaying to the user.
+   * @throws PermissionException If the user doesn't have 'edit' permission.
+   * @throws GraphNotFoundException If any of the identified participants is not found
+   * or the user doesn't have access to them.
+   * @throws StoreException Any other error.
+   */
+  public String[] mergeParticipants(String[] sourceIds, String destinationId )
+    throws PermissionException, GraphNotFoundException, StoreException {
+    requireEdit();
+
+    Vector<String> messages = new Vector<String>();
+    try {
+      // check IDs are valid, and gather their speaker_numbers
+      MessageFormat fmtParticipantId = new MessageFormat("m_-2_{0,number,0}");
+      Set<Long> sourceSpeakerNumbers = new HashSet<Long>();
+      for (String source : sourceIds) {
+        if (source.equals(destinationId)) {
+          throw new StoreException("Sources include destination.");
+        }
+        Annotation participant = getParticipant(source, null);
+        if (participant == null) {
+          throw new GraphNotFoundException(source);
+        }
+        Object[] uid = fmtParticipantId.parse(participant.getId());
+        sourceSpeakerNumbers.add((Long)uid[0]);        
+      } // next source
+      
+      Annotation destination = getParticipant(destinationId, null);
+      if (destination == null) {
+        throw new GraphNotFoundException(destinationId);
+      }
+      Object[] uid = fmtParticipantId.parse(destination.getId());
+      Long speakerNumber = (Long)uid[0];
+      
+      // update transcript/participant links
+      String sourceList = sourceSpeakerNumbers.stream()
+        .map(l->l.toString())
+        .collect(Collectors.joining(","));
+      try (PreparedStatement sql = getConnection().prepareStatement(
+             "UPDATE transcript_speaker SET speaker_number = ? WHERE speaker_number IN ("
+             +sourceList+")")) {
+        sql.setLong(1, speakerNumber);
+        messages.add(localize("Transcripts reassigned: {0,number,0}", // TODO i18n
+                              sql.executeUpdate()));
+      }
+      
+      // update turns/utterances
+      try (PreparedStatement sql = getConnection().prepareStatement(
+             "UPDATE annotation_layer_"+SqlConstants.LAYER_TURN
+             +" SET label = ? WHERE label REGEXP '^[0-9]+$' AND CAST(label AS SIGNED) IN ("
+             +sourceList+")")) {
+        sql.setLong(1, speakerNumber);
+        messages.add(localize("Speaker turns reassigned: {0,number,0}", // TODO i18n
+                              sql.executeUpdate()));
+      }
+      try (PreparedStatement sql = getConnection().prepareStatement(
+             "UPDATE annotation_layer_"+SqlConstants.LAYER_UTTERANCE
+             +" SET label = ? WHERE label REGEXP '^[0-9]+$' AND CAST(label AS SIGNED) IN ("
+             +sourceList+")")) {
+        sql.setLong(1, speakerNumber);
+        messages.add(localize("Utterances reassigned: {0,number,0}", // TODO i1x8n
+                              sql.executeUpdate()));
+      }
+      
+      // delete old participants        
+      try (PreparedStatement sql = getConnection().prepareStatement(
+             "DELETE FROM speaker_corpus WHERE speaker_number IN ("+sourceList+")")) {
+        sql.executeUpdate();
+      }
+      try (PreparedStatement sql = getConnection().prepareStatement(
+             "DELETE FROM annotation_participant WHERE speaker_number IN ("
+             +sourceList+")")) {
+        sql.executeUpdate();
+      }
+      try (PreparedStatement sql = getConnection().prepareStatement(
+             "DELETE FROM speaker WHERE speaker_number IN ("+sourceList+")")) {
+        messages.add(localize("Deleted records: {0,number,0}", // TODO i18n
+                              sql.executeUpdate()));
+      }
+    } catch(ParseException parseX) {
+      System.err.println("Parse error: " + parseX);
+      parseX.printStackTrace(System.err);
+      throw new StoreException("Could not parse ID: " + parseX.getMessage());
+    } catch(SQLException exception) {
+      System.err.println("SQL error: " + exception);
+      exception.printStackTrace(System.err);
+      throw new StoreException("Invalid SQL expression.");
+    }
+    return messages.toArray(new String[0]);
+  } // end of mergeParticipants()
 
   /**
    * Returns an SQL WHERE clause for restricting access by user ID, if the user is set.
@@ -1755,7 +1889,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -1855,7 +1989,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error from expression \""+expression+"\": " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
    
@@ -1930,7 +2064,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error from expression \""+expression+"\": " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -2020,7 +2154,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error from expression \""+expression+"\": " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
    
@@ -2079,7 +2213,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error from expression \""+expression+"\": " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
    
@@ -2623,7 +2757,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -2940,7 +3074,7 @@ public class SqlGraphStore implements GraphStore {
         }
       } catch (SQLException x) {
         System.err.println("countAnnotations: SQL: " + x);
-        throw new StoreException("Invalid query."); // TODO i18n
+        throw new StoreException("Invalid SQL expression.");
       }
     } else {
       return countMatchingAnnotations(
@@ -3018,7 +3152,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error from expression \""+expression+"\": " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -3104,7 +3238,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error from expression \""+expression+"\": " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -3204,7 +3338,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error from expression \""+expression+"\": " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -4317,18 +4451,27 @@ public class SqlGraphStore implements GraphStore {
         else if (layer.getParentId() != null
                  && layer.getParentId().equals(schema.getTurnLayerId())) { // phrase layer
           Integer layer_id = (Integer)layer.get("layer_id");
-          if (targetLayer.getId().equals(layer.getId()) // target is selected layer
-              && targetOffset == 0) { // and we're after our own details
+          if (targetLayer.getId().equals(layer.getId())) { // target is selected layer
             String sql = "SELECT DISTINCT annotation.*, ? AS layer, annotation.ag_id AS graph"
               +" FROM annotation_layer_"+layer_id+" annotation"
               +" WHERE annotation.annotation_id = ?"
               +" ORDER BY annotation.ordinal, annotation.annotation_id"
               +" LIMIT 1"; // there can be only one match 
+            if (targetOffset != 0) { // and we're after our own details
+              sql = "SELECT DISTINCT annotation.*, ? AS layer, annotation.ag_id AS graph"
+                +" FROM annotation_layer_"+layer_id+" token"
+                +" INNER JOIN annotation_layer_"+layer_id+" annotation"
+                +" ON token.turn_annotation_id = annotation.turn_annotation_id"
+                +" AND annotation.ordinal = token.ordinal + "+targetOffset
+                +" WHERE token.annotation_id = ?"
+                +" ORDER BY annotation.ordinal, annotation.annotation_id"
+                +" LIMIT 0, " + layerIdToMaxAnnotations.get(layerId);
+            }
             Object[] groups = { layer.getId(), target_annotation_id_group };
-            queries.put(layerId, getConnection().prepareStatement(sql));
-            parameterGroups.put(layerId, groups);
-            altQueries.put(layerId, null); // there is no alternative query
-            altParameterGroups.put(layerId, null);
+              queries.put(layerId, getConnection().prepareStatement(sql));
+              parameterGroups.put(layerId, groups);
+              altQueries.put(layerId, null); // there is no alternative query
+              altParameterGroups.put(layerId, null);
           } else if (targetLayer.isAncestor(schema.getTurnLayerId())) {
             // target table has turn_annotation_id field
             String sql = "SELECT DISTINCT annotation.*, ? AS layer,"
@@ -4727,7 +4870,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error from expression \""+expression+"\": " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
   
@@ -4938,7 +5081,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
    
@@ -5369,7 +5512,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }   
 
@@ -5694,7 +5837,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
   
@@ -6443,36 +6586,47 @@ public class SqlGraphStore implements GraphStore {
             String turnIdList = adjustPhraseOrdinals.get(layer_id).stream()
               .map(uid -> uid.replace("em_11_", "")) // convert uid to turn_annotation_id
               .collect(Collectors.joining(","));
-            if (turnIdList.length() > 0) {
-              String sqlCreate = "CREATE TEMPORARY TABLE annotation_ordinal"
-                +" SELECT u.annotation_id,"
-                +" (SELECT COUNT(*)"
-                +"  FROM annotation_layer_"+layer_id+" o"
-                +"  INNER JOIN anchor o_start"
-                +"  ON o.start_anchor_id = o_start.anchor_id"
-                +"  WHERE o.turn_annotation_id = u.turn_annotation_id"
-                +"   AND o_start.offset <= start.offset) ordinal"
-                +"  FROM annotation_layer_"+layer_id+" u"
-                +" INNER JOIN anchor start ON u.start_anchor_id = start.anchor_id"
-                +" WHERE u.turn_annotation_id IN ("+turnIdList+")";
-              PreparedStatement sql = connection.prepareStatement(sqlCreate);
-              sql.executeUpdate();
-              sql.close();
-
-              String sqlUpdate = "UPDATE annotation_layer_"+layer_id+" u"
-                +" INNER JOIN annotation_ordinal on u.annotation_id"
-                +"  = annotation_ordinal.annotation_id"
-                +" SET u.ordinal = annotation_ordinal.ordinal";
-              sql = connection.prepareStatement(sqlUpdate);
-              sql.executeUpdate();
-              sql.close();
-
-              String sqlDrop = "DROP TEMPORARY TABLE annotation_ordinal";
-              sql = connection.prepareStatement(sqlDrop);
-              sql.executeUpdate();
-              sql.close();
-              
-            } // there are turn IDs
+            try (PreparedStatement sqlTempTableRowNumber = connection.prepareStatement(
+                   "CREATE TEMPORARY TABLE annotation_ordinal"
+                   +" (INDEX ix_annotation_id (annotation_id))"
+                   +" SELECT annotation_id, row_number() OVER (ORDER BY `offset`) ordinal"
+                   +" FROM annotation_layer_"+layer_id+" u"
+                   +" INNER JOIN anchor start ON u.start_anchor_id = start.anchor_id"
+                   +" WHERE CONCAT('em_11_', u.turn_annotation_id) = ?");
+                 // MySQL <= 5.7 don't support row_number()
+                 // so we fall back to a much slower subquery option:
+                 PreparedStatement sqlTempTableSelect = connection.prepareStatement(
+                   "CREATE TEMPORARY TABLE annotation_ordinal"
+                   +" SELECT u.annotation_id,"
+                   +" (SELECT COUNT(*)"
+                   +"  FROM annotation_layer_"+layer_id+" o"
+                   +"  INNER JOIN anchor o_start"
+                   +"  ON o.start_anchor_id = o_start.anchor_id"
+                   +"  WHERE o.turn_annotation_id = u.turn_annotation_id"
+                   +"   AND o_start.offset <= start.offset) ordinal"
+                   +"  FROM annotation_layer_"+layer_id+" u"
+                   +" INNER JOIN anchor start ON u.start_anchor_id = start.anchor_id"
+                   +" WHERE CONCAT('em_11_', u.turn_annotation_id) = ?");
+                 PreparedStatement sqlUpdateOrdinals = connection.prepareStatement(
+                   "UPDATE annotation_layer_"+layer_id+" u"
+                   +" INNER JOIN annotation_ordinal on u.annotation_id"
+                   +"  = annotation_ordinal.annotation_id"
+                   +" SET u.ordinal = annotation_ordinal.ordinal");
+                 PreparedStatement sqlDrop = connection.prepareStatement(
+                   "DROP TEMPORARY TABLE annotation_ordinal")) {
+              for (String turnUid : adjustPhraseOrdinals.get(layer_id)) {
+                sqlTempTableRowNumber.setString(1, turnUid);
+                try { // earlier versions of MySQL don't support row_number()
+                  sqlTempTableRowNumber.executeUpdate();
+                } catch (SQLException x) { // fall back to slower subselect
+                  System.out.println(""+x);
+                  sqlTempTableSelect.setString(1, turnUid);
+                  sqlTempTableSelect.executeUpdate();
+                }
+                sqlUpdateOrdinals.executeUpdate();
+                sqlDrop.executeUpdate();
+              } // next turn ID              
+            } // close statements
               
           } // next updating phrase layer
           // timers.end("update ordinals");
@@ -8474,7 +8628,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -8527,7 +8681,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -8568,7 +8722,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -8628,7 +8782,7 @@ public class SqlGraphStore implements GraphStore {
     } catch (SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
   
@@ -8654,7 +8808,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
 
@@ -9644,7 +9798,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     } catch(MediaException exception) {
       throw new StoreException(exception);
     }
@@ -9758,7 +9912,7 @@ public class SqlGraphStore implements GraphStore {
     } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
     }
   }
    
@@ -9834,7 +9988,7 @@ public class SqlGraphStore implements GraphStore {
       } catch(SQLException exception) {
       System.err.println("SQL error: " + exception);
       exception.printStackTrace(System.err);
-      throw new StoreException("Invalid query."); // TODO i18n
+      throw new StoreException("Invalid SQL expression.");
       }
     }
   }
@@ -10430,4 +10584,32 @@ public class SqlGraphStore implements GraphStore {
     }
   }
 
+  /**
+   * Localizes the given message to the language defined by {@link #resourceBundle},
+   * substituting in the given arguments if any.
+   * <p> The message is assumed to be a MessageFormat template like 
+   * "Row could not be added: {0}"
+   * @param message The message format to localize.
+   * @param args Arguments to be substituted into the message. 
+   * @return The localized message (or if the messages couldn't be localized, the
+   * original message) with the given arguments substituted. 
+   */
+  protected String localize(String message, Object... args) {
+    
+    // get the localized version of the message
+    String localizedString = message;
+    try {
+      localizedString = resourceBundle.getString(message);
+    } catch(Throwable exception) {
+      System.err.println(
+        "i18n: missing resource in " + resourceBundle.getLocale() + ": " + message);
+    }
+    
+    // do we need to substitute in arguments?
+    if (args.length > 0) {
+      localizedString = new MessageFormat(localizedString).format(args);
+    }
+    
+    return localizedString;
+  } // end of localize()
 } // end of class SqlGraphStore

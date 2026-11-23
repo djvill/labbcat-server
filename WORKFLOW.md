@@ -184,6 +184,7 @@ These are analogous to when Robert sends me a tweaked, undocumented LaBB-CAT rel
 | `git branch -a --contains SHA` | View all branches that contain commit `SHA` |
 | `git branch --(no-)merged` | View all branches that are(n't) merged with the current branch |
 | `git push origin branch1 branch2` | Push multiple branches to `origin` |
+| `git switch -t origin/branch1` | Create a new local branch `branch1` that tracks the remote `branch1` |
 
 [^id-1]: Only works in root directory.
 

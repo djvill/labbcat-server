@@ -136,7 +136,10 @@ export class MatchesComponent implements OnInit {
     }
     readTaskStatus(): void {
         this.labbcatService.labbcat.taskStatus(this.threadId, (task, errors, messages) => {
-            if (errors) errors.forEach(m => this.messageService.error(m));
+            if (errors) {
+                this.readingMatches = false;
+                errors.forEach(m => this.messageService.error(m));
+            }
             if (messages) messages.forEach(m => this.messageService.info(m));
             this.task = task;
             this.status = task.status;
@@ -295,6 +298,12 @@ export class MatchesComponent implements OnInit {
     }
     
     allMatches(): void { // TODO find a way to only load the rest
+        if (this.matchCount > 2000) {
+            if (!confirm("There are " + this.matchCount + " matches." // TODO i18n
+                         +"\nAre you sure you want to show them all?")) {
+                return;
+            }
+        }
         this.allLoading = true;
         // load all the results
         this.matches = [];
